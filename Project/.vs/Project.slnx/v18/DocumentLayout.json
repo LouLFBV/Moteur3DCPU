@@ -1,0 +1,58 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{BA8600FD-D473-4E49-AB95-02D67A345EC2}|Project.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{BA8600FD-D473-4E49-AB95-02D67A345EC2}|Project.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BA8600FD-D473-4E49-AB95-02D67A345EC2}|Project.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{BA8600FD-D473-4E49-AB95-02D67A345EC2}|Project.vcxproj|solutionrelative:CMakeLists.txt||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CMakeLists.txt",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt",
+              "RelativeDocumentMoniker": "CMakeLists.txt",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt",
+              "RelativeToolTip": "CMakeLists.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-10-14T08:11:50.795Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\main.cpp",
+              "RelativeDocumentMoniker": "main.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\main.cpp",
+              "RelativeToolTip": "main.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-14T08:11:35.442Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
