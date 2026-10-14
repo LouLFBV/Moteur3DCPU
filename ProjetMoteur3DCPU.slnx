@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="ProjetMoteur3DCPU.vcxproj" Id="16fa1e8d-7bdf-47a3-a0a9-af62d24076be" />
-</Solution>
