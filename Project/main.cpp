@@ -51,6 +51,34 @@ int main(int argc, char* argv[]) {
     bool running = true;
     SDL_Event event;
 
+
+#define vertLen 3
+    SDL_Vertex vert[vertLen];
+
+    // center
+    vert[0].position.x = 400;
+    vert[0].position.y = 150;
+    vert[0].color.r = 1.0;
+    vert[0].color.g = 0.0;
+    vert[0].color.b = 0.0;
+    vert[0].color.a = 1.0;
+
+    // left
+    vert[1].position.x = 200;
+    vert[1].position.y = 450;
+    vert[1].color.r = 0.0;
+    vert[1].color.g = 0.0;
+    vert[1].color.b = 1.0;
+    vert[1].color.a = 1.0;
+
+    // right
+    vert[2].position.x = 600;
+    vert[2].position.y = 450;
+    vert[2].color.r = 0.0;
+    vert[2].color.g = 1.0;
+    vert[2].color.b = 0.0;
+    vert[2].color.a = 1.0;
+
     // Boucle principale de la démo
     while (running) {
         // --- A. Gestion des événements (Clavier, Croix de la fenêtre) ---
@@ -62,45 +90,50 @@ int main(int argc, char* argv[]) {
                 running = false;
             }
         }
-
-
-        // --- B. Simulation de rendu CPU (On "peint" dans notre vecteur RAM) ---
-        // On remplit le buffer avec des couleurs basées sur les coordonnées (x, y)
-        for (int y = 0; y < RENDER_HEIGHT; ++y) {
-            for (int x = 0; x < RENDER_WIDTH; ++x) {
-                // Calcul de l'indice 1D à partir du 2D (x + y * largeur)
-                int index = x + y * RENDER_WIDTH;
-
-                // On fabrique une couleur ARGB (Alpha = FF, Rouge, Vert, Bleu)
-                uint8_t red = static_cast<uint8_t>(x);       // Varie horizontalement
-                uint8_t green = static_cast<uint8_t>(y);     // Varie verticalement
-                uint8_t blue = 128;                          // Fixe
-
-                // Format final : 0xAARRGGBB
-                uint32_t color = (0xFF << 24) | (red << 16) | (green << 8) | blue;
-
-                framebuffer[index] = color;
-            }
-        }
-
-        // --- C. Transfert du CPU vers le GPU via SDL ---
-        // 1. On envoie notre tableau de pixels vers la texture SDL
-        SDL_UpdateTexture(
-            framebufferTexture,
-            nullptr,
-            framebuffer.data(),
-            RENDER_WIDTH * sizeof(uint32_t) // Pitch (taille d'une ligne en octets)
-        );
-
-        // 2. On nettoie le renderer de la fenêtre
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // 3. On copie notre texture basse résolution dans le renderer 
-        // SDL se charge d'étirer l'image proprement à la taille de la fenêtre !
-        SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
+        SDL_RenderGeometry(renderer, NULL, vert, vertLen, NULL, 0);
 
-        // 4. On affiche le tout à l'écran
         SDL_RenderPresent(renderer);
+
+        //// --- B. Simulation de rendu CPU (On "peint" dans notre vecteur RAM) ---
+        //// On remplit le buffer avec des couleurs basées sur les coordonnées (x, y)
+        //for (int y = 0; y < RENDER_HEIGHT; ++y) {
+        //    for (int x = 0; x < RENDER_WIDTH; ++x) {
+        //        // Calcul de l'indice 1D à partir du 2D (x + y * largeur)
+        //        int index = x + y * RENDER_WIDTH;
+
+        //        // On fabrique une couleur ARGB (Alpha = FF, Rouge, Vert, Bleu)
+        //        uint8_t red = static_cast<uint8_t>(x);       // Varie horizontalement
+        //        uint8_t green = static_cast<uint8_t>(y);     // Varie verticalement
+        //        uint8_t blue = 128;                          // Fixe
+
+        //        // Format final : 0xAARRGGBB
+        //        uint32_t color = (0xFF << 24) | (red << 16) | (green << 8) | blue;
+
+        //        framebuffer[index] = color;
+        //    }
+        //}
+
+        //// --- C. Transfert du CPU vers le GPU via SDL ---
+        //// 1. On envoie notre tableau de pixels vers la texture SDL
+        //SDL_UpdateTexture(
+        //    framebufferTexture,
+        //    nullptr,
+        //    framebuffer.data(),
+        //    RENDER_WIDTH * sizeof(uint32_t) // Pitch (taille d'une ligne en octets)
+        //);
+
+        //// 2. On nettoie le renderer de la fenêtre
+        //SDL_RenderClear(renderer);
+
+        //// 3. On copie notre texture basse résolution dans le renderer 
+        //// SDL se charge d'étirer l'image proprement à la taille de la fenêtre !
+        //SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
+
+        //// 4. On affiche le tout à l'écran
+        //SDL_RenderPresent(renderer);
     }
 
     // 6. Nettoyage propre des ressources SDL
