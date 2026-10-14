@@ -2,9 +2,51 @@
 #include <vector>
 #include <cstdint>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 const int RENDER_WIDTH = 320;
 const int RENDER_HEIGHT = 200;
+
+struct Vec4 
+{
+    float x, y, z, w; 
+};
+
+struct Mat4 
+{ 
+    float m[4][4]; 
+};
+
+struct Vertex 
+{
+    Vec4 pos; float r, g, b; 
+};
+
+Vec4 mul(const Mat4 & M, Vec4 v) 
+{
+    float in[4] = { v.x, v.y, v.z, v.w }, out[4] = { 0, 0, 0, 0 };
+    for (int r = 0; r < 4; r++)
+        for (int c = 0; c < 4; c++) out[r] += M.m[r][c] * in[c];
+    return { out[0], out[1], out[2], out[3] };
+}
+
+struct SV 
+{
+        int x, y; 
+        float z; 
+        float r, g, b; 
+};
+
+SV toScreen(const Vertex& v) 
+{
+    float iw = 1.0f / v.pos.w;
+    float x = v.pos.x * iw, y = v.pos.y * iw, z = v.pos.z * iw;
+    return { int(std::lround((x + 1) / 2 * RENDER_WIDTH)),
+             int(std::lround((1 - y) / 2 * RENDER_HEIGHT)), z, v.r, v.g, v.b };
+}
+
+
 
 int main(int argc, char* argv[]) {
     // 1. Initialisation de SDL
@@ -66,7 +108,7 @@ int main(int argc, char* argv[]) {
     // left
     vert[1].position.x = 200;
     vert[1].position.y = 450;
-    vert[1].color.r = 0.0;
+    vert[1].color.r = 1.0;
     vert[1].color.g = 0.0;
     vert[1].color.b = 1.0;
     vert[1].color.a = 1.0;
@@ -74,8 +116,8 @@ int main(int argc, char* argv[]) {
     // right
     vert[2].position.x = 600;
     vert[2].position.y = 450;
-    vert[2].color.r = 0.0;
-    vert[2].color.g = 1.0;
+    vert[2].color.r = 1.0;
+    vert[2].color.g = 0.0;
     vert[2].color.b = 0.0;
     vert[2].color.a = 1.0;
 
@@ -93,7 +135,7 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_RenderGeometry(renderer, NULL, vert, vertLen, NULL, 0);
+        //SDL_RenderGeometry(renderer, NULL, vert, vertLen, NULL, 0); // Ligne qui affihche et fait la rasterisation
 
         SDL_RenderPresent(renderer);
 
