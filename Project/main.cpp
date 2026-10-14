@@ -1,25 +1,23 @@
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <vector>
 #include <cstdint>
 #include <iostream>
 
-// On définit nos constantes pour la résolution logique interne (basse résolution)
 const int RENDER_WIDTH = 320;
 const int RENDER_HEIGHT = 200;
 
 int main(int argc, char* argv[]) {
     // 1. Initialisation de SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) { // Vrai si l'initialisation a échoué
         std::cerr << "Erreur SDL_Init : " << SDL_GetError() << std::endl;
         return 1;
     }
 
     // 2. Création de la fenêtre (on la met plus grande, ex: 800x600, pour voir le scaling)
     SDL_Window* window = SDL_CreateWindow(
-        "Moteur 3D CPU - Rendu Basse Resolution",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        800, 500, // Ratio 16:10 pour coller joliment au 320x200
-        SDL_WINDOW_SHOWN
+        "Moteur 3D CPU SDL3 - Rendu Basse Resolution",
+        800, 500, // Largeur, Hauteur directement !
+        0         // Pas de flag particulier pour l'instant
     );
     if (!window) {
         std::cerr << "Erreur SDL_CreateWindow : " << SDL_GetError() << std::endl;
@@ -28,7 +26,7 @@ int main(int argc, char* argv[]) {
     }
 
     // 3. Création du Renderer
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (!renderer) {
         std::cerr << "Erreur SDL_CreateRenderer : " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
@@ -57,16 +55,17 @@ int main(int argc, char* argv[]) {
     while (running) {
         // --- A. Gestion des événements (Clavier, Croix de la fenêtre) ---
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
+            if (event.type == SDL_EVENT_QUIT) {
                 running = false;
             }
-            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) {
-                running = false; // Touche Échap demandée dans le sujet !
+            if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
+                running = false;
             }
         }
 
+
         // --- B. Simulation de rendu CPU (On "peint" dans notre vecteur RAM) ---
-        // Petit effet rigolo : on remplit le buffer avec des couleurs basées sur les coordonnées (x, y)
+        // On remplit le buffer avec des couleurs basées sur les coordonnées (x, y)
         for (int y = 0; y < RENDER_HEIGHT; ++y) {
             for (int x = 0; x < RENDER_WIDTH; ++x) {
                 // Calcul de l'indice 1D à partir du 2D (x + y * largeur)
@@ -98,7 +97,7 @@ int main(int argc, char* argv[]) {
 
         // 3. On copie notre texture basse résolution dans le renderer 
         // SDL se charge d'étirer l'image proprement à la taille de la fenêtre !
-        SDL_RenderCopy(renderer, framebufferTexture, nullptr, nullptr);
+        SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
 
         // 4. On affiche le tout à l'écran
         SDL_RenderPresent(renderer);
