@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Project\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\Project\\Vector3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Project\\Project\\Vector3.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Project\\CMakeLists.txt||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
@@ -18,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -27,15 +31,26 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
+              "Title": "Vector3.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\Project\\Vector3.h",
+              "RelativeDocumentMoniker": "Project\\Project\\Vector3.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\Project\\Vector3.h",
+              "RelativeToolTip": "Project\\Project\\Vector3.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-14T10:25:05.769Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "CMakeLists.txt",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt",
               "RelativeDocumentMoniker": "Project\\CMakeLists.txt",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\CMakeLists.txt",
               "RelativeToolTip": "Project\\CMakeLists.txt",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAA4AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2026-10-14T08:31:41.689Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-14T08:31:41.689Z"
             },
             {
               "$type": "Document",
@@ -45,7 +60,7 @@
               "RelativeDocumentMoniker": "Project\\main.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\Project\\main.cpp",
               "RelativeToolTip": "Project\\main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAAH4AAAAAAAAAAAAAAJ0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-10-14T08:18:35.178Z",
               "EditorCaption": ""

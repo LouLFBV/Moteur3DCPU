@@ -8,58 +8,159 @@
 const int RENDER_WIDTH = 320;
 const int RENDER_HEIGHT = 200;
 
-struct Vec4 
+// --- Structures mathématiques et de rendu ---
+struct Vector4 //Cours
 {
-    float x, y, z, w; 
+    float x, y, z, w;
 };
 
-struct Mat4 
-{ 
-    float m[4][4]; 
+struct Matrix4 //Cours
+{
+    float m[4][4];
 };
 
-struct Vertex 
+struct Vertex //Cours
 {
-    Vec4 pos; float r, g, b; 
+    Vector4 position;
+    float r, g, b;
 };
 
-Vec4 mul(const Mat4 & M, Vec4 v) 
+struct ScreenVertex  //Cours
 {
-    float in[4] = { v.x, v.y, v.z, v.w }, out[4] = { 0, 0, 0, 0 };
-    for (int r = 0; r < 4; r++)
-        for (int c = 0; c < 4; c++) out[r] += M.m[r][c] * in[c];
+    int x, y; // pixel
+    float z; // profondeur NDC
+    float r, g, b; // couleur
+};
+
+
+struct BordLigne //Cours
+{
+    int x;
+    float z, r, g, b;
+};
+
+float Lerp(float a, float b, float t)  //Cours
+{
+    return a + (b - a) * t;
+}
+
+Vector4 MultiplicationMatrixVector(const Matrix4& matrix, Vector4 vector)  //Cours
+{
+    float in[4] = { vector.x, vector.y, vector.z, vector.w };
+    float out[4] = { 0, 0, 0, 0 };
+
+    for (int row = 0; row < 4; ++row)
+        for (int column = 0; column < 4; ++column)
+            out[row] += matrix.m[row][column] * in[column];
+
     return { out[0], out[1], out[2], out[3] };
 }
 
-struct SV 
+// Projette un sommet 3D (espace de projection) vers l'écran 2D (pixels)
+ScreenVertex ToScreen(const Vertex& vertex)
 {
-        int x, y; 
-        float z; 
-        float r, g, b; 
-};
+    // On calcule l'inverse de w pour remplacer les divisions par des multiplications (optimisation CPU)
+    float inverseW = 1.0f / vertex.position.w;
 
-SV toScreen(const Vertex& v) 
-{
-    float iw = 1.0f / v.pos.w;
-    float x = v.pos.x * iw, y = v.pos.y * iw, z = v.pos.z * iw;
-    return { int(std::lround((x + 1) / 2 * RENDER_WIDTH)),
-             int(std::lround((1 - y) / 2 * RENDER_HEIGHT)), z, v.r, v.g, v.b };
+    // Division perspective : on passe des coordonnées clip aux coordonnées NDC [-1, 1]
+    float xndc = vertex.position.x * inverseW;
+    float yndc = vertex.position.y * inverseW;
+    float zndc = vertex.position.z * inverseW;
+
+    return {
+        // Transformation Viewport : on convertit les NDC en pixels de l'écran
+        int(std::lround((xndc + 1) / 2 * RENDER_WIDTH)), // lround pour arrondir mathématiquement
+        int(std::lround((1 - yndc) / 2 * RENDER_HEIGHT)), // Le (1 - y) inverse l'axe vertical pour l'écran
+        zndc,
+        vertex.r, vertex.g, vertex.b
+    };
 }
 
+// --- Le Rasteriseur du cours (100% CPU) ---
 
+void Plot(std::vector<uint32_t>& fb, int x, int y, float z, float r, float g, float b)  //Cours
+{
+    if (x >= 0 && x < RENDER_WIDTH && y >= 0 && y < RENDER_HEIGHT)
+    {
+        uint8_t ir = static_cast<uint8_t>(std::clamp(r, 0.0f, 255.0f));
+        uint8_t ig = static_cast<uint8_t>(std::clamp(g, 0.0f, 255.0f));
+        uint8_t ib = static_cast<uint8_t>(std::clamp(b, 0.0f, 255.0f));
 
-int main(int argc, char* argv[]) {
-    // 1. Initialisation de SDL
-    if (!SDL_Init(SDL_INIT_VIDEO)) { // Vrai si l'initialisation a échoué
+        // Format ARGB (0xAARRGGBB)
+        uint32_t color = (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
+        fb[x + y * RENDER_WIDTH] = color;
+    }
+}
+
+void SortByY(ScreenVertex& a, ScreenVertex& b, ScreenVertex& c)  //Cours
+{
+    if (a.y > b.y) std::swap(a, b);
+    if (b.y > c.y) std::swap(b, c);
+    if (a.y > b.y) std::swap(a, b);
+}
+
+bool MiddleIsRight(const ScreenVertex& a, const ScreenVertex& b, const ScreenVertex& c)  //Cours
+{
+    long cross = long(c.x - a.x) * (b.y - a.y) - long(c.y - a.y) * (b.x - a.x);
+    return cross < 0;
+}
+
+void WalkEdge(const ScreenVertex& a, const ScreenVertex& b, BordLigne* out)  //Cours
+{
+    int dx = std::abs(b.x - a.x), dy = b.y - a.y;
+    if (dy == 0) return; // Arête horizontale ignorée
+    int sx = (b.x > a.x) ? 1 : -1, err = dy / 2, x = a.x;
+    for (int y = a.y; y < b.y; ++y) {
+        float t = float(y - a.y) / dy;
+        if (y >= 0 && y < RENDER_HEIGHT)
+            out[y] = { x, Lerp(a.z, b.z, t), Lerp(a.r, b.r, t),
+                       Lerp(a.g, b.g, t), Lerp(a.b, b.b, t) };
+        for (err += dx; err > dy; err -= dy) x += sx;
+    }
+}
+
+void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne* left, const BordLigne* right)  //Cours
+{
+    for (int y = std::max(y0, 0); y < std::min(y1, RENDER_HEIGHT); ++y) {
+        const BordLigne& l = left[y], & r = right[y];
+        int w = r.x - l.x;
+        for (int x = std::max(l.x, 0); x < std::min(r.x, RENDER_WIDTH); ++x) {
+            float t = (w == 0) ? 0.0f : float(x - l.x) / w;
+            Plot(fb, x, y, Lerp(l.z, r.z, t), Lerp(l.r, r.r, t),
+                Lerp(l.g, r.g, t), Lerp(l.b, r.b, t));
+        }
+    }
+}
+
+void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex a, ScreenVertex b, ScreenVertex c)  //Cours
+{
+    SortByY(a, b, c);
+    static BordLigne longSide[RENDER_HEIGHT], shortSide[RENDER_HEIGHT];
+
+    // Nettoyage rapide des tableaux statiques
+    std::fill_n(longSide, RENDER_HEIGHT, BordLigne{ 0, 0, 0, 0, 0 });
+    std::fill_n(shortSide, RENDER_HEIGHT, BordLigne{ 0, 0, 0, 0, 0 });
+
+    WalkEdge(a, c, longSide);
+    WalkEdge(a, b, shortSide);
+    WalkEdge(b, c, shortSide);
+
+    bool right = MiddleIsRight(a, b, c);
+    FillRows(fb, a.y, c.y, right ? longSide : shortSide,
+        right ? shortSide : longSide);
+}
+
+int main(int argc, char* argv[])
+{
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         std::cerr << "Erreur SDL_Init : " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    // 2. Création de la fenêtre (on la met plus grande, ex: 800x600, pour voir le scaling)
     SDL_Window* window = SDL_CreateWindow(
-        "Moteur 3D CPU SDL3 - Rendu Basse Resolution",
-        800, 500, // Largeur, Hauteur directement !
-        0         // Pas de flag particulier pour l'instant
+        "Moteur 3D CPU - Rasteriseur Personnel",
+        800, 500,
+        0
     );
     if (!window) {
         std::cerr << "Erreur SDL_CreateWindow : " << SDL_GetError() << std::endl;
@@ -67,7 +168,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 3. Création du Renderer
+    // Création du "Renderer" (le gestionnaire de dessin)
+    // Il fait le lien entre notre code et la fenêtre pour afficher des pixels/textures.
+    // Le 'nullptr' laisse SDL choisir automatiquement le meilleur pilote matériel (DirectX/OpenGL/Vulkan)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (!renderer) {
         std::cerr << "Erreur SDL_CreateRenderer : " << SDL_GetError() << std::endl;
@@ -76,8 +179,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // 4. Création de la texture cible (notre "écran virtuel" en 320x200)
-    // Format ARGB8888 : 32 bits par pixel (8 bits pour Alpha, Rouge, Vert, Bleu)
     SDL_Texture* framebufferTexture = SDL_CreateTexture(
         renderer,
         SDL_PIXELFORMAT_ARGB8888,
@@ -86,44 +187,29 @@ int main(int argc, char* argv[]) {
         RENDER_HEIGHT
     );
 
-    // 5. Allocation de notre Framebuffer CPU (notre tableau de pixels en RAM)
-    // Taille = Largeur x Hauteur entiers de 32 bits
     std::vector<uint32_t> framebuffer(RENDER_WIDTH * RENDER_HEIGHT);
 
     bool running = true;
     SDL_Event event;
 
+    // Définition de 3 sommets 3D de test (dans l'espace clip pour l'instant)
+    Vertex v0 = { 
+        {  0.0f,  0.5f, 0.0f, 1.0f },//Position
+        255.0f, 0.0f, 0.0f //Couleur
+    };   // Sommet haut (Rouge)
 
-#define vertLen 3
-    SDL_Vertex vert[vertLen];
+    Vertex v1 = { 
+        { -0.5f, -0.5f, 0.0f, 1.0f },//Position
+        0.0f, 255.0f, 0.0f //Couleur
+    };   // Sommet bas-gauche (Vert)
 
-    // center
-    vert[0].position.x = 400;
-    vert[0].position.y = 150;
-    vert[0].color.r = 1.0;
-    vert[0].color.g = 0.0;
-    vert[0].color.b = 0.0;
-    vert[0].color.a = 1.0;
+    Vertex v2 = { 
+        {  0.5f, -0.5f, 0.0f, 1.0f },//Position
+        0.0f, 0.0f, 255.0f //Couleur
+    };   // Sommet bas-droite (Bleu)
 
-    // left
-    vert[1].position.x = 200;
-    vert[1].position.y = 450;
-    vert[1].color.r = 1.0;
-    vert[1].color.g = 0.0;
-    vert[1].color.b = 1.0;
-    vert[1].color.a = 1.0;
 
-    // right
-    vert[2].position.x = 600;
-    vert[2].position.y = 450;
-    vert[2].color.r = 1.0;
-    vert[2].color.g = 0.0;
-    vert[2].color.b = 0.0;
-    vert[2].color.a = 1.0;
-
-    // Boucle principale de la démo
     while (running) {
-        // --- A. Gestion des événements (Clavier, Croix de la fenêtre) ---
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 running = false;
@@ -132,53 +218,32 @@ int main(int argc, char* argv[]) {
                 running = false;
             }
         }
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+        // 1. Effacer le framebuffer (fond noir : 0xFF000000)
+        std::fill(framebuffer.begin(), framebuffer.end(), 0xFF000000);
+
+        // 2. Transformer les sommets 3D en sommets écran 2D (SV)
+        ScreenVertex sv0 = ToScreen(v0);
+        ScreenVertex sv1 = ToScreen(v1);
+        ScreenVertex sv2 = ToScreen(v2);
+
+        // 3. Rasteriser notre triangle entièrement sur le CPU !
+        DrawTriangle(framebuffer, sv0, sv1, sv2);
+
+        // 4. Envoyer le framebuffer CPU vers la texture GPU SDL
+        SDL_UpdateTexture(
+            framebufferTexture,
+            nullptr,
+            framebuffer.data(),
+            RENDER_WIDTH * sizeof(uint32_t)
+        );
+
+        // 5. Afficher à l'écran
         SDL_RenderClear(renderer);
-
-        //SDL_RenderGeometry(renderer, NULL, vert, vertLen, NULL, 0); // Ligne qui affihche et fait la rasterisation
-
+        SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
-
-        //// --- B. Simulation de rendu CPU (On "peint" dans notre vecteur RAM) ---
-        //// On remplit le buffer avec des couleurs basées sur les coordonnées (x, y)
-        //for (int y = 0; y < RENDER_HEIGHT; ++y) {
-        //    for (int x = 0; x < RENDER_WIDTH; ++x) {
-        //        // Calcul de l'indice 1D à partir du 2D (x + y * largeur)
-        //        int index = x + y * RENDER_WIDTH;
-
-        //        // On fabrique une couleur ARGB (Alpha = FF, Rouge, Vert, Bleu)
-        //        uint8_t red = static_cast<uint8_t>(x);       // Varie horizontalement
-        //        uint8_t green = static_cast<uint8_t>(y);     // Varie verticalement
-        //        uint8_t blue = 128;                          // Fixe
-
-        //        // Format final : 0xAARRGGBB
-        //        uint32_t color = (0xFF << 24) | (red << 16) | (green << 8) | blue;
-
-        //        framebuffer[index] = color;
-        //    }
-        //}
-
-        //// --- C. Transfert du CPU vers le GPU via SDL ---
-        //// 1. On envoie notre tableau de pixels vers la texture SDL
-        //SDL_UpdateTexture(
-        //    framebufferTexture,
-        //    nullptr,
-        //    framebuffer.data(),
-        //    RENDER_WIDTH * sizeof(uint32_t) // Pitch (taille d'une ligne en octets)
-        //);
-
-        //// 2. On nettoie le renderer de la fenêtre
-        //SDL_RenderClear(renderer);
-
-        //// 3. On copie notre texture basse résolution dans le renderer 
-        //// SDL se charge d'étirer l'image proprement à la taille de la fenêtre !
-        //SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
-
-        //// 4. On affiche le tout à l'écran
-        //SDL_RenderPresent(renderer);
     }
 
-    // 6. Nettoyage propre des ressources SDL
     SDL_DestroyTexture(framebufferTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
