@@ -32,7 +32,6 @@ struct ScreenVertex  //Cours
     float r, g, b; // couleur
 };
 
-
 struct BordLigne //Cours
 {
     int x;
@@ -41,7 +40,7 @@ struct BordLigne //Cours
 
 float Lerp(float a, float b, float t)  //Cours
 {
-    return a + (b - a) * t;
+    return (1.0f - t) * a + t*b;
 }
 
 Vector4 MultiplicationMatrixVector(const Matrix4& matrix, Vector4 vector)  //Cours
@@ -69,8 +68,8 @@ ScreenVertex ToScreen(const Vertex& vertex)
 
     return {
         // Transformation Viewport : on convertit les NDC en pixels de l'écran
-        int(std::lround((xndc + 1) / 2 * RENDER_WIDTH)), // lround pour arrondir mathématiquement
-        int(std::lround((1 - yndc) / 2 * RENDER_HEIGHT)), // Le (1 - y) inverse l'axe vertical pour l'écran
+        int(std::lround((xndc + 1) / 2 * RENDER_WIDTH)), 
+        int(std::lround((1 - yndc) / 2 * RENDER_HEIGHT)), 
         zndc,
         vertex.r, vertex.g, vertex.b
     };
@@ -78,17 +77,29 @@ ScreenVertex ToScreen(const Vertex& vertex)
 
 // --- Le Rasteriseur du cours (100% CPU) ---
 
-void Plot(std::vector<uint32_t>& fb, int x, int y, float z, float r, float g, float b)  //Cours
+// 1. Déclaration du Z-Buffer global
+std::vector<float> zbuffer(RENDER_WIDTH * RENDER_HEIGHT, 1.0f);
+
+// 2. La fonction Plot mise à jour avec le test de profondeur du cours
+void Plot(std::vector<uint32_t>& fb, std::vector<float>& zb, int x, int y, float z, float r, float g, float b)
 {
     if (x >= 0 && x < RENDER_WIDTH && y >= 0 && y < RENDER_HEIGHT)
     {
-        uint8_t ir = static_cast<uint8_t>(std::clamp(r, 0.0f, 255.0f));
-        uint8_t ig = static_cast<uint8_t>(std::clamp(g, 0.0f, 255.0f));
-        uint8_t ib = static_cast<uint8_t>(std::clamp(b, 0.0f, 255.0f));
+        int i = x + y * RENDER_WIDTH; // Index 1D du pixel
 
-        // Format ARGB (0xAARRGGBB)
-        uint32_t color = (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
-        fb[x + y * RENDER_WIDTH] = color;
+        // Test de profondeur (Z-Buffer) : 
+        if (z >= zb[i]) return;
+
+        // Sinon, on met à jour la profondeur dans le z-buffer
+        zb[i] = z;
+
+        // Conversion des couleurs 
+        uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * r + 0.5f, 0.0f, 255.0f));
+        uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * g + 0.5f, 0.0f, 255.0f));
+        uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * b + 0.5f, 0.0f, 255.0f));
+
+        // Écriture de la couleur dans le framebuffer ARGB
+        fb[i] = (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
     }
 }
 
@@ -105,17 +116,23 @@ bool MiddleIsRight(const ScreenVertex& a, const ScreenVertex& b, const ScreenVer
     return cross < 0;
 }
 
-void WalkEdge(const ScreenVertex& a, const ScreenVertex& b, BordLigne* out)  //Cours
+void WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out)  //Cours
 {
-    int dx = std::abs(b.x - a.x), dy = b.y - a.y;
-    if (dy == 0) return; // Arête horizontale ignorée
-    int sx = (b.x > a.x) ? 1 : -1, err = dy / 2, x = a.x;
-    for (int y = a.y; y < b.y; ++y) {
-        float t = float(y - a.y) / dy;
+    int distanceX = std::abs(sv2.x - sv1.x);
+    int distanceY = sv2.y - sv1.y; 
+    if (distanceY == 0) return; // Arête horizontale ignorée
+
+    int sensX = (sv2.x > sv1.x) ? 1 : -1;
+    int err = distanceY / 2;
+    int x = sv1.x;
+
+    for (int y = sv1.y; y < sv2.y; ++y) { 
+        float t = float(y - sv1.y) / distanceY;
         if (y >= 0 && y < RENDER_HEIGHT)
-            out[y] = { x, Lerp(a.z, b.z, t), Lerp(a.r, b.r, t),
-                       Lerp(a.g, b.g, t), Lerp(a.b, b.b, t) };
-        for (err += dx; err > dy; err -= dy) x += sx;
+            out[y] = { x, Lerp(sv1.z, sv2.z, t), Lerp(sv1.r, sv2.r, t),
+                       Lerp(sv1.g, sv2.g, t), Lerp(sv1.b, sv2.b, t) };
+        for (err += distanceX; err > distanceY; err -= distanceY)
+            x += sensX;
     }
 }
 
@@ -126,27 +143,27 @@ void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne* left, 
         int w = r.x - l.x;
         for (int x = std::max(l.x, 0); x < std::min(r.x, RENDER_WIDTH); ++x) {
             float t = (w == 0) ? 0.0f : float(x - l.x) / w;
-            Plot(fb, x, y, Lerp(l.z, r.z, t), Lerp(l.r, r.r, t),
+            Plot(fb, zbuffer, x, y, Lerp(l.z, r.z, t), Lerp(l.r, r.r, t),
                 Lerp(l.g, r.g, t), Lerp(l.b, r.b, t));
         }
     }
 }
 
-void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex a, ScreenVertex b, ScreenVertex c)  //Cours
+void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex sv1, ScreenVertex sv2, ScreenVertex sv3)  //Cours
 {
-    SortByY(a, b, c);
+    SortByY(sv1, sv2, sv3);
     static BordLigne longSide[RENDER_HEIGHT], shortSide[RENDER_HEIGHT];
 
     // Nettoyage rapide des tableaux statiques
     std::fill_n(longSide, RENDER_HEIGHT, BordLigne{ 0, 0, 0, 0, 0 });
     std::fill_n(shortSide, RENDER_HEIGHT, BordLigne{ 0, 0, 0, 0, 0 });
 
-    WalkEdge(a, c, longSide);
-    WalkEdge(a, b, shortSide);
-    WalkEdge(b, c, shortSide);
+    WalkEdge(sv1, sv3, longSide);
+    WalkEdge(sv1, sv2, shortSide);
+    WalkEdge(sv2, sv3, shortSide);
 
-    bool right = MiddleIsRight(a, b, c);
-    FillRows(fb, a.y, c.y, right ? longSide : shortSide,
+    bool right = MiddleIsRight(sv1, sv2, sv3);
+    FillRows(fb, sv1.y, sv3.y, right ? longSide : shortSide,
         right ? shortSide : longSide);
 }
 
@@ -168,9 +185,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Création du "Renderer" (le gestionnaire de dessin)
-    // Il fait le lien entre notre code et la fenêtre pour afficher des pixels/textures.
-    // Le 'nullptr' laisse SDL choisir automatiquement le meilleur pilote matériel (DirectX/OpenGL/Vulkan)
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
     if (!renderer) {
         std::cerr << "Erreur SDL_CreateRenderer : " << SDL_GetError() << std::endl;
@@ -192,22 +206,9 @@ int main(int argc, char* argv[])
     bool running = true;
     SDL_Event event;
 
-    // Définition de 3 sommets 3D de test (dans l'espace clip pour l'instant)
-    Vertex v0 = { 
-        {  0.0f,  0.5f, 0.0f, 1.0f },//Position
-        255.0f, 0.0f, 0.0f //Couleur
-    };   // Sommet haut (Rouge)
-
-    Vertex v1 = { 
-        { -0.5f, -0.5f, 0.0f, 1.0f },//Position
-        0.0f, 255.0f, 0.0f //Couleur
-    };   // Sommet bas-gauche (Vert)
-
-    Vertex v2 = { 
-        {  0.5f, -0.5f, 0.0f, 1.0f },//Position
-        0.0f, 0.0f, 255.0f //Couleur
-    };   // Sommet bas-droite (Bleu)
-
+    Vertex v0 = { {  0.0f,  0.5f, 0.0f, 1.0f }, 1.0f, 0.0f, 0.0f };   // Haut (Rouge max)
+    Vertex v1 = { { -0.5f, -0.5f, 0.0f, 1.0f }, 0.0f, 1.0f, 0.0f };   // Bas-gauche (Vert max)
+    Vertex v2 = { {  0.5f, -0.5f, 0.0f, 1.0f }, 0.0f, 0.0f, 1.0f };   // Bas-droite (Bleu max)
 
     while (running) {
         while (SDL_PollEvent(&event)) {
@@ -219,18 +220,19 @@ int main(int argc, char* argv[])
             }
         }
 
-        // 1. Effacer le framebuffer (fond noir : 0xFF000000)
-        std::fill(framebuffer.begin(), framebuffer.end(), 0xFF000000);
+        // 1. Effacer le framebuffer et le z-buffer
+        std::fill(framebuffer.begin(), framebuffer.end(), 0xFF000000); 
+        std::fill(zbuffer.begin(), zbuffer.end(), 1.0f);               
 
-        // 2. Transformer les sommets 3D en sommets écran 2D (SV)
+        // 2. Transformer les sommets
         ScreenVertex sv0 = ToScreen(v0);
         ScreenVertex sv1 = ToScreen(v1);
         ScreenVertex sv2 = ToScreen(v2);
 
-        // 3. Rasteriser notre triangle entièrement sur le CPU !
+        // 3. Rasteriser le triangle
         DrawTriangle(framebuffer, sv0, sv1, sv2);
 
-        // 4. Envoyer le framebuffer CPU vers la texture GPU SDL
+        // 4. Envoyer vers la texture SDL
         SDL_UpdateTexture(
             framebufferTexture,
             nullptr,
