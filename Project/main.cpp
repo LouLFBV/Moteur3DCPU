@@ -35,7 +35,8 @@ struct ScreenVertex  //Cours
 struct BordLigne //Cours
 {
     int x;
-    float z, r, g, b;
+    float z;
+    float r, g, b;
 };
 
 float Lerp(float a, float b, float t)  //Cours
@@ -123,28 +124,30 @@ void WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out) 
     if (distanceY == 0) return; // Arête horizontale ignorée
 
     int sensX = (sv2.x > sv1.x) ? 1 : -1;
-    int err = distanceY / 2;
+    int err = distanceY / 2; // à expliquer
     int x = sv1.x;
 
     for (int y = sv1.y; y < sv2.y; ++y) { 
         float t = float(y - sv1.y) / distanceY;
         if (y >= 0 && y < RENDER_HEIGHT)
-            out[y] = { x, Lerp(sv1.z, sv2.z, t), Lerp(sv1.r, sv2.r, t),
-                       Lerp(sv1.g, sv2.g, t), Lerp(sv1.b, sv2.b, t) };
+            out[y] = { x, Lerp(sv1.z, sv2.z, t), Lerp(sv1.r, sv2.r, t), Lerp(sv1.g, sv2.g, t), Lerp(sv1.b, sv2.b, t) };
+
         for (err += distanceX; err > distanceY; err -= distanceY)
             x += sensX;
     }
 }
 
-void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne* left, const BordLigne* right)  //Cours
+
+void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne left[], const BordLigne right[])  //Cours à en discuter
 {
     for (int y = std::max(y0, 0); y < std::min(y1, RENDER_HEIGHT); ++y) {
-        const BordLigne& l = left[y], & r = right[y];
-        int w = r.x - l.x;
-        for (int x = std::max(l.x, 0); x < std::min(r.x, RENDER_WIDTH); ++x) {
-            float t = (w == 0) ? 0.0f : float(x - l.x) / w;
-            Plot(fb, zbuffer, x, y, Lerp(l.z, r.z, t), Lerp(l.r, r.r, t),
-                Lerp(l.g, r.g, t), Lerp(l.b, r.b, t));
+        const BordLigne& currentLeft = left[y];
+        const BordLigne& currentRight = right[y];
+        int width = currentRight.x - currentLeft.x;
+
+        for (int x = std::max(currentLeft.x, 0); x < std::min(currentRight.x, RENDER_WIDTH); ++x) {
+            float t = (width == 0) ? 0.0f : float(x - currentLeft.x) / width;
+            Plot(fb, zbuffer, x, y, Lerp(currentLeft.z, currentRight.z, t), Lerp(currentLeft.r, currentRight.r, t), Lerp(currentLeft.g, currentRight.g, t), Lerp(currentLeft.b, currentRight.b, t));
         }
     }
 }
@@ -152,7 +155,8 @@ void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne* left, 
 void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex sv1, ScreenVertex sv2, ScreenVertex sv3)  //Cours
 {
     SortByY(sv1, sv2, sv3);
-    static BordLigne longSide[RENDER_HEIGHT], shortSide[RENDER_HEIGHT];
+    static BordLigne longSide[RENDER_HEIGHT];
+    static BordLigne shortSide[RENDER_HEIGHT];
 
     // Nettoyage rapide des tableaux statiques
     std::fill_n(longSide, RENDER_HEIGHT, BordLigne{ 0, 0, 0, 0, 0 });
