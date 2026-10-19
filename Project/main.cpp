@@ -39,6 +39,9 @@ struct BordLigne //Cours
     float r, g, b;
 };
 
+
+std::vector<float> zbuffer(RENDER_WIDTH* RENDER_HEIGHT, 1.0f);
+
 float Lerp(float a, float b, float t)  //Cours
 {
     return (1.0f - t) * a + t*b;
@@ -76,12 +79,6 @@ ScreenVertex ToScreen(const Vertex& vertex)
     };
 }
 
-// --- Le Rasteriseur du cours (100% CPU) ---
-
-// 1. Déclaration du Z-Buffer global
-std::vector<float> zbuffer(RENDER_WIDTH * RENDER_HEIGHT, 1.0f);
-
-// 2. La fonction Plot mise à jour avec le test de profondeur du cours
 void Plot(std::vector<uint32_t>& fb, std::vector<float>& zb, int x, int y, float z, float r, float g, float b)
 {
     if (x >= 0 && x < RENDER_WIDTH && y >= 0 && y < RENDER_HEIGHT)
@@ -152,6 +149,18 @@ void FillRows(std::vector<uint32_t>& fb, int y0, int y1, const BordLigne left[],
     }
 }
 
+void fillRowFast(std::vector<uint32_t>& fb, int y, const BordLigne& l, const BordLigne& r) {
+    int w = std::max(r.x - l.x, 1); // largeur, au moins 1
+        float dz = (r.z - l.z) / w, dr = (r.r - l.r) / w; // pas par pixel
+        float dg = (r.g - l.g) / w, db = (r.b - l.b) / w;
+    float z = l.z, cr = l.r, cg = l.g, cb = l.b;
+    for (int x = l.x; x < r.x; x ++ ) {
+        if (x > 0 && x < RENDER_WIDTH) Plot(fb, zbuffer, x, y, z, cr, cg, cb);
+        z += dz; cr += dr; cg += dg; cb += db; // une addition par attribut
+    }
+}
+
+
 void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex sv1, ScreenVertex sv2, ScreenVertex sv3)  //Cours
 {
     SortByY(sv1, sv2, sv3);
@@ -171,6 +180,16 @@ void DrawTriangle(std::vector<uint32_t>& fb, ScreenVertex sv1, ScreenVertex sv2,
         right ? shortSide : longSide);
 }
 
+// Fonction lambda rapide pour faire tourner un sommet autour de l'axe Z
+Vertex RotateVertex(Vertex v, float a)
+{
+    float x = v.position.x;
+    float y = v.position.y;
+    v.position.x = x * std::cos(a) - y * std::sin(a);
+    v.position.y = x * std::sin(a) + y * std::cos(a);
+    return v;
+};
+
 int main(int argc, char* argv[])
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -179,7 +198,7 @@ int main(int argc, char* argv[])
     }
 
     SDL_Window* window = SDL_CreateWindow(
-        "Moteur 3D CPU - Rasteriseur Personnel",
+        "Moteur 3D CPU - Titre",
         800, 500,
         0
     );
@@ -224,19 +243,47 @@ int main(int argc, char* argv[])
             }
         }
 
-        // 1. Effacer le framebuffer et le z-buffer
-        std::fill(framebuffer.begin(), framebuffer.end(), 0xFF000000); 
-        std::fill(zbuffer.begin(), zbuffer.end(), 1.0f);               
+        // Effacer le framebuffer et le z-buffer
+        std::fill(framebuffer.begin(), framebuffer.end(), 0xFF000000);
+        std::fill(zbuffer.begin(), zbuffer.end(), 1.0f);
 
-        // 2. Transformer les sommets
+
+        //// TRIANGLE FIXE
+        //// Transformer les sommets
+        //ScreenVertex sv0 = ToScreen(v0);
+        //ScreenVertex sv1 = ToScreen(v1);
+        //ScreenVertex sv2 = ToScreen(v2);
+
+        //// Rasteriser le triangle
+        //DrawTriangle(framebuffer, sv0, sv1, sv2);
+        //// FIN TRIANGLE FIXE
+
+
+
+        // ROTATION DE TRIANGLE 
+        float angle = SDL_GetTicks() * 0.001f;
+
+        // Définir des sommets de base (par exemple centrés autour de (0,0))
+        // et appliquer une rotation 2D/3D en direct
+        Vertex baseV0 = { {  0.0f,  0.5f, 0.0f, 1.0f }, 1.0f, 0.0f, 0.0f };
+        Vertex baseV1 = { { -0.5f, -0.5f, 0.0f, 1.0f }, 0.0f, 1.0f, 0.0f };
+        Vertex baseV2 = { {  0.5f, -0.5f, 0.0f, 1.0f }, 0.0f, 0.0f, 1.0f };
+        
+        // On fait tourner nos sommets à chaque frame
+        Vertex v0 = RotateVertex(baseV0, angle);
+        Vertex v1 = RotateVertex(baseV1, angle);
+        Vertex v2 = RotateVertex(baseV2, angle);
+
+        // Transformer les sommets animés
         ScreenVertex sv0 = ToScreen(v0);
         ScreenVertex sv1 = ToScreen(v1);
         ScreenVertex sv2 = ToScreen(v2);
 
-        // 3. Rasteriser le triangle
+        // Rasteriser le triangle
         DrawTriangle(framebuffer, sv0, sv1, sv2);
+        // FIN ROTATION
 
-        // 4. Envoyer vers la texture SDL
+        // Envoyer vers la texture SDL
         SDL_UpdateTexture(
             framebufferTexture,
             nullptr,
@@ -244,7 +291,7 @@ int main(int argc, char* argv[])
             RENDER_WIDTH * sizeof(uint32_t)
         );
 
-        // 5. Afficher à l'écran
+        // Afficher à l'écran
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
