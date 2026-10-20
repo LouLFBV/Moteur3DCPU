@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\matrix.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\matrix.hpp.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\matrix.hpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}
