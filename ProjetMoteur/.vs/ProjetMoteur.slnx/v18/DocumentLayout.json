@@ -7,11 +7,11 @@
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\COURSGTECH\\B3\\MOTEUR3DCPUCOURS\\MOTEUR3DCPU\\PROJETMOTEUR\\EXTERNAL\\INCLUDE\\GLM\\MATRIX.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EXTERNAL\\INCLUDE\\GLM\\MATRIX.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EXTERNAL\\INCLUDE\\GLM\\MATRIX.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\COURSGTECH\\B3\\MOTEUR3DCPUCOURS\\MOTEUR3DCPU\\PROJETMOTEUR\\EXTERNAL\\INCLUDE\\GLM\\GLM.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EXTERNAL\\INCLUDE\\GLM\\GLM.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EXTERNAL\\INCLUDE\\GLM\\GLM.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
@@ -38,8 +38,7 @@
               "RelativeToolTip": "external\\include\\glm\\matrix.hpp",
               "ViewState": "AgIAAIcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-20T10:10:01.415Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-20T10:10:01.415Z"
             },
             {
               "$type": "Document",
@@ -51,8 +50,7 @@
               "RelativeToolTip": "external\\include\\glm\\glm.hpp",
               "ViewState": "AgIAAGAAAAAAAAAAAAAAAIYAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-20T10:09:53.444Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-20T10:09:53.444Z"
             },
             {
               "$type": "Document",
@@ -62,7 +60,7 @@
               "RelativeDocumentMoniker": "main.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp",
               "RelativeToolTip": "main.cpp",
-              "ViewState": "AgIAAIcAAAAAAAAAAAAAAKYAAABrAAAAAAAAAA==",
+              "ViewState": "AgIAADYBAAAAAAAAAADwv0wBAABTAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-10-20T09:35:18.397Z",
               "EditorCaption": ""

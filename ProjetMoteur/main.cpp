@@ -325,7 +325,64 @@ int main(int argc, char* argv[])
         DrawSquare(framebuffer, sv0, sv1, sv2, sv3);
         // FIN ROTATION
 
+        //// ROTATION CARRE ET TRIANGLE 
+        //// // --- 1. ANIMATION ET RENDU DU TRIANGLE (décalé à gauche) ---
+        //{
+        //    float angleTri = time; // Vitesse de rotation du triangle
+        //    Vertex baseTri0 = { {  0.0f,  0.4f, 0.0f, 1.0f }, 1.0f, 0.0f, 0.0f };
+        //    Vertex baseTri1 = { { -0.4f, -0.4f, 0.0f, 1.0f }, 0.0f, 1.0f, 0.0f };
+        //    Vertex baseTri2 = { {  0.4f, -0.4f, 0.0f, 1.0f }, 0.0f, 0.0f, 1.0f };
 
+        //    // Rotation
+        //    Vertex v0 = RotateVertex(baseTri0, angleTri);
+        //    Vertex v1 = RotateVertex(baseTri1, angleTri);
+        //    Vertex v2 = RotateVertex(baseTri2, angleTri);
+
+        //    // Translation (décalage vers la gauche sur l'axe X)
+        //    float offsetX = -0.5f + std::sin(time) * 0.2f; // Petit mouvement de va-et-vient en prime
+        //    v0.position.x += offsetX;
+        //    v1.position.x += offsetX;
+        //    v2.position.x += offsetX;
+
+        //    // Projection et affichage
+        //    ScreenVertex sv0 = ToScreen(v0);
+        //    ScreenVertex sv1 = ToScreen(v1);
+        //    ScreenVertex sv2 = ToScreen(v2);
+        //    DrawTriangle(framebuffer, sv0, sv1, sv2);
+        //}
+
+        //// --- 2. ANIMATION ET RENDU DU CARRÉ (décalé à droite) ---
+        //{
+        //    float angleSq = -time * 1.5f; // Rotation dans l'autre sens un peu plus vite
+        //    Vertex baseSq0 = { { -0.35f,  0.35f, 0.0f, 1.0f }, 1.0f, 0.0f, 0.0f };
+        //    Vertex baseSq1 = { { -0.35f, -0.35f, 0.0f, 1.0f }, 0.0f, 1.0f, 0.0f };
+        //    Vertex baseSq2 = { {  0.35f, -0.35f, 0.0f, 1.0f }, 0.0f, 0.0f, 1.0f };
+        //    Vertex baseSq3 = { {  0.35f,  0.35f, 0.0f, 1.0f }, 0.0f, 1.0f, 1.0f };
+
+        //    // Rotation
+        //    Vertex v0 = RotateVertex(baseSq0, angleSq);
+        //    Vertex v1 = RotateVertex(baseSq1, angleSq);
+        //    Vertex v2 = RotateVertex(baseSq2, angleSq);
+        //    Vertex v3 = RotateVertex(baseSq3, angleSq);
+
+        //    // Translation (décalage vers la droite sur l'axe X)
+        //    float offsetX = 0.5f;
+        //    v0.position.x += offsetX;
+        //    v1.position.x += offsetX;
+        //    v2.position.x += offsetX;
+        //    v3.position.x += offsetX;
+
+        //    // Projection et affichage
+        //    ScreenVertex sv0 = ToScreen(v0);
+        //    ScreenVertex sv1 = ToScreen(v1);
+        //    ScreenVertex sv2 = ToScreen(v2);
+        //    ScreenVertex sv3 = ToScreen(v3);
+        //    DrawSquare(framebuffer, sv0, sv1, sv2, sv3);
+        //}
+        //// FIN ROTATION CARRE ET TRIANGLE
+        
+        
+        
         // Envoyer vers la texture SDL
         SDL_UpdateTexture(
             framebufferTexture,
