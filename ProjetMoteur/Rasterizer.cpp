@@ -133,11 +133,13 @@ void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne
     }
 }
 
-void Rasterizer::FillRowFast(int y, const BordLigne& l, const BordLigne& r)
+void Rasterizer::FillRowFast(int y, const BordLigne& l, const BordLigne& r) // Pas encore utiliser 
 {
     int w = std::max(r.x - l.x, 1);
-    float dz = (r.z - l.z) / w, dr = (r.r - l.r) / w;
-    float dg = (r.g - l.g) / w, db = (r.b - l.b) / w;
+    float dz = (r.z - l.z) / w;
+    float dr = (r.r - l.r) / w;
+    float dg = (r.g - l.g) / w;
+    float db = (r.b - l.b) / w;
     float z = l.z, cr = l.r, cg = l.g, cb = l.b;
     for (int x = l.x; x < r.x; x++) {
         if (x > 0 && x < m_width) Plot(x, y, z, cr, cg, cb);
@@ -192,10 +194,6 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     ScreenVertex sv2 = ToScreen(vertex2);
     ScreenVertex sv3 = ToScreen(vertex3);
 
-    // Bientôt, on fera le "Clipping" ici. Si un triangle est en dehors 
-    // de l'écran, on fera "return;" et il ne sera jamais rasterisé.
-
-    // S'il arrive jusqu'ici, c'est qu'on le dessine vraiment sur l'écran
     m_stats.trianglesRasterized++;
 
     SortByY(sv1, sv2, sv3);
@@ -236,34 +234,6 @@ void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, cons
     }
     // Si n == 0, le triangle est derrière la caméra, on ne fait rien !
 }
-
-//void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
-//{
-//    m_stats.pixelsProcessed++;
-//
-//    ScreenVertex sv1 = ToScreen(vertex1);
-//    ScreenVertex sv2 = ToScreen(vertex2);
-//    ScreenVertex sv3 = ToScreen(vertex3);
-//
-//    // Bientôt, on fera le "Clipping" ici. Si un triangle est en dehors 
-//    // de l'écran, on fera "return;" et il ne sera jamais rasterisé.
-//
-//    // S'il arrive jusqu'ici, c'est qu'on le dessine vraiment sur l'écran
-//    m_stats.trianglesRasterized++;
-//
-//    SortByY(sv1, sv2, sv3);
-//
-//    // Allocation dynamique propre pour s'adapter à la taille de l'écran
-//    std::vector<BordLigne> longSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
-//    std::vector<BordLigne> shortSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
-//
-//    WalkEdge(sv1, sv3, longSide.data());
-//    WalkEdge(sv1, sv2, shortSide.data());
-//    WalkEdge(sv2, sv3, shortSide.data());
-//
-//    bool right = MiddleIsRight(sv1, sv2, sv3);
-//    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data());
-//}
 
 void Rasterizer::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
 {
