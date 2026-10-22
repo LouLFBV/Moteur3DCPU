@@ -22,3 +22,13 @@ struct BordLigne
     float r, g, b;
     float invW; // Ajouté pour la perspective !
 };
+
+struct Cube 
+{
+    Vertex faceDown[4];
+    Vertex faceTop[4];
+    Vertex faceFront[4];
+    Vertex faceBack[4];
+    Vertex faceLeft[4];
+    Vertex faceRight[4];
+};

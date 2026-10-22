@@ -1,0 +1,10 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\ext\\matrix_transform.inl",
+        "ProvidedModule": "",
+        "Includes": [],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

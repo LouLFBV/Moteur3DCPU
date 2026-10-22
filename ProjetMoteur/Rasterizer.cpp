@@ -10,9 +10,27 @@ Rasterizer::Rasterizer(int width, int height)
     m_zbuffer.resize(width * height, 1.0f);
 }
 
+void Rasterizer::ResetStats()
+{
+    m_stats.trianglesRasterized = 0;
+    m_stats.pixelsProcessed = 0;
+    m_stats.frameTimeMs = 0.0f;
+    // On laisse threadsUsed à 1 pour le moment
+}
+
+const RenderStats& Rasterizer::GetStats() const
+{
+    return m_stats;
+}
+
 void Rasterizer::Clear()
 {
     std::fill(m_framebuffer.begin(), m_framebuffer.end(), 0xFF000000);
+    std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
+}
+
+void Rasterizer::ClearZBuffer()
+{
     std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
 }
 
@@ -36,6 +54,8 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
 
 void Rasterizer::Plot(int x, int y, float z, float r, float g, float b)
 {
+    m_stats.pixelsProcessed++;
+
     if (x >= 0 && x < m_width && y >= 0 && y < m_height)
     {
         int i = x + y * m_width;
@@ -120,9 +140,17 @@ void Rasterizer::FillRowFast(int y, const BordLigne& l, const BordLigne& r)
 
 void Rasterizer::DrawTriangle(const Vertex& v1, const Vertex& v2, const Vertex& v3)
 {
+    m_stats.pixelsProcessed++;
+
     ScreenVertex sv1 = ToScreen(v1);
     ScreenVertex sv2 = ToScreen(v2);
     ScreenVertex sv3 = ToScreen(v3);
+
+    // Bientôt, on fera le "Clipping" ici. Si un triangle est en dehors 
+    // de l'écran, on fera "return;" et il ne sera jamais rasterisé.
+
+    // S'il arrive jusqu'ici, c'est qu'on le dessine vraiment sur l'écran
+    m_stats.trianglesRasterized++;
 
     SortByY(sv1, sv2, sv3);
 
@@ -142,4 +170,14 @@ void Rasterizer::DrawSquare(const Vertex& v1, const Vertex& v2, const Vertex& v3
 {
     DrawTriangle(v1, v2, v3);
     DrawTriangle(v1, v3, v4);
+}
+
+void Rasterizer::DrawCube(const Cube& cube)
+{
+    DrawSquare(cube.faceDown[0], cube.faceDown[1], cube.faceDown[2], cube.faceDown[3]);
+    DrawSquare(cube.faceTop[0], cube.faceTop[1], cube.faceTop[2], cube.faceTop[3]);
+    DrawSquare(cube.faceFront[0], cube.faceFront[1], cube.faceFront[2], cube.faceFront[3]);
+    DrawSquare(cube.faceBack[0], cube.faceBack[1], cube.faceBack[2], cube.faceBack[3]);
+    DrawSquare(cube.faceLeft[0], cube.faceLeft[1], cube.faceLeft[2], cube.faceLeft[3]);
+    DrawSquare(cube.faceRight[0], cube.faceRight[1], cube.faceRight[2], cube.faceRight[3]);
 }
