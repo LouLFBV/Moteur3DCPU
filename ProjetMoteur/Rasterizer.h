@@ -5,6 +5,7 @@
 
 struct RenderStats {
     float frameTimeMs = 0.0f;
+    int trianglesProcessed = 0;
     int trianglesRasterized = 0;
     int pixelsProcessed = 0;
     int threadsUsed = 1; 
@@ -20,8 +21,8 @@ public:
 
     void Clear();
     void ClearZBuffer();
-    void DrawTriangle(const Vertex& v1, const Vertex& v2, const Vertex& v3);
-    void DrawSquare(const Vertex& v1, const Vertex& v2, const Vertex& v3, const Vertex& v4);
+    void DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3);
+    void DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4);
     void DrawCube(const Cube& cube);
 
     const void* GetPixels() const;
@@ -33,8 +34,13 @@ private:
     void SortByY(ScreenVertex& sv1, ScreenVertex& sv2, ScreenVertex& sv3);
     bool MiddleIsRight(const ScreenVertex& sv1, const ScreenVertex& sv2, const ScreenVertex& sv3);
     void WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out);
-    void FillRows(int y0, int y1, const BordLigne left[], const BordLigne right[]);
+    void FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right);
     void FillRowFast(int y, const BordLigne& l, const BordLigne& r);
+    Vertex Mix(const Vertex& vertex1, const Vertex& vertex2, float t);
+    float NearDist(const Vertex& vertex);
+    Vertex CrossNear(const Vertex& p, const Vertex& q);
+    int ClipNear(const Vertex in[3], Vertex poly[4]);
+    void RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3);
 
     int m_width;
     int m_height;

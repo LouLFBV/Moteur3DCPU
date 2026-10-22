@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
         glm::mat4 model = glm::mat4(1.0f);
 
         // 2. On recule le cube pour le voir
-        model = glm::translate(model, glm::vec3(1.0f, 0.0f, -3.5f));
+        model = glm::translate(model, glm::vec3(1.0f, 0.0f, -4.5f));
 
         // 3. On le fait tourner sur les axes X et Y en même temps 
         model = glm::rotate(model, time, glm::vec3(1.0f, 0.7f, 0.0f));
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
         model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -2.5f));
 
         // 3. On le fait tourner sur les axes X et Y en même temps 
-        model2 = glm::rotate(model2, time * 2.f, glm::vec3(1.0f, 0.7f, 0.0f));
+        model2 = glm::rotate(model2, time * 2.f, glm::vec3(-1.0f, 0.7f, 0.0f));
 
         // 4. On combine la Perspective et le Model
         glm::mat4 transform2 = projection * model2;
@@ -380,26 +380,26 @@ int main(int argc, char* argv[])
 
         // TRIANGLE  2D EN PLUS 
         Vertex verticesTri[3] = {
-            { { 0.0f,  0.4f, -1.0f, 1.0f}, 1.0f, 0.0f, 0.0f},
+            { { 0.0f,  0.4f, -.0f, 1.0f}, 1.0f, 0.0f, 0.0f},
             { { -0.4f, -0.4f, -0.0f, 1.0f }, 0.0f, 1.0f, 0.0f },
-            { {  0.4f, -0.4f, -1.0f, 1.0f }, 0.0f, 0.0f, 1.0f } 
+            { {  0.4f, -0.4f, -.0f, 1.0f }, 0.0f, 0.0f, 1.0f } 
         };
          
         // 1. On crée une matrice d'identité
         glm::mat4 model3 = glm::mat4(1.0f);
 
         // 2. On recule le cube pour le voir
-        model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, -3.0f));
+        model3 = glm::translate(model3, glm::vec3(-1.0f, 0.0f, -1.0f));
 
         // 3. On le fait tourner sur les axes X et Y en même temps 
-        model3 = glm::rotate(model3, time * 1.5f, glm::vec3(-1.0f, -0.7f, 0.0f));
+        model3 = glm::rotate(model3, time * 1.5f, glm::vec3(-1.0f, -0.f, 0.0f));
 
         // 4. On combine la Perspective et le Model
         glm::mat4 transform3 = projection * model3;
 
-        // 5. On applique cette super-matrice à nos 8 sommets
+        // 5. On applique cette super-matrice à nos 3 sommets
         Vertex triangle[3];
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 3; ++i) {
             triangle[i] = verticesTri[i];
             // La matrice s'occupe de la rotation, du recul ET de la perspective !
             triangle[i].position = transform3 * verticesTri[i].position;
@@ -424,6 +424,9 @@ int main(int argc, char* argv[])
         SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
 
+
+
+        // GERER LES LOGS DE PERFORMANCES
         Uint64 endPerf = SDL_GetPerformanceCounter();
         float frameTimeMs = (endPerf - startPerf) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
         const RenderStats& stats = rasterizer.GetStats();
@@ -432,8 +435,9 @@ int main(int argc, char* argv[])
         Uint32 currentTime = SDL_GetTicks();
 
         if (currentTime - lastLogTime >= 2000) {
-            printf("CPU: %.2f ms | Triangles rasterises: %d | Pixels: %d | Threads: %d\n",
+            printf("CPU: %.2f ms |Triangles traites : %d | Triangles rasterises: %d | Pixels: %d | Threads: %d\n",
                 frameTimeMs,
+                stats.trianglesProcessed,
                 stats.trianglesRasterized,
                 stats.pixelsProcessed,
                 stats.threadsUsed);

@@ -34,8 +34,15 @@ void Rasterizer::ClearZBuffer()
     std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
 }
 
-const void* Rasterizer::GetPixels() const { return m_framebuffer.data(); }
-int Rasterizer::GetPitch() const { return m_width * sizeof(uint32_t); }
+const void* Rasterizer::GetPixels() const 
+{
+    return m_framebuffer.data(); 
+}
+
+int Rasterizer::GetPitch() const 
+{
+    return m_width * sizeof(uint32_t); 
+}
 
 ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
 {
@@ -48,7 +55,7 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
         int(std::lround((xndc + 1) / 2 * m_width)),
         int(std::lround((1 - yndc) / 2 * m_height)),
         zndc, vertex.r, vertex.g, vertex.b,
-        inverseW // <-- Prêt pour la perspective !
+        inverseW 
     };
 }
 
@@ -70,37 +77,37 @@ void Rasterizer::Plot(int x, int y, float z, float r, float g, float b)
     }
 }
 
-void Rasterizer::SortByY(ScreenVertex& sv1, ScreenVertex& sv2, ScreenVertex& sv3)
+void Rasterizer::SortByY(ScreenVertex& screenVertex1, ScreenVertex& screenVertex2, ScreenVertex& screenVertex3)
 {
-    if (sv1.y > sv2.y) std::swap(sv1, sv2);
-    if (sv2.y > sv3.y) std::swap(sv2, sv3);
-    if (sv1.y > sv2.y) std::swap(sv1, sv2);
+    if (screenVertex1.y > screenVertex2.y) std::swap(screenVertex1, screenVertex2);
+    if (screenVertex2.y > screenVertex3.y) std::swap(screenVertex2, screenVertex3);
+    if (screenVertex1.y > screenVertex2.y) std::swap(screenVertex1, screenVertex2);
 }
 
-bool Rasterizer::MiddleIsRight(const ScreenVertex& sv1, const ScreenVertex& sv2, const ScreenVertex& sv3)
+bool Rasterizer::MiddleIsRight(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, const ScreenVertex& screenVertex3)
 {
-    long cross = long(sv3.x - sv1.x) * (sv2.y - sv1.y) - long(sv3.y - sv1.y) * (sv2.x - sv1.x);
+    long cross = long(screenVertex3.x - screenVertex1.x) * (screenVertex2.y - screenVertex1.y) - long(screenVertex3.y - screenVertex1.y) * (screenVertex2.x - screenVertex1.x);
     return cross < 0;
 }
 
-void Rasterizer::WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out)
+void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, BordLigne* out)
 {
-    int distanceX = std::abs(sv2.x - sv1.x);
-    int distanceY = sv2.y - sv1.y;
+    int distanceX = std::abs(screenVertex2.x - screenVertex1.x);
+    int distanceY = screenVertex2.y - screenVertex1.y;
     if (distanceY == 0) return;
 
-    int sensX = (sv2.x > sv1.x) ? 1 : -1;
+    int sensX = (screenVertex2.x > screenVertex1.x) ? 1 : -1;
     int err = distanceY / 2;
-    int x = sv1.x;
+    int x = screenVertex1.x;
 
-    for (int y = sv1.y; y < sv2.y; ++y) {
-        float t = float(y - sv1.y) / distanceY;
+    for (int y = screenVertex1.y; y < screenVertex2.y; ++y) {
+        float t = float(y - screenVertex1.y) / distanceY;
         if (y >= 0 && y < m_height) {
             out[y] = {
                 x,
-                Lerp(sv1.z, sv2.z, t),
-                Lerp(sv1.r, sv2.r, t), Lerp(sv1.g, sv2.g, t), Lerp(sv1.b, sv2.b, t),
-                Lerp(sv1.invW, sv2.invW, t) // <-- Prêt pour la perspective !
+                Lerp(screenVertex1.z, screenVertex2.z, t),
+                Lerp(screenVertex1.r, screenVertex2.r, t), Lerp(screenVertex1.g, screenVertex2.g, t), Lerp(screenVertex1.b, screenVertex2.b, t),
+                Lerp(screenVertex1.invW, screenVertex2.invW, t)
             };
         }
         for (err += distanceX; err > distanceY; err -= distanceY)
@@ -108,7 +115,7 @@ void Rasterizer::WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, Bord
     }
 }
 
-void Rasterizer::FillRows(int y0, int y1, const BordLigne left[], const BordLigne right[])
+void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right)
 {
     for (int y = std::max(y0, 0); y < std::min(y1, m_height); ++y) {
         const BordLigne& currentLeft = left[y];
@@ -138,13 +145,52 @@ void Rasterizer::FillRowFast(int y, const BordLigne& l, const BordLigne& r)
     }
 }
 
-void Rasterizer::DrawTriangle(const Vertex& v1, const Vertex& v2, const Vertex& v3)
+Vertex Rasterizer::Mix(const Vertex& vertex1, const Vertex& vertex2, float t)
+{
+    return {
+        { Lerp(vertex1.position.x, vertex2.position.x, t),
+        Lerp(vertex1.position.y, vertex2.position.y, t),
+        Lerp(vertex1.position.z, vertex2.position.z, t),
+        Lerp(vertex1.position.w, vertex2.position.w, t) },
+
+        Lerp(vertex1.r, vertex2.r, t), Lerp(vertex1.g, vertex2.g, t), Lerp(vertex1.b, vertex2.b, t)
+    };
+}
+
+float Rasterizer::NearDist(const Vertex& vertex)
+{
+    return vertex.position.w + vertex.position.z;
+}
+
+Vertex Rasterizer::CrossNear(const Vertex& p, const Vertex& q)
+{
+    float dp = NearDist(p);
+    float dq = NearDist(q);
+    return Mix(p, q, dp / (dp - dq));
+}
+
+// poly reçoit 0, 3 ou 4 sommets; la fonction renvoie leur nombre
+int Rasterizer::ClipNear(const Vertex in[3], Vertex poly[4])
+{
+    int n = 0;
+    for (int i = 0; i < 3; i ++ ) {
+        const Vertex& p = in[i];
+        const Vertex& q = in[(i + 1) % 3];
+        bool pIn = NearDist(p) > 0, qIn = NearDist(q) > 0;
+        if (pIn) poly[n ++ ] = p; // p est dedans
+            if (pIn != qIn) poly[n ++ ] = CrossNear(p, q); // l'arête traverse
+    }
+    return n; // si n = 4 : triangles(0, 1, 2) puis(0, 2, 3)
+}
+
+// Change juste le nom de cette fonction existante
+void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
 {
     m_stats.pixelsProcessed++;
 
-    ScreenVertex sv1 = ToScreen(v1);
-    ScreenVertex sv2 = ToScreen(v2);
-    ScreenVertex sv3 = ToScreen(v3);
+    ScreenVertex sv1 = ToScreen(vertex1);
+    ScreenVertex sv2 = ToScreen(vertex2);
+    ScreenVertex sv3 = ToScreen(vertex3);
 
     // Bientôt, on fera le "Clipping" ici. Si un triangle est en dehors 
     // de l'écran, on fera "return;" et il ne sera jamais rasterisé.
@@ -164,12 +210,65 @@ void Rasterizer::DrawTriangle(const Vertex& v1, const Vertex& v2, const Vertex& 
 
     bool right = MiddleIsRight(sv1, sv2, sv3);
     FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data());
+
 }
 
-void Rasterizer::DrawSquare(const Vertex& v1, const Vertex& v2, const Vertex& v3, const Vertex& v4)
+void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
 {
-    DrawTriangle(v1, v2, v3);
-    DrawTriangle(v1, v3, v4);
+    m_stats.trianglesProcessed++;
+
+    // On prépare le tableau d'entrée et le tableau de sortie
+    Vertex in[3] = { vertex1, vertex2, vertex3 };
+    Vertex poly[4];
+
+    // On laisse la fonction du cours faire toute la magie géométrique
+    int n = ClipNear(in, poly);
+
+    // Selon le nombre de sommets générés, on dessine le résultat
+    if (n == 3) {
+        // Le triangle n'a pas été coupé, ou a été réduit à 3 sommets
+        RasterizeTriangle(poly[0], poly[1], poly[2]);
+    }
+    else if (n == 4) {
+        // Le triangle a été coupé en quadrilatère, on le sépare en 2 triangles
+        RasterizeTriangle(poly[0], poly[1], poly[2]);
+        RasterizeTriangle(poly[0], poly[2], poly[3]);
+    }
+    // Si n == 0, le triangle est derrière la caméra, on ne fait rien !
+}
+
+//void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
+//{
+//    m_stats.pixelsProcessed++;
+//
+//    ScreenVertex sv1 = ToScreen(vertex1);
+//    ScreenVertex sv2 = ToScreen(vertex2);
+//    ScreenVertex sv3 = ToScreen(vertex3);
+//
+//    // Bientôt, on fera le "Clipping" ici. Si un triangle est en dehors 
+//    // de l'écran, on fera "return;" et il ne sera jamais rasterisé.
+//
+//    // S'il arrive jusqu'ici, c'est qu'on le dessine vraiment sur l'écran
+//    m_stats.trianglesRasterized++;
+//
+//    SortByY(sv1, sv2, sv3);
+//
+//    // Allocation dynamique propre pour s'adapter à la taille de l'écran
+//    std::vector<BordLigne> longSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
+//    std::vector<BordLigne> shortSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
+//
+//    WalkEdge(sv1, sv3, longSide.data());
+//    WalkEdge(sv1, sv2, shortSide.data());
+//    WalkEdge(sv2, sv3, shortSide.data());
+//
+//    bool right = MiddleIsRight(sv1, sv2, sv3);
+//    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data());
+//}
+
+void Rasterizer::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
+{
+    DrawTriangle(vertex1, vertex2, vertex3);
+    DrawTriangle(vertex1, vertex3, vertex4);
 }
 
 void Rasterizer::DrawCube(const Cube& cube)
