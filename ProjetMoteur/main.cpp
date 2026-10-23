@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
         glm::mat4 model = glm::mat4(1.0f);
 
         // 2. On recule le cube pour le voir
-        model = glm::translate(model, glm::vec3(1.0f, 0.0f, -4.5f));
+        model = glm::translate(model, glm::vec3(1.0f, 0.0f, -3.5f));
 
         // 3. On le fait tourner sur les axes X et Y en même temps 
         model = glm::rotate(model, time, glm::vec3(1.0f, 0.7f, 0.0f));
@@ -410,8 +410,8 @@ int main(int argc, char* argv[])
         //FIN DESSINER UN CUBRE EN 3D
 
 
+        rasterizer.RenderScene();
         
-        // Envoyer vers la texture SDL
         SDL_UpdateTexture(
             framebufferTexture,
             nullptr,
@@ -419,30 +419,34 @@ int main(int argc, char* argv[])
             rasterizer.GetPitch()
         );
 
-        // Afficher à l'écran
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
         SDL_RenderPresent(renderer);
 
 
 
-        // GERER LES LOGS DE PERFORMANCES
         Uint64 endPerf = SDL_GetPerformanceCounter();
         float frameTimeMs = (endPerf - startPerf) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
         const RenderStats& stats = rasterizer.GetStats();
 
-        static Uint32 lastLogTime = 0; 
-        Uint32 currentTime = SDL_GetTicks();
+        static Uint32 lastLogTime = 0;
+        static int frameCount = 0; 
 
-        if (currentTime - lastLogTime >= 2000) {
-            printf("CPU: %.2f ms |Triangles traites : %d | Triangles rasterises: %d | Pixels: %d | Threads: %d\n",
+        Uint32 currentTime = SDL_GetTicks();
+        frameCount++; 
+
+        if (currentTime - lastLogTime >= 1000) {
+
+            printf("FPS: %d | CPU: %.2f ms | Triangles traites: %d | Triangles rasterises: %d | Pixels: %d | Threads: %d\n",
+                frameCount,
                 frameTimeMs,
                 stats.trianglesProcessed,
                 stats.trianglesRasterized,
-                stats.pixelsProcessed,
+                stats.pixelsProcessed.load(),
                 stats.threadsUsed);
 
             lastLogTime = currentTime;
+            frameCount = 0;
         }
     }
 

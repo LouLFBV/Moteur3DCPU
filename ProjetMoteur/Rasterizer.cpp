@@ -2,6 +2,7 @@
 #include "MathUtils.h"
 #include <algorithm>
 #include <cmath>
+#include <thread>
 
 Rasterizer::Rasterizer(int width, int height)
     : m_width(width), m_height(height)
@@ -13,7 +14,7 @@ Rasterizer::Rasterizer(int width, int height)
 void Rasterizer::ResetStats()
 {
     m_stats.trianglesRasterized = 0;
-    m_stats.pixelsProcessed = 0;
+    m_stats.pixelsProcessed.store(0);
     m_stats.frameTimeMs = 0.0f;
     // On laisse threadsUsed à 1 pour le moment
 }
@@ -90,7 +91,7 @@ bool Rasterizer::MiddleIsRight(const ScreenVertex& screenVertex1, const ScreenVe
     return cross < 0;
 }
 
-void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, BordLigne* out)
+void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, BordLigne* out) const
 {
     int distanceX = std::abs(screenVertex2.x - screenVertex1.x);
     int distanceY = screenVertex2.y - screenVertex1.y;
@@ -115,9 +116,13 @@ void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex&
     }
 }
 
-void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right)
+void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY)
 {
-    for (int y = std::max(y0, 0); y < std::min(y1, m_height); ++y) {
+    int startY = std::max({ y0, 0, tileMinY });
+    int endY = std::min({ y1, m_height, tileMaxY });
+
+    for (int y = startY; y < endY; ++y) 
+    {
         const BordLigne& currentLeft = left[y];
         const BordLigne& currentRight = right[y];
         int width = currentRight.x - currentLeft.x;
@@ -159,34 +164,63 @@ Vertex Rasterizer::Mix(const Vertex& vertex1, const Vertex& vertex2, float t)
     };
 }
 
-float Rasterizer::NearDist(const Vertex& vertex)
+// Mesure la distance d'un sommet par rapport aux six plans du clipspace
+float Rasterizer::PlaneDist(const Vertex& vertex, ClipPlane plane)
 {
-    return vertex.position.w + vertex.position.z;
-}
-
-Vertex Rasterizer::CrossNear(const Vertex& p, const Vertex& q)
-{
-    float dp = NearDist(p);
-    float dq = NearDist(q);
-    return Mix(p, q, dp / (dp - dq));
-}
-
-// poly reçoit 0, 3 ou 4 sommets; la fonction renvoie leur nombre
-int Rasterizer::ClipNear(const Vertex in[3], Vertex poly[4])
-{
-    int n = 0;
-    for (int i = 0; i < 3; i ++ ) {
-        const Vertex& p = in[i];
-        const Vertex& q = in[(i + 1) % 3];
-        bool pIn = NearDist(p) > 0, qIn = NearDist(q) > 0;
-        if (pIn) poly[n ++ ] = p; // p est dedans
-            if (pIn != qIn) poly[n ++ ] = CrossNear(p, q); // l'arête traverse
+    switch (plane) 
+    {
+        case ClipPlane::Near:
+            return vertex.position.w + vertex.position.z;
+        case ClipPlane::Far:
+            return vertex.position.w - vertex.position.z;
+        case ClipPlane::Left:
+            return vertex.position.w + vertex.position.x;
+        case ClipPlane::Right:
+            return vertex.position.w - vertex.position.x;
+        case ClipPlane::Bottom:
+            return vertex.position.w + vertex.position.y;
+        case ClipPlane::Top:
+            return vertex.position.w - vertex.position.y;
     }
-    return n; // si n = 4 : triangles(0, 1, 2) puis(0, 2, 3)
+    return 0.0f;
 }
 
-// Change juste le nom de cette fonction existante
-void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
+// Donne le vertex sur le plan de choisi, se trouvant entre les deux vertex en paramètre
+Vertex Rasterizer::CrossPlane(const Vertex& vertexFront, const Vertex& vertexBack, ClipPlane plane)
+{
+    float distanceFront = PlaneDist(vertexFront, plane);
+    float distanceBack = PlaneDist(vertexBack, plane);
+    return Mix(vertexFront, vertexBack, distanceFront / (distanceFront - distanceBack));
+}
+
+int Rasterizer::ClipAgainstPlane(ClipPlane plane, const Vertex* inVertices, Vertex* outVertices, int inCount)
+{
+    if (inCount == 0) return 0;
+
+    int newVertices = 0;
+    for (int i = 0; i < inCount; i ++ ) {
+
+        const Vertex& startPoint = inVertices[i];
+        const Vertex& endPoint = inVertices[(i + 1) % inCount]; // pour obtenir 0 lorsque startPoint est à inCount
+
+        bool startPointIn = PlaneDist(startPoint, plane) > 0;
+        bool endPointIn = PlaneDist(endPoint, plane) > 0;
+
+        if (startPointIn)
+        {
+            outVertices[newVertices++] = startPoint; // startPoint est dedans
+        }
+
+        if (startPointIn != endPointIn)
+        {
+            outVertices[newVertices++] = CrossPlane(startPoint, endPoint, plane); // l'arête traverse
+        }
+    }
+    return newVertices; 
+}
+
+
+void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY)
 {
     m_stats.pixelsProcessed++;
 
@@ -206,8 +240,8 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     WalkEdge(sv1, sv2, shortSide.data());
     WalkEdge(sv2, sv3, shortSide.data());
 
-    bool right = MiddleIsRight(sv1, sv2, sv3);
-    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data());
+    bool right = MiddleIsRight(sv1, sv2, sv3); 
+    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY);
 
 }
 
@@ -215,24 +249,33 @@ void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, cons
 {
     m_stats.trianglesProcessed++;
 
-    // On prépare le tableau d'entrée et le tableau de sortie
-    Vertex in[3] = { vertex1, vertex2, vertex3 };
-    Vertex poly[4];
+    Vertex poly1[10];
+    Vertex poly2[10];
 
-    // On laisse la fonction du cours faire toute la magie géométrique
-    int n = ClipNear(in, poly);
+    poly1[0] = vertex1;
+    poly1[1] = vertex2;
+    poly1[2] = vertex3;
 
-    // Selon le nombre de sommets générés, on dessine le résultat
-    if (n == 3) {
-        // Le triangle n'a pas été coupé, ou a été réduit à 3 sommets
-        RasterizeTriangle(poly[0], poly[1], poly[2]);
+    int vertexCount = 3;
+
+    for (int i = 0; i < 6; i++) 
+    {
+        vertexCount = ClipAgainstPlane(m_planes[i], poly1, poly2, vertexCount);
+
+        if (vertexCount < 3) 
+            return;
+
+        for (int j = 0; j < vertexCount; j++) 
+        {
+            poly1[j] = poly2[j];
+        }
     }
-    else if (n == 4) {
-        // Le triangle a été coupé en quadrilatère, on le sépare en 2 triangles
-        RasterizeTriangle(poly[0], poly[1], poly[2]);
-        RasterizeTriangle(poly[0], poly[2], poly[3]);
+
+    for (int i = 1; i < vertexCount - 1; i++) 
+    {
+        //RasterizeTriangle(poly1[0], poly1[i], poly1[i + 1]);
+        m_triangleQueue.push_back({ poly1[0], poly1[i], poly1[i + 1] });
     }
-    // Si n == 0, le triangle est derrière la caméra, on ne fait rien !
 }
 
 void Rasterizer::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
@@ -249,4 +292,34 @@ void Rasterizer::DrawCube(const Cube& cube)
     DrawSquare(cube.faceBack[0], cube.faceBack[1], cube.faceBack[2], cube.faceBack[3]);
     DrawSquare(cube.faceLeft[0], cube.faceLeft[1], cube.faceLeft[2], cube.faceLeft[3]);
     DrawSquare(cube.faceRight[0], cube.faceRight[1], cube.faceRight[2], cube.faceRight[3]);
+}
+
+
+void Rasterizer::RenderScene()
+{
+    m_stats.threadsUsed = m_NUM_THREADS;
+    m_stats.trianglesRasterized = m_triangleQueue.size(); 
+
+    std::vector<std::thread> threads;
+    int bandHeight = m_height / m_NUM_THREADS;
+
+    for (int i = 0; i < m_NUM_THREADS; i++) 
+    {
+        int minY = i * bandHeight;
+        int maxY = (i == m_NUM_THREADS - 1) ? m_height : (i + 1) * bandHeight;
+
+        // On lance le thread (fonction lambda)
+        threads.emplace_back([this, minY, maxY]() {
+            for (const auto& tri : m_triangleQueue) {
+                // Chaque thread traite TOUS les triangles, mais ne dessine que dans son couloir [minY, maxY]
+                RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY);
+            }
+            });
+    }
+
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    m_triangleQueue.clear();
 }
