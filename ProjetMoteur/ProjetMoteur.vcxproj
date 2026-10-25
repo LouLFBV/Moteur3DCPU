@@ -147,12 +147,17 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\Users\loulo\Downloads\tiny_obj_loader.h" />
     <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="Rasterizer.h" />
     <ClInclude Include="Types.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

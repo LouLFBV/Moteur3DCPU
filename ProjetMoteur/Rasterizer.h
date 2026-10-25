@@ -3,6 +3,11 @@
 #include <array>
 #include <cstdint>
 #include "Types.h"
+#include <thread>
+#include <queue>
+#include <functional>
+#include <mutex>
+#include <condition_variable>
 #include <atomic>
 
 struct RenderStats {
@@ -26,6 +31,7 @@ class Rasterizer
 {
 public:
     Rasterizer(int width, int height);
+    ~Rasterizer();
 
     void ResetStats();
     const RenderStats& GetStats() const;
@@ -55,7 +61,10 @@ private:
     Vertex CrossPlane(const Vertex& p, const Vertex& q, ClipPlane plane);
     int ClipAgainstPlane(ClipPlane plane, const Vertex* inVertices, Vertex* outVertices, int inCount);
 
-    void RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMin,int tileMax);
+    void RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY, std::vector<BordLigne>& longSide, std::vector<BordLigne>& shortSide);
+
+    // La fonction que les threads exécuteront en boucle infinie
+    void WorkerThreadLoop();
 
 
     const int m_NUM_THREADS = 8;
@@ -74,4 +83,17 @@ private:
         ClipPlane::Bottom
     };
     RenderStats m_stats;
+
+    // --- SYSTÈME DE THREAD POOL (TASK QUEUE) ---
+    std::vector<std::thread> m_workers;              // Nos ouvriers fixes
+    std::queue<std::function<void()>> m_taskQueue;   // La file de tâches génériques
+
+    std::mutex m_queueMutex;                         // Verrou pour protéger l'accès à la file
+    std::condition_variable m_condition;             // Pour réveiller les threads endormis
+    bool m_stopThreads = false;                      // Signal pour tuer les threads à la fermeture
+
+    std::atomic<int> m_tasksCompleted{ 0 };            // Compteur des tâches terminées
+    std::mutex m_waitMutex;                          // Verrou pour le thread principal
+    std::condition_variable m_waitCondition;         // Pour réveiller le main() quand la frame est finie
+
 };

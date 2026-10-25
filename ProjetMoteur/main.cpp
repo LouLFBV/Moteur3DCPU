@@ -1,83 +1,44 @@
-#include <SDL3/SDL.h>
-#include <vector>
-#include <cstdint>
 #include <iostream>
-#include <algorithm>
 #include <cmath>
 #include "MathUtils.h"
 #include "Rasterizer.h"
+#include "ObjLoader.h"
+#include "Window.h"
 
 const int RENDER_WIDTH = 320;
 const int RENDER_HEIGHT = 200;
 
-
 int main(int argc, char* argv[])
 {
-	// Initialisation de SDL
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        std::cerr << "Erreur SDL_Init : " << SDL_GetError() << std::endl;
-        return 1;
-    }
-
-    SDL_Window* window = SDL_CreateWindow(
-        "Moteur 3D CPU - Titre",
-        800, 500,
-        0
-    );
-    if (!window) {
-        std::cerr << "Erreur SDL_CreateWindow : " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
-    if (!renderer) {
-        std::cerr << "Erreur SDL_CreateRenderer : " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-
-    SDL_Texture* framebufferTexture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_ARGB8888,
-        SDL_TEXTUREACCESS_STREAMING,
-        RENDER_WIDTH,
-        RENDER_HEIGHT
-    );
-	// FIN Initialisation de SDL
+    Window window(RENDER_WIDTH, RENDER_HEIGHT, 800, 500, "Moteur 3D CPU - Titre");
+    if (!window.Init()) return 1;
 
 
     Rasterizer rasterizer(RENDER_WIDTH, RENDER_HEIGHT);
 
+    // Charagement Obj
+    T_OBJ objModel;
+    const char* objPath = "external/Assets/base.obj";
+    Get_TOBJ(objPath, objModel);
+    bool loaded = !objModel.vertices.empty();
+
+    if (loaded) {
+        std::cout << "Obj Charge depuis : " << objPath << " (" << objModel.vertices.size() << " sommets)" << std::endl;
+    }
+    else {
+        std::cerr << "Erreur : Impossible de charger " << objPath << std::endl;
+    }
+    // Fin Chargement Obj
+
+
     bool isPerspective = true;
-    bool running = true;
-    SDL_Event event;
-
-
     float aspect = (float)RENDER_WIDTH / (float)RENDER_HEIGHT;
     float zNear = 0.1f;
     float zFar = 100.0f;
 
-    while (running) {
+    while (window.PollEvents(isPerspective)) {
         Uint64 startPerf = SDL_GetPerformanceCounter();
-
-        // 1. Réinitialiser les compteurs de la frame précédente
         rasterizer.ResetStats();
-
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) {
-                running = false;
-            }
-            if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE) {
-                running = false;
-            }
-            if (event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_SPACE) {
-                isPerspective = !isPerspective;
-            }
-        }
-
-        // Effacer le framebuffer et le z-buffer
         rasterizer.Clear();
 
         glm::mat4 projection;
@@ -117,6 +78,37 @@ int main(int argc, char* argv[])
 
         //FIN FOND + PLAN
 
+        float time = SDL_GetTicks() * 0.001f;
+
+
+
+
+        // RENDU DU MODÈLE OBJ CHARGÉ
+        if (loaded) {
+            glm::mat4 modelOBJ = glm::mat4(1.0f);
+            modelOBJ = glm::translate(modelOBJ, glm::vec3(-2.0f, 0.0f, -3.0f)); // Positionne le modèle devant la caméra
+            modelOBJ = glm::rotate(modelOBJ, time, glm::vec3(0.0f, 1.0f, 1.0f));  // Rotation continue autour de Y
+            modelOBJ = glm::scale(modelOBJ, glm::vec3(1.0f));                     // Ajuste l'échelle si besoin
+
+            glm::mat4 transformOBJ = projection * modelOBJ;
+
+            for (size_t i = 0; i + 2 < objModel.vertices.size(); i += 3) {
+                Vertex v0 = { objModel.vertices[i + 0].position, objModel.vertices[i + 0].r, objModel.vertices[i + 0].g, objModel.vertices[i + 0].b };
+                Vertex v1 = { objModel.vertices[i + 1].position, objModel.vertices[i + 1].r, objModel.vertices[i + 1].g, objModel.vertices[i + 1].b };
+                Vertex v2 = { objModel.vertices[i + 2].position, objModel.vertices[i + 2].r, objModel.vertices[i + 2].g, objModel.vertices[i + 2].b };
+
+                // Application des matrices GLM (Model + Projection)
+                v0.position = transformOBJ * v0.position;
+                v1.position = transformOBJ * v1.position;
+                v2.position = transformOBJ * v2.position;
+
+                rasterizer.DrawTriangle(v0, v1, v2);
+            }
+        }
+        // FIN RENDU DU MODÈLE OBJ CHARGÉ
+
+
+
 
 
 
@@ -134,7 +126,6 @@ int main(int argc, char* argv[])
 
 
 
-        float time = SDL_GetTicks() * 0.001f;
 
 
         //// ROTATION DE TRIANGLE 
@@ -411,17 +402,11 @@ int main(int argc, char* argv[])
 
 
         rasterizer.RenderScene();
-        
-        SDL_UpdateTexture(
-            framebufferTexture,
-            nullptr,
-            rasterizer.GetPixels(),
-            rasterizer.GetPitch()
-        );
 
-        SDL_RenderClear(renderer);
-        SDL_RenderTexture(renderer, framebufferTexture, nullptr, nullptr);
-        SDL_RenderPresent(renderer);
+        
+        // Envoi à la carte graphique via SDL
+        window.UpdateTexture(rasterizer.GetPixels(), rasterizer.GetPitch());
+        window.Render();
 
 
 
@@ -449,11 +434,5 @@ int main(int argc, char* argv[])
             frameCount = 0;
         }
     }
-
-    SDL_DestroyTexture(framebufferTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-
     return 0;
 }

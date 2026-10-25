@@ -9,14 +9,32 @@ Rasterizer::Rasterizer(int width, int height)
 {
     m_framebuffer.resize(width * height, 0xFF000000);
     m_zbuffer.resize(width * height, 1.0f);
+
+    for (int i = 0; i < m_NUM_THREADS; ++i) {
+        m_workers.emplace_back(&Rasterizer::WorkerThreadLoop, this);
+    }
+}
+
+Rasterizer::~Rasterizer()
+{
+    {
+        std::lock_guard<std::mutex> lock(m_queueMutex);
+        m_stopThreads = true; // On donne l'ordre d'arrêt
+    }
+    m_condition.notify_all(); // On réveille tout le monde pour qu'ils voient l'ordre d'arrêt
+
+    for (std::thread& worker : m_workers) {
+        worker.join(); // On attend qu'ils aient fini de ranger leurs affaires
+    }
 }
 
 void Rasterizer::ResetStats()
 {
+    m_stats.trianglesProcessed = 0;      
     m_stats.trianglesRasterized = 0;
     m_stats.pixelsProcessed.store(0);
     m_stats.frameTimeMs = 0.0f;
-    // On laisse threadsUsed à 1 pour le moment
+    m_stats.threadsUsed = m_workers.size(); 
 }
 
 const RenderStats& Rasterizer::GetStats() const
@@ -220,7 +238,7 @@ int Rasterizer::ClipAgainstPlane(ClipPlane plane, const Vertex* inVertices, Vert
 }
 
 
-void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY)
+void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY, std::vector<BordLigne>& longSide, std::vector<BordLigne>& shortSide)
 {
     m_stats.pixelsProcessed++;
 
@@ -232,10 +250,6 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
 
     SortByY(sv1, sv2, sv3);
 
-    // Allocation dynamique propre pour s'adapter à la taille de l'écran
-    std::vector<BordLigne> longSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
-    std::vector<BordLigne> shortSide(m_height, BordLigne{ 0, 0, 0, 0, 0, 0 });
-
     WalkEdge(sv1, sv3, longSide.data());
     WalkEdge(sv1, sv2, shortSide.data());
     WalkEdge(sv2, sv3, shortSide.data());
@@ -243,6 +257,35 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     bool right = MiddleIsRight(sv1, sv2, sv3); 
     FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY);
 
+}
+
+void Rasterizer::WorkerThreadLoop()
+{
+    while (true) {
+        std::function<void()> task;
+
+        // 1. On cherche une tâche dans la file
+        {
+            std::unique_lock<std::mutex> lock(m_queueMutex);
+
+            // Le thread s'endort ici tant que la file est vide (et qu'on ne l'arrête pas)
+            m_condition.wait(lock, [this] { return m_stopThreads || !m_taskQueue.empty(); });
+
+            // Si on a reçu l'ordre de fermer et qu'il n'y a plus de travail, on quitte la boucle
+            if (m_stopThreads && m_taskQueue.empty()) return;
+
+            // On récupère la tâche tout en haut de la pile
+            task = std::move(m_taskQueue.front());
+            m_taskQueue.pop();
+        }
+
+        // 2. On exécute la tâche (sans verrouiller le reste du programme !)
+        task();
+
+        // 3. On signale au thread principal (le main) qu'on a terminé cette tâche
+        m_tasksCompleted++;
+        m_waitCondition.notify_one();
+    }
 }
 
 void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
@@ -273,7 +316,6 @@ void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, cons
 
     for (int i = 1; i < vertexCount - 1; i++) 
     {
-        //RasterizeTriangle(poly1[0], poly1[i], poly1[i + 1]);
         m_triangleQueue.push_back({ poly1[0], poly1[i], poly1[i + 1] });
     }
 }
@@ -297,29 +339,48 @@ void Rasterizer::DrawCube(const Cube& cube)
 
 void Rasterizer::RenderScene()
 {
-    m_stats.threadsUsed = m_NUM_THREADS;
-    m_stats.trianglesRasterized = m_triangleQueue.size(); 
+    m_stats.threadsUsed = m_workers.size();
+    m_stats.trianglesRasterized = m_triangleQueue.size();;
 
-    std::vector<std::thread> threads;
-    int bandHeight = m_height / m_NUM_THREADS;
+    m_tasksCompleted.store(0);
 
-    for (int i = 0; i < m_NUM_THREADS; i++) 
+    // On peut maintenant avoir plus de tâches que de threads ! (ex: 16 bandes pour 8 threads)
+    const int NUM_TASKS = 16;
+    int bandHeight = m_height / NUM_TASKS;
+
+    // 1. DISTRIBUTION DES TÂCHES
     {
-        int minY = i * bandHeight;
-        int maxY = (i == m_NUM_THREADS - 1) ? m_height : (i + 1) * bandHeight;
+        std::lock_guard<std::mutex> lock(m_queueMutex);
 
-        // On lance le thread (fonction lambda)
-        threads.emplace_back([this, minY, maxY]() {
-            for (const auto& tri : m_triangleQueue) {
-                // Chaque thread traite TOUS les triangles, mais ne dessine que dans son couloir [minY, maxY]
-                RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY);
-            }
+        for (int i = 0; i < NUM_TASKS; i++) {
+            int minY = i * bandHeight;
+            int maxY = (i == NUM_TASKS - 1) ? m_height : (i + 1) * bandHeight;
+
+            // On emballe le code dans un std::function et on le met dans la queue
+            m_taskQueue.push([this, minY, maxY]() {
+
+                // ALLOCATION UNIQUE POUR TOUTE LA BANDE ! (Zéro attente OS)
+                std::vector<BordLigne> taskLongSide(m_height);
+                std::vector<BordLigne> taskShortSide(m_height);
+
+                for (const auto& tri : m_triangleQueue) {
+                    RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY, taskLongSide, taskShortSide);
+                }
+                });
+        }
+    }
+
+    // 2. COUP DE SIFFLET : On réveille tous les ouvriers endormis !
+    m_condition.notify_all();
+
+    // 3. SALLE D'ATTENTE : Le thread principal (main) s'endort jusqu'à ce que les ouvriers aient fini
+    {
+        std::unique_lock<std::mutex> lock(m_waitMutex);
+        m_waitCondition.wait(lock, [this, NUM_TASKS] {
+            return m_tasksCompleted.load() == NUM_TASKS;
             });
     }
 
-    for (auto& t : threads) {
-        t.join();
-    }
-
+    // L'image est entièrement peinte ! On nettoie pour la frame suivante
     m_triangleQueue.clear();
 }
