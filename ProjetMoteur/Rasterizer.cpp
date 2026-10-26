@@ -10,10 +10,15 @@ Rasterizer::Rasterizer(int width, int height)
     m_framebuffer.resize(width * height, 0xFF000000);
     m_zbuffer.resize(width * height, 1.0f);
 
-    // Détection automatique du nombre de cœurs logiques
+    m_currentShader = [](const BordLigne& pixel) {
+        uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * pixel.r + 0.5f, 0.0f, 255.0f));
+        uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * pixel.g + 0.5f, 0.0f, 255.0f));
+        uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * pixel.b + 0.5f, 0.0f, 255.0f));
+        return (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
+        };
+
     unsigned int cores = std::thread::hardware_concurrency();
 
-    // Sécurité : si la fonction renvoie 0 (impossible à déterminer), on se rabat sur 4 par défaut
     int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
 
     for (int i = 0; i < numThreads; ++i) {
@@ -69,6 +74,11 @@ int Rasterizer::GetPitch() const
     return m_width * sizeof(uint32_t); 
 }
 
+void Rasterizer::SetPixelShader(PixelShader shader)
+{
+    m_currentShader = shader;
+}
+
 ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
 {
     float inverseW = 1.0f / vertex.position.w;
@@ -84,7 +94,7 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
     };
 }
 
-void Rasterizer::Plot(int x, int y, float z, float r, float g, float b)
+void Rasterizer::Plot(int x, int y, float z, uint32_t color)
 {
     m_stats.pixelsProcessed++;
 
@@ -94,11 +104,7 @@ void Rasterizer::Plot(int x, int y, float z, float r, float g, float b)
         if (z >= m_zbuffer[i]) return;
         m_zbuffer[i] = z;
 
-        uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * r + 0.5f, 0.0f, 255.0f));
-        uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * g + 0.5f, 0.0f, 255.0f));
-        uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * b + 0.5f, 0.0f, 255.0f));
-
-        m_framebuffer[i] = (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
+        m_framebuffer[i] = color;
     }
 }
 
@@ -162,18 +168,22 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     float deltaG = (right.g - left.g) * invWidth;
     float deltaB = (right.b - left.b) * invWidth;
 
-    float z = left.z;
-    float currentR = left.r;
-    float currentG = left.g;
-    float currentB = left.b;
+    BordLigne current = left; 
 
-    for (int x = left.x; x <= right.x; x++) {
-        if (x >= 0 && x < m_width) 
-            Plot(x, y, z, currentR, currentG, currentB);
-        z += deltaZ;
-        currentR += deltaR;
-        currentG += deltaG;
-        currentB += deltaB;
+    for (int x = left.x; x < right.x; x++) {
+        if (x >= 0 && x < m_width)
+        {
+            current.x = x; 
+
+            uint32_t finalColor = m_currentShader(current);
+
+            Plot(x, y, current.z, finalColor);
+        }
+
+        current.z += deltaZ;
+        current.r += deltaR;
+        current.g += deltaG;
+        current.b += deltaB;
     }
 }
 
@@ -299,6 +309,24 @@ void Rasterizer::WorkerThreadLoop()
     }
 }
 
+bool Rasterizer::IsBackFace(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
+{
+    // On fait la division perspective pour ramener les points en 2D
+    float vertex1X = vertex1.position.x / vertex1.position.w;
+    float vertex1Y = vertex1.position.y / vertex1.position.w;
+
+    float vertex2X = vertex2.position.x / vertex2.position.w;
+    float vertex2Y = vertex2.position.y / vertex2.position.w;
+
+    float vertex3X = vertex3.position.x / vertex3.position.w;
+    float vertex3Y = vertex3.position.y / vertex3.position.w;
+
+    float area2 = (vertex2X - vertex1X) * (vertex3Y - vertex1Y) - (vertex2Y - vertex1Y) * (vertex3X - vertex1X);
+
+    return area2 <= 0.0f;
+}
+
+
 void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
 {
     m_stats.trianglesProcessed++;
@@ -325,26 +353,15 @@ void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, cons
         }
     }
 
-    for (int i = 1; i < vertexCount - 1; i++) 
+    for (int i = 1; i < vertexCount - 1; i++)
     {
-        m_triangleQueue.push_back({ poly1[0], poly1[i], poly1[i + 1] });
+        Vertex vertexA = poly1[0];
+        Vertex vertexB = poly1[i];
+        Vertex vertexC = poly1[i + 1];
+
+        if (!IsBackFace(vertexA, vertexB, vertexC))
+            m_triangleQueue.push_back({ vertexA, vertexB, vertexC });
     }
-}
-
-void Rasterizer::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
-{
-    DrawTriangle(vertex1, vertex2, vertex3);
-    DrawTriangle(vertex1, vertex3, vertex4);
-}
-
-void Rasterizer::DrawCube(const Cube& cube)
-{
-    DrawSquare(cube.faceDown[0], cube.faceDown[1], cube.faceDown[2], cube.faceDown[3]);
-    DrawSquare(cube.faceTop[0], cube.faceTop[1], cube.faceTop[2], cube.faceTop[3]);
-    DrawSquare(cube.faceFront[0], cube.faceFront[1], cube.faceFront[2], cube.faceFront[3]);
-    DrawSquare(cube.faceBack[0], cube.faceBack[1], cube.faceBack[2], cube.faceBack[3]);
-    DrawSquare(cube.faceLeft[0], cube.faceLeft[1], cube.faceLeft[2], cube.faceLeft[3]);
-    DrawSquare(cube.faceRight[0], cube.faceRight[1], cube.faceRight[2], cube.faceRight[3]);
 }
 
 

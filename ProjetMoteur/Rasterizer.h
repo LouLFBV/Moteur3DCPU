@@ -30,6 +30,8 @@ enum class ClipPlane {
 class Rasterizer
 {
 public:
+    using PixelShader = std::function<uint32_t(const BordLigne&)>;
+
     Rasterizer(int width, int height);
     ~Rasterizer();
 
@@ -39,22 +41,22 @@ public:
     void Clear();
     void ClearZBuffer();
     void DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3);
-    void DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4);
-    void DrawCube(const Cube& cube);
 
     const void* GetPixels() const;
     int GetPitch() const;
+    void SetPixelShader(PixelShader shader);
 
     void RenderScene();
 
 private:
     ScreenVertex ToScreen(const Vertex& vertex);
-    void Plot(int x, int y, float z, float r, float g, float b);
+    void Plot(int x, int y, float z, uint32_t color);
     void SortByY(ScreenVertex& sv1, ScreenVertex& sv2, ScreenVertex& sv3);
     bool MiddleIsRight(const ScreenVertex& sv1, const ScreenVertex& sv2, const ScreenVertex& sv3);
     void WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out) const;
     void FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY);
     void FillRowFast(int y, const BordLigne& l, const BordLigne& r);
+    bool IsBackFace(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3);
 
     Vertex Mix(const Vertex& vertex1, const Vertex& vertex2, float t);
     float PlaneDist(const Vertex& vertex, ClipPlane plane); 
@@ -95,4 +97,5 @@ private:
     std::mutex m_waitMutex;                          // Verrou pour le thread principal
     std::condition_variable m_waitCondition;         // Pour réveiller le main() quand la frame est finie
 
+    PixelShader m_currentShader;
 };

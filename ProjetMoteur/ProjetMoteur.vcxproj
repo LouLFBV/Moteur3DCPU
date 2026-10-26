@@ -145,6 +145,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
@@ -153,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Users\loulo\Downloads\tiny_obj_loader.h" />
+    <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="Rasterizer.h" />

@@ -4,15 +4,19 @@
 struct Vertex
 {
     glm::vec4 position;
-    float r, g, b;
+    float r, g, b; 
+    glm::vec2 uv;  
+    glm::vec3 normal;
 };
 
 struct ScreenVertex
 {
-    int x, y; // pixel
-    float z;  // profondeur NDC
-    float r, g, b; // couleur
-    float invW; // Ajouté pour la perspective !
+    int x, y; 
+    float z;  
+    float r, g, b; 
+    float invW; 
+    float u, v;
+    float nx, ny, nz;
 };
 
 struct BordLigne
@@ -20,7 +24,9 @@ struct BordLigne
     int x;
     float z;
     float r, g, b;
-    float invW; // Ajouté pour la perspective !
+    float invW;
+    float u, v;
+    float nx, ny, nz;
 };
 
 struct Cube 
