@@ -1,0 +1,232 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Rasterizer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Window.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Rasterizer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ObjLoader.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ObjLoader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\Users\\loulo\\Downloads\\tiny_obj_loader.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Types.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Types.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:MathUtils.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:MathUtils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EXTERNAL\\INCLUDE\\GLM\\MATRIX.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EXTERNAL\\INCLUDE\\GLM\\MATRIX.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EXTERNAL\\INCLUDE\\GLM\\GLM.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EXTERNAL\\INCLUDE\\GLM\\GLM.HPP||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 7,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Window.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.cpp",
+              "RelativeDocumentMoniker": "Window.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.cpp",
+              "RelativeToolTip": "Window.cpp",
+              "ViewState": "AgIAACoAAAAAAAAAAAAcwEYAAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-25T15:54:04.528Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Window.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.h",
+              "RelativeDocumentMoniker": "Window.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Window.h",
+              "RelativeToolTip": "Window.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-25T15:53:39.748Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ObjLoader.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.cpp",
+              "RelativeDocumentMoniker": "ObjLoader.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.cpp",
+              "RelativeToolTip": "ObjLoader.cpp",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-25T15:49:16.779Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ObjLoader.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.h",
+              "RelativeDocumentMoniker": "ObjLoader.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ObjLoader.h",
+              "RelativeToolTip": "ObjLoader.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-25T15:48:32.704Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "tiny_obj_loader.h",
+              "DocumentMoniker": "C:\\Users\\loulo\\Downloads\\tiny_obj_loader.h",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\Users\\loulo\\Downloads\\tiny_obj_loader.h",
+              "ToolTip": "C:\\Users\\loulo\\Downloads\\tiny_obj_loader.h",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\Users\\loulo\\Downloads\\tiny_obj_loader.h",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAAABkAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-25T15:16:21.658Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp",
+              "RelativeDocumentMoniker": "main.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp",
+              "RelativeToolTip": "main.cpp",
+              "ViewState": "AgIAAIoBAAAAAAAAAAAcwLUBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-20T09:35:18.397Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Rasterizer.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.cpp",
+              "RelativeDocumentMoniker": "Rasterizer.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.cpp",
+              "RelativeToolTip": "Rasterizer.cpp",
+              "ViewState": "AgIAAFYBAAAAAAAAAAAcwHEBAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-21T12:25:51.262Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Rasterizer.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.h",
+              "RelativeDocumentMoniker": "Rasterizer.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Rasterizer.h",
+              "RelativeToolTip": "Rasterizer.h",
+              "ViewState": "AgIAACQAAAAAAAAAAAAEwD8AAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-21T12:25:17.642Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "MathUtils.cpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.cpp",
+              "RelativeDocumentMoniker": "MathUtils.cpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.cpp",
+              "RelativeToolTip": "MathUtils.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-21T12:21:38.679Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "MathUtils.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.h",
+              "RelativeDocumentMoniker": "MathUtils.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MathUtils.h",
+              "RelativeToolTip": "MathUtils.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-21T12:21:06.372Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Types.h",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Types.h",
+              "RelativeDocumentMoniker": "Types.h",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Types.h",
+              "RelativeToolTip": "Types.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-21T12:20:48.36Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "matrix.hpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\external\\include\\glm\\matrix.hpp",
+              "RelativeDocumentMoniker": "external\\include\\glm\\matrix.hpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\external\\include\\glm\\matrix.hpp",
+              "RelativeToolTip": "external\\include\\glm\\matrix.hpp",
+              "ViewState": "AgIAAIcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-20T10:10:01.415Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "glm.hpp",
+              "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\external\\include\\glm\\glm.hpp",
+              "RelativeDocumentMoniker": "external\\include\\glm\\glm.hpp",
+              "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\external\\include\\glm\\glm.hpp",
+              "RelativeToolTip": "external\\include\\glm\\glm.hpp",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAAAIYAAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-20T10:09:53.444Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

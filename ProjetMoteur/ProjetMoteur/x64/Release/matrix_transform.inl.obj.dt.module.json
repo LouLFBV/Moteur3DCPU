@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\matrix_transform.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\matrix_transform.inl.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\matrix_transform.inl.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}
