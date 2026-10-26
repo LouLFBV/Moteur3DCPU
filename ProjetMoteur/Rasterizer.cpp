@@ -10,7 +10,13 @@ Rasterizer::Rasterizer(int width, int height)
     m_framebuffer.resize(width * height, 0xFF000000);
     m_zbuffer.resize(width * height, 1.0f);
 
-    for (int i = 0; i < m_NUM_THREADS; ++i) {
+    // Détection automatique du nombre de cœurs logiques
+    unsigned int cores = std::thread::hardware_concurrency();
+
+    // Sécurité : si la fonction renvoie 0 (impossible à déterminer), on se rabat sur 4 par défaut
+    int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
+
+    for (int i = 0; i < numThreads; ++i) {
         m_workers.emplace_back(&Rasterizer::WorkerThreadLoop, this);
     }
 }
@@ -141,32 +147,33 @@ void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne
 
     for (int y = startY; y < endY; ++y) 
     {
-        const BordLigne& currentLeft = left[y];
-        const BordLigne& currentRight = right[y];
-        int width = currentRight.x - currentLeft.x;
-
-        for (int x = std::max(currentLeft.x, 0); x < std::min(currentRight.x, m_width); ++x) {
-            float t = (width == 0) ? 0.0f : float(x - currentLeft.x) / width;
-            Plot(x, y,
-                Lerp(currentLeft.z, currentRight.z, t),
-                Lerp(currentLeft.r, currentRight.r, t),
-                Lerp(currentLeft.g, currentRight.g, t),
-                Lerp(currentLeft.b, currentRight.b, t));
-        }
+        FillRowFast(y, left[y], right[y]);
     }
 }
 
-void Rasterizer::FillRowFast(int y, const BordLigne& l, const BordLigne& r) // Pas encore utiliser 
+void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& right)
 {
-    int w = std::max(r.x - l.x, 1);
-    float dz = (r.z - l.z) / w;
-    float dr = (r.r - l.r) / w;
-    float dg = (r.g - l.g) / w;
-    float db = (r.b - l.b) / w;
-    float z = l.z, cr = l.r, cg = l.g, cb = l.b;
-    for (int x = l.x; x < r.x; x++) {
-        if (x > 0 && x < m_width) Plot(x, y, z, cr, cg, cb);
-        z += dz; cr += dr; cg += dg; cb += db;
+    int width = std::max(right.x - left.x, 1);
+
+    float invWidth = 1.0f / width;
+
+    float deltaZ = (right.z - left.z) * invWidth;
+    float deltaR = (right.r - left.r) * invWidth;
+    float deltaG = (right.g - left.g) * invWidth;
+    float deltaB = (right.b - left.b) * invWidth;
+
+    float z = left.z;
+    float currentR = left.r;
+    float currentG = left.g;
+    float currentB = left.b;
+
+    for (int x = left.x; x <= right.x; x++) {
+        if (x >= 0 && x < m_width) 
+            Plot(x, y, z, currentR, currentG, currentB);
+        z += deltaZ;
+        currentR += deltaR;
+        currentG += deltaG;
+        currentB += deltaB;
     }
 }
 
@@ -246,7 +253,7 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     ScreenVertex sv2 = ToScreen(vertex2);
     ScreenVertex sv3 = ToScreen(vertex3);
 
-    m_stats.trianglesRasterized++;
+    //m_stats.trianglesRasterized++;
 
     SortByY(sv1, sv2, sv3);
 
@@ -272,7 +279,8 @@ void Rasterizer::WorkerThreadLoop()
             m_condition.wait(lock, [this] { return m_stopThreads || !m_taskQueue.empty(); });
 
             // Si on a reçu l'ordre de fermer et qu'il n'y a plus de travail, on quitte la boucle
-            if (m_stopThreads && m_taskQueue.empty()) return;
+            if (m_stopThreads && m_taskQueue.empty()) 
+                return;
 
             // On récupère la tâche tout en haut de la pile
             task = std::move(m_taskQueue.front());
@@ -283,7 +291,10 @@ void Rasterizer::WorkerThreadLoop()
         task();
 
         // 3. On signale au thread principal (le main) qu'on a terminé cette tâche
-        m_tasksCompleted++;
+        {
+            std::lock_guard<std::mutex> lock(m_waitMutex);
+            m_tasksCompleted++;
+        }
         m_waitCondition.notify_one();
     }
 }
@@ -340,21 +351,20 @@ void Rasterizer::DrawCube(const Cube& cube)
 void Rasterizer::RenderScene()
 {
     m_stats.threadsUsed = m_workers.size();
-    m_stats.trianglesRasterized = m_triangleQueue.size();;
+    m_stats.trianglesRasterized = m_triangleQueue.size();
 
     m_tasksCompleted.store(0);
 
-    // On peut maintenant avoir plus de tâches que de threads ! (ex: 16 bandes pour 8 threads)
-    const int NUM_TASKS = 16;
-    int bandHeight = m_height / NUM_TASKS;
+    
+    int bandHeight = m_height / m_NUM_TASKS;
 
     // 1. DISTRIBUTION DES TÂCHES
     {
         std::lock_guard<std::mutex> lock(m_queueMutex);
 
-        for (int i = 0; i < NUM_TASKS; i++) {
+        for (int i = 0; i < m_NUM_TASKS; ++i) {
             int minY = i * bandHeight;
-            int maxY = (i == NUM_TASKS - 1) ? m_height : (i + 1) * bandHeight;
+            int maxY = (i == m_NUM_TASKS - 1) ? m_height : (i + 1) * bandHeight;
 
             // On emballe le code dans un std::function et on le met dans la queue
             m_taskQueue.push([this, minY, maxY]() {
@@ -376,8 +386,8 @@ void Rasterizer::RenderScene()
     // 3. SALLE D'ATTENTE : Le thread principal (main) s'endort jusqu'à ce que les ouvriers aient fini
     {
         std::unique_lock<std::mutex> lock(m_waitMutex);
-        m_waitCondition.wait(lock, [this, NUM_TASKS] {
-            return m_tasksCompleted.load() == NUM_TASKS;
+        m_waitCondition.wait(lock, [this] {
+            return m_tasksCompleted.load() == m_NUM_TASKS;
             });
     }
 

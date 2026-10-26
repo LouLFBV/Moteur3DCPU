@@ -63,17 +63,17 @@ private:
 
     void RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY, std::vector<BordLigne>& longSide, std::vector<BordLigne>& shortSide);
 
-    // La fonction que les threads exécuteront en boucle infinie
     void WorkerThreadLoop();
 
 
-    const int m_NUM_THREADS = 8;
+    // On peut maintenant avoir plus de tâches que de threads ! (ex: 16 bandes pour 8 threads)
+    static constexpr int m_NUM_TASKS = 16;
 
     int m_width;
     int m_height;
     std::vector<uint32_t> m_framebuffer;
     std::vector<float> m_zbuffer;
-    std::vector<std::array<Vertex, 3>> m_triangleQueue; // queue de job à faire plutôt qu'une queue de triangle 
+    std::vector<std::array<Vertex, 3>> m_triangleQueue;
     static constexpr ClipPlane m_planes[6] = {
         ClipPlane::Near,
         ClipPlane::Far,
@@ -84,9 +84,8 @@ private:
     };
     RenderStats m_stats;
 
-    // --- SYSTÈME DE THREAD POOL (TASK QUEUE) ---
-    std::vector<std::thread> m_workers;              // Nos ouvriers fixes
-    std::queue<std::function<void()>> m_taskQueue;   // La file de tâches génériques
+    std::vector<std::thread> m_workers;              
+    std::queue<std::function<void()>> m_taskQueue;  
 
     std::mutex m_queueMutex;                         // Verrou pour protéger l'accès à la file
     std::condition_variable m_condition;             // Pour réveiller les threads endormis
