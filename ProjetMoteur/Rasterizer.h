@@ -13,7 +13,7 @@
 struct RenderStats {
     int trianglesProcessed = 0;
     int trianglesRasterized = 0;
-    std::atomic<int> pixelsProcessed{ 0 }; // Protégé contre les accès simultanés 
+    std::atomic<int> pixelsProcessed{ 0 }; 
     int threadsUsed = 1;
     float frameTimeMs = 0.0f;
 };

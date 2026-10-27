@@ -7,6 +7,7 @@ struct Vertex
     float r, g, b; 
     glm::vec2 uv;  
     glm::vec3 normal;
+    glm::vec3 worldPos;
 };
 
 struct ScreenVertex
@@ -17,6 +18,7 @@ struct ScreenVertex
     float invW; 
     float u, v;
     float nx, ny, nz;
+    glm::vec3 worldPos;
 };
 
 struct BordLigne
@@ -27,6 +29,7 @@ struct BordLigne
     float invW;
     float u, v;
     float nx, ny, nz;
+    glm::vec3 worldPos;
 };
 
 struct Cube 

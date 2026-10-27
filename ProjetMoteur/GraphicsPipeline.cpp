@@ -7,6 +7,14 @@ GraphicsPipeline::GraphicsPipeline(int width, int height)
     m_vertexShader = [](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
         transformed.position = mvp * vertex.position;
+
+        // Transformation de la normale pour que l'éclairage suive la rotation
+        // On extrait la partie 3x3 de la matrice pour faire pivoter la normale
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        glm::vec3 rotatedNormal = normalMatrix * vertex.normal;
+
+        // On normalise pour garder une longueur de 1
+        transformed.normal = glm::normalize(rotatedNormal);
         return transformed;
         };
 }
@@ -23,12 +31,10 @@ void GraphicsPipeline::SetFragmentShader(FragmentShader newFragmentShader)
 
 void GraphicsPipeline::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const glm::mat4& mvp)
 {
-    // ÉTAPE DU VERTEX SHADER : Transformation des sommets
     Vertex tv1 = m_vertexShader(vertex1, mvp);
     Vertex tv2 = m_vertexShader(vertex2, mvp);
     Vertex tv3 = m_vertexShader(vertex3, mvp);
 
-    // Passage au rastériseur (Clipping, Backface Culling, Rasterisation)
     m_rasterizer.DrawTriangle(tv1, tv2, tv3);
 }
 

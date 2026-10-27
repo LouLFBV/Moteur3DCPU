@@ -15,7 +15,6 @@ public:
 
     GraphicsPipeline(int width, int height);
 
-    // Configuration des Shaders à la volée
     void SetVertexShader(VertexShader newVertexShader);
     void SetFragmentShader(FragmentShader newFragmentShader);
 
@@ -24,10 +23,8 @@ public:
     void DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4, const glm::mat4& mvp);
     void DrawCube(const Cube& cube, const glm::mat4& mvp);
 
-    // Surcharges pour les éléments déjà en NDC (comme le fond ou le sol)
     void DrawSquareNDC(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4);
 
-    // Passerelles vers le rastériseur
     void Clear();
     void ClearZBuffer();
     void RenderScene();

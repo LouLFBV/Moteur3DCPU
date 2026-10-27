@@ -22,7 +22,7 @@ Rasterizer::Rasterizer(int width, int height)
     int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
 
     for (int i = 0; i < numThreads; ++i) {
-        m_workers.emplace_back(&Rasterizer::WorkerThreadLoop, this);
+        m_workers.emplace_back([this] { WorkerThreadLoop(); });
     }
 }
 
@@ -90,8 +90,15 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
         int(std::lround((xndc + 1) / 2 * m_width)),
         int(std::lround((1 - yndc) / 2 * m_height)),
         zndc, vertex.r, vertex.g, vertex.b,
-        inverseW 
-    };
+        inverseW,
+        vertex.uv.x, vertex.uv.y,
+        vertex.normal.x, vertex.normal.y, vertex.normal.z,
+        {
+            vertex.worldPos.x,
+            vertex.worldPos.y,
+            vertex.worldPos.z 
+        }
+    }; 
 }
 
 void Rasterizer::Plot(int x, int y, float z, uint32_t color)
@@ -138,7 +145,14 @@ void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex&
                 x,
                 Lerp(screenVertex1.z, screenVertex2.z, t),
                 Lerp(screenVertex1.r, screenVertex2.r, t), Lerp(screenVertex1.g, screenVertex2.g, t), Lerp(screenVertex1.b, screenVertex2.b, t),
-                Lerp(screenVertex1.invW, screenVertex2.invW, t)
+                Lerp(screenVertex1.invW, screenVertex2.invW, t),
+                Lerp(screenVertex1.u, screenVertex2.u, t), Lerp(screenVertex1.v, screenVertex2.v, t),
+                Lerp(screenVertex1.nx, screenVertex2.nx, t), Lerp(screenVertex1.ny, screenVertex2.ny, t), Lerp(screenVertex1.nz, screenVertex2.nz, t),
+                {
+                    Lerp(screenVertex1.worldPos.x, screenVertex2.worldPos.x, t),
+                    Lerp(screenVertex1.worldPos.y, screenVertex2.worldPos.y, t),
+                    Lerp(screenVertex1.worldPos.z, screenVertex2.worldPos.z, t)
+            }
             };
         }
         for (err += distanceX; err > distanceY; err -= distanceY)
@@ -168,6 +182,16 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     float deltaG = (right.g - left.g) * invWidth;
     float deltaB = (right.b - left.b) * invWidth;
 
+    float deltaU = (right.u - left.u) * invWidth;
+    float deltaV = (right.v - left.v) * invWidth;
+    float deltaNx = (right.nx - left.nx) * invWidth;
+    float deltaNy = (right.ny - left.ny) * invWidth;
+    float deltaNz = (right.nz - left.nz) * invWidth;
+
+    float deltaWorldX = (right.worldPos.x - left.worldPos.x) * invWidth;
+    float deltaWorldY = (right.worldPos.y - left.worldPos.y) * invWidth;
+    float deltaWorldZ = (right.worldPos.z - left.worldPos.z) * invWidth;
+
     BordLigne current = left; 
 
     for (int x = left.x; x < right.x; x++) {
@@ -184,6 +208,16 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
         current.r += deltaR;
         current.g += deltaG;
         current.b += deltaB;
+
+        current.u += deltaU;
+        current.v += deltaV;
+        current.nx += deltaNx;
+        current.ny += deltaNy;
+        current.nz += deltaNz;
+
+        current.worldPos.x += deltaWorldX;
+        current.worldPos.y += deltaWorldY;
+        current.worldPos.z += deltaWorldZ;
     }
 }
 
@@ -278,7 +312,7 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
 
 void Rasterizer::WorkerThreadLoop()
 {
-    while (true) {
+    for (;;) {
         std::function<void()> task;
 
         // 1. On cherche une tâche dans la file
@@ -286,7 +320,10 @@ void Rasterizer::WorkerThreadLoop()
             std::unique_lock<std::mutex> lock(m_queueMutex);
 
             // Le thread s'endort ici tant que la file est vide (et qu'on ne l'arrête pas)
-            m_condition.wait(lock, [this] { return m_stopThreads || !m_taskQueue.empty(); });
+            m_condition.wait(lock, [this] 
+                {
+                    return m_stopThreads || !m_taskQueue.empty(); 
+                });
 
             // Si on a reçu l'ordre de fermer et qu'il n'y a plus de travail, on quitte la boucle
             if (m_stopThreads && m_taskQueue.empty()) 
@@ -305,6 +342,7 @@ void Rasterizer::WorkerThreadLoop()
             std::lock_guard<std::mutex> lock(m_waitMutex);
             m_tasksCompleted++;
         }
+        //Prend un thread endormi au hazard et il prend le mutex et fais son teste, si c'est vrai, il continue, sinon il dort
         m_waitCondition.notify_one();
     }
 }
@@ -403,7 +441,8 @@ void Rasterizer::RenderScene()
     // 3. SALLE D'ATTENTE : Le thread principal (main) s'endort jusqu'à ce que les ouvriers aient fini
     {
         std::unique_lock<std::mutex> lock(m_waitMutex);
-        m_waitCondition.wait(lock, [this] {
+        m_waitCondition.wait(lock, [this] 
+            {
             return m_tasksCompleted.load() == m_NUM_TASKS;
             });
     }

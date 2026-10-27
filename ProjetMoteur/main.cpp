@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 
     // Chargement Obj
     T_OBJ objModel;
-    const char* objPath = "external/Assets/base.obj";
+    const char* objPath = "external/Assets/catn0.obj";
     Get_TOBJ(objPath, objModel);
     bool loaded = !objModel.vertices.empty();
 
@@ -37,32 +37,8 @@ int main(int argc, char* argv[])
 
 
 
-
-
-    //// On personnalise le Vertex Shader pour faire onduler les sommets
-    //pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
-    //    Vertex modified = vertex;
-
-    //    // Effet de vague sur l'axe Y basé sur le temps et la position X
-    //    float time = SDL_GetTicks() * 0.003f;
-    //    modified.position.y += std::sin(time + modified.position.x * 3.0f) * 0.1f;
-
-    //    // Application classique de la matrice MVP
-    //    modified.position = mvp * modified.position;
-    //    return modified;
-    //    });
-
-    //pipeline.SetFragmentShader([](const BordLigne& pixel) {
-    //    // pixel.z varie généralement entre 0 (proche) et 1 (loin)
-    //    float depth = std::clamp(pixel.z, 0.0f, 1.0f);
-
-    //    // On inverse pour que le lointain soit noir et le proche soit lumineux
-    //    float intensity = 1.0f - depth;
-
-    //    uint8_t c = static_cast<uint8_t>(intensity * 255.0f);
-    //    return (0xFF << 24) | (c << 16) | (c << 8) | c; // Niveaux de gris selon la profondeur
-    //    });
-
+    
+    
 
 
     while (window.PollEvents(isPerspective)) {
@@ -79,25 +55,196 @@ int main(int argc, char* argv[])
             projection = glm::ortho(-taille * aspect, taille * aspect, -taille, taille, zNear, zFar);
         }
 
+        
+
+        // RESET DE FRAGMENT SHADER 
+        pipeline.SetFragmentShader([](const BordLigne& pixel) {
+            // On convertit les floats [0.0, 1.0] de BordLigne en entiers [0, 255]
+            uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * pixel.r + 0.5f, 0.0f, 255.0f));
+            uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * pixel.g + 0.5f, 0.0f, 255.0f));
+            uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * pixel.b + 0.5f, 0.0f, 255.0f));
+
+            // On assemble le tout au format 32-bit (Alpha, Rouge, Vert, Bleu)
+            return (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
+            });
+
+
+
         // 1. FOND (Ciel en NDC)
         Vertex baseBackground[4] = {
-            { { -1.0f,  1.0f, 0.99f, 1.0f }, 0.2f, 0.4f, 0.8f },
-            { { -1.0f, -1.0f, 0.99f, 1.0f }, 0.6f, 0.8f, 1.0f },
-            { {  1.0f, -1.0f, 0.99f, 1.0f }, 0.6f, 0.8f, 1.0f },
-            { {  1.0f,  1.0f, 0.99f, 1.0f }, 0.2f, 0.4f, 0.8f }
+            { { -1.0f,  1.0f, 0.9999f, 1.0f }, 0.2f, 0.4f, 0.8f },
+            { { -1.0f, -1.0f, 0.9999f, 1.0f }, 0.6f, 0.8f, 1.0f },
+            { {  1.0f, -1.0f, 0.9999f, 1.0f }, 0.6f, 0.8f, 1.0f },
+            { {  1.0f,  1.0f, 0.9999f, 1.0f }, 0.2f, 0.4f, 0.8f }
         };
         pipeline.DrawSquareNDC(baseBackground[0], baseBackground[1], baseBackground[2], baseBackground[3]);
 
         // 2. SOL (En NDC)
         Vertex basePlan[4] = {
-            { { -1.0f,  0.0f, 0.95f, 1.0f }, 0.4f, 0.4f, 0.4f },
-            { { -1.0f, -1.0f, 0.95f, 1.0f }, 0.2f, 0.2f, 0.2f },
-            { {  1.0f, -1.0f, 0.95f, 1.0f }, 0.2f, 0.2f, 0.2f },
-            { {  1.0f,  0.0f, 0.95f, 1.0f }, 0.4f, 0.4f, 0.4f }
+            { { -1.0f,  0.0f, 0.999f, 1.0f }, 0.4f, 0.4f, 0.4f },
+            { { -1.0f, -1.0f, 0.999f, 1.0f }, 0.2f, 0.2f, 0.2f },
+            { {  1.0f, -1.0f, 0.999f, 1.0f }, 0.2f, 0.2f, 0.2f },
+            { {  1.0f,  0.0f, 0.999f, 1.0f }, 0.4f, 0.4f, 0.4f }
         };
         pipeline.DrawSquareNDC(basePlan[0], basePlan[1], basePlan[2], basePlan[3]);
 
         pipeline.ClearZBuffer();
+
+        pipeline.RenderScene();
+
+
+        glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
+        glm::vec3 viewPos = glm::vec3(0.0f, 0.0f, 0.0f); // Position de la caméra
+        float smoothness = 32.0f; // La brillance (plus c'est haut, plus le reflet est serré/net)
+
+        pipeline.SetFragmentShader([lightDir, viewPos, smoothness](const BordLigne& pixel) {
+
+            glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+
+            glm::vec3 vL = lightDir;
+
+            glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
+            glm::vec3 vV = glm::normalize(viewPos - pixelPos);
+
+            glm::vec3 vH = glm::normalize(vL + vV);
+
+            float diff = std::max(0.0f, glm::dot(normal, vL));
+
+            float specBase = std::max(0.0f, glm::dot(normal, vH));
+            float spec = std::pow(specBase, smoothness); 
+
+            float ambient = 0.4f;
+            float lightIntensity = std::min(1.0f, ambient + diff + (spec * 0.8f));
+
+            // G. Application sur la couleur de base
+            uint8_t r = static_cast<uint8_t>(std::clamp(255.0f * pixel.r * lightIntensity + 0.5f, 0.0f, 255.0f));
+            uint8_t g = static_cast<uint8_t>(std::clamp(255.0f * pixel.g * lightIntensity + 0.5f, 0.0f, 255.0f));
+            uint8_t b = static_cast<uint8_t>(std::clamp(255.0f * pixel.b * lightIntensity + 0.5f, 0.0f, 255.0f));
+
+            return (0xFF << 24) | (r << 16) | (g << 8) | b;
+            });
+
+        //// LIGHT
+        //glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
+
+        //// 2. On injecte ce vecteur 'lightDir' dans le Fragment Shader via [lightDir]
+        //pipeline.SetFragmentShader([lightDir](const BordLigne& pixel) {
+
+        //    // Récupération et normalisation de la normale du pixel
+        //    glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+
+        //    float diffuse = std::max(0.0f, glm::dot(normal, lightDir));
+
+        //    float ambient = 0.5f;
+        //    float lightIntensity = std::min(1.0f, ambient + diffuse);
+
+        //    uint8_t r = static_cast<uint8_t>(std::clamp(255.0f * pixel.r * lightIntensity + 0.5f, 0.0f, 255.0f));
+        //    uint8_t g = static_cast<uint8_t>(std::clamp(255.0f * pixel.g * lightIntensity + 0.5f, 0.0f, 255.0f));
+        //    uint8_t b = static_cast<uint8_t>(std::clamp(255.0f * pixel.b * lightIntensity + 0.5f, 0.0f, 255.0f));
+
+        //    return (0xFF << 24) | (r << 16) | (g << 8) | b;
+        //    });
+
+
+
+
+
+        pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
+            Vertex modified = vertex;
+
+            // 1. Position pour l'écran (MVP)
+            modified.position = mvp * vertex.position;
+
+            // 2. Position monde approchée ou stockée (on peut utiliser la position locale ou la position transformée)
+            modified.worldPos.x = vertex.position.x;
+            modified.worldPos.y = vertex.position.y;
+            modified.worldPos.z = vertex.position.z;
+
+            // 3. Rotation de la normale
+            glm::mat3 normalMatrix = glm::mat3(mvp);
+            modified.normal = glm::normalize(normalMatrix * vertex.normal);
+
+            return modified;
+            });
+
+
+
+        float time = SDL_GetTicks() * 0.001f;
+
+        // 3. RENDU DU MODÈLE OBJ CHARGÉ
+        if (loaded) {
+            glm::mat4 modelOBJ = glm::mat4(1.0f);
+            modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
+            modelOBJ = glm::translate(modelOBJ, glm::vec3(0.0f, -3.0f, -20.0f));
+            modelOBJ = glm::rotate(modelOBJ, time, glm::vec3(0.0f, 1.0f, 0.0f));
+
+            glm::mat4 mvpOBJ = projection * modelOBJ;
+
+            for (size_t i = 0; i + 2 < objModel.vertices.size(); i += 3) {
+                auto& src0 = objModel.vertices[i + 0];
+                auto& src1 = objModel.vertices[i + 1];
+                auto& src2 = objModel.vertices[i + 2];
+
+                Vertex v0 = { src0.position, src0.r, src0.g, src0.b, {src0.tx, src0.ty}, {src0.nx, src0.ny, src0.nz} };
+                Vertex v1 = { src1.position, src1.r, src1.g, src1.b, {src1.tx, src1.ty}, {src1.nx, src1.ny, src1.nz} };
+                Vertex v2 = { src2.position, src2.r, src2.g, src2.b, {src2.tx, src2.ty}, {src2.nx, src2.ny, src2.nz} };
+
+                pipeline.DrawTriangle(v0, v1, v2, mvpOBJ);
+            }
+        }
+
+        // Données des cubes
+        Vertex baseCube[8] = {
+            // Position                     // R,    G,    B     // UV           // Normale (x, y, z)
+            { { -0.5f,  0.5f,  0.5f, 1.0f }, 1.0f, 0.0f, 0.0f, { 0.0f, 0.0f }, {-0.577f,  0.577f,  0.577f} },
+            { { -0.5f, -0.5f,  0.5f, 1.0f }, 0.0f, 1.0f, 0.0f, { 0.0f, 1.0f }, {-0.577f, -0.577f,  0.577f} },
+            { {  0.5f, -0.5f,  0.5f, 1.0f }, 0.0f, 0.0f, 1.0f, { 1.0f, 1.0f }, { 0.577f, -0.577f,  0.577f} },
+            { {  0.5f,  0.5f,  0.5f, 1.0f }, 1.0f, 1.0f, 0.0f, { 1.0f, 0.0f }, { 0.577f,  0.577f,  0.577f} },
+            { { -0.5f,  0.5f, -0.5f, 1.0f }, 0.0f, 1.0f, 1.0f, { 1.0f, 0.0f }, {-0.577f,  0.577f, -0.577f} },
+            { { -0.5f, -0.5f, -0.5f, 1.0f }, 1.0f, 0.0f, 1.0f, { 1.0f, 1.0f }, {-0.577f, -0.577f, -0.577f} },
+            { {  0.5f, -0.5f, -0.5f, 1.0f }, 1.0f, 1.0f, 1.0f, { 0.0f, 1.0f }, { 0.577f, -0.577f, -0.577f} },
+            { {  0.5f,  0.5f, -0.5f, 1.0f }, 0.5f, 0.5f, 0.5f, { 0.0f, 0.0f }, { 0.577f,  0.577f, -0.577f} }
+        };
+
+
+
+
+        
+        // 4. CUBE 3D 1w
+
+        glm::mat4 model1 = glm::mat4(1.0f);
+        model1 = glm::translate(model1, glm::vec3(-3.0f, 0.0f, -4.5f));
+        model1 = glm::rotate(model1, time, glm::vec3(1.0f, 0.7f, 0.0f));
+        glm::mat4 mvp1 = projection * model1;
+
+        Cube cubeFinal1 = {
+            baseCube[0], baseCube[1], baseCube[2], baseCube[3],
+            baseCube[7], baseCube[6], baseCube[5], baseCube[4],
+            baseCube[4], baseCube[5], baseCube[1], baseCube[0],
+            baseCube[3], baseCube[2], baseCube[6], baseCube[7],
+            baseCube[4], baseCube[0], baseCube[3], baseCube[7],
+            baseCube[1], baseCube[5], baseCube[6], baseCube[2]
+        };
+        pipeline.DrawCube(cubeFinal1, mvp1);
+
+        pipeline.RenderScene();
+
+
+
+        pipeline.SetFragmentShader([](const BordLigne& pixel) {
+            float time = SDL_GetTicks() * 0.003f;
+
+            // On combine x et z (profondeur) avec le temps pour faire une onde
+            float wave = std::sin(pixel.x * 0.05f + pixel.z * 15.0f + time);
+            float intensity = (wave * 0.5f) + 0.5f; // Ramène entre 0.0 et 1.0
+
+            // Dégradé Cyan / Violet cyberpunk
+            uint8_t r = static_cast<uint8_t>(intensity * 255.0f);
+            uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 150.0f);
+            uint8_t b = 255;
+
+            return (0xFF << 24) | (r << 16) | (g << 8) | b;
+            });
 
         // On personnalise le Vertex Shader pour faire onduler les sommets
         pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
@@ -112,75 +259,9 @@ int main(int argc, char* argv[])
             return modified;
             });
 
-
-        float time = SDL_GetTicks() * 0.001f;
-
-        // 3. RENDU DU MODÈLE OBJ CHARGÉ
-        if (loaded) {
-            glm::mat4 modelOBJ = glm::mat4(1.0f);
-            modelOBJ = glm::translate(modelOBJ, glm::vec3(-2.0f, 0.0f, -3.0f));
-            modelOBJ = glm::rotate(modelOBJ, time, glm::vec3(0.0f, 1.0f, 1.0f));
-
-            glm::mat4 mvpOBJ = projection * modelOBJ;
-
-            for (size_t i = 0; i + 2 < objModel.vertices.size(); i += 3) {
-                Vertex v0 = { objModel.vertices[i + 0].position, objModel.vertices[i + 0].r, objModel.vertices[i + 0].g, objModel.vertices[i + 0].b };
-                Vertex v1 = { objModel.vertices[i + 1].position, objModel.vertices[i + 1].r, objModel.vertices[i + 1].g, objModel.vertices[i + 1].b };
-                Vertex v2 = { objModel.vertices[i + 2].position, objModel.vertices[i + 2].r, objModel.vertices[i + 2].g, objModel.vertices[i + 2].b };
-
-                // Le pipeline gère le vertex shader et le dessin
-                pipeline.DrawTriangle(v0, v1, v2, mvpOBJ);
-            }
-        }
-
-        // Données des cubes
-        Vertex baseCube[8] = {
-            { { -0.5f,  0.5f,  0.5f, 1.0f }, 1.0f, 0.0f, 0.0f },
-            { { -0.5f, -0.5f,  0.5f, 1.0f }, 0.0f, 1.0f, 0.0f },
-            { {  0.5f, -0.5f,  0.5f, 1.0f }, 0.0f, 0.0f, 1.0f },
-            { {  0.5f,  0.5f,  0.5f, 1.0f }, 1.0f, 1.0f, 0.0f },
-            { { -0.5f,  0.5f, -0.5f, 1.0f }, 0.0f, 1.0f, 1.0f },
-            { { -0.5f, -0.5f, -0.5f, 1.0f }, 1.0f, 0.0f, 1.0f },
-            { {  0.5f, -0.5f, -0.5f, 1.0f }, 1.0f, 1.0f, 1.0f },
-            { {  0.5f,  0.5f, -0.5f, 1.0f }, 0.5f, 0.5f, 0.5f }
-        };
-
-
-        //pipeline.SetFragmentShader([](const BordLigne& pixel) {
-        //    float time = SDL_GetTicks() * 0.003f;
-
-        //    // On combine x et z (profondeur) avec le temps pour faire une onde
-        //    float wave = std::sin(pixel.x * 0.05f + pixel.z * 15.0f + time);
-        //    float intensity = (wave * 0.5f) + 0.5f; // Ramène entre 0.0 et 1.0
-
-        //    // Dégradé Cyan / Violet cyberpunk
-        //    uint8_t r = static_cast<uint8_t>(intensity * 255.0f);
-        //    uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 150.0f);
-        //    uint8_t b = 255;
-
-        //    return (0xFF << 24) | (r << 16) | (g << 8) | b;
-        //    });
-     
-        // 4. CUBE 3D 1w
-
-        glm::mat4 model1 = glm::mat4(1.0f);
-        model1 = glm::translate(model1, glm::vec3(1.0f, 0.0f, -3.5f));
-        model1 = glm::rotate(model1, time, glm::vec3(1.0f, 0.7f, 0.0f));
-        glm::mat4 mvp1 = projection * model1;
-
-        Cube cubeFinal1 = {
-            baseCube[0], baseCube[1], baseCube[2], baseCube[3],
-            baseCube[7], baseCube[6], baseCube[5], baseCube[4],
-            baseCube[4], baseCube[5], baseCube[1], baseCube[0],
-            baseCube[3], baseCube[2], baseCube[6], baseCube[7],
-            baseCube[4], baseCube[0], baseCube[3], baseCube[7],
-            baseCube[1], baseCube[5], baseCube[6], baseCube[2]
-        };
-        pipeline.DrawCube(cubeFinal1, mvp1);
-
         // 5. CUBE 3D 2
         glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, glm::vec3(0.0f, 0.0f, -2.5f));
+        model2 = glm::translate(model2, glm::vec3(1.0f, 0.0f, -3.5f));
         model2 = glm::rotate(model2, time * 2.f, glm::vec3(-1.0f, 0.7f, 0.0f));
         glm::mat4 mvp2 = projection * model2;
 
@@ -193,6 +274,8 @@ int main(int argc, char* argv[])
             baseCube[1], baseCube[5], baseCube[6], baseCube[2]
         };
         pipeline.DrawCube(cubeFinal2, mvp2);
+        
+
 
         // 6. TRIANGLE 3D SUPPLÉMENTAIRE
         Vertex verticesTri[3] = {
