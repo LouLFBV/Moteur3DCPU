@@ -3,29 +3,13 @@
 #include <array>
 #include <cstdint>
 #include "Types.h"
+#include "Multithreading.h"
 #include <thread>
 #include <queue>
 #include <functional>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-
-struct RenderStats {
-    int trianglesProcessed = 0;
-    int trianglesRasterized = 0;
-    std::atomic<int> pixelsProcessed{ 0 }; 
-    int threadsUsed = 1;
-    float frameTimeMs = 0.0f;
-};
-
-enum class ClipPlane {
-    Near,
-    Far,
-    Left,
-    Right,
-    Top,
-    Bottom 
-};
 
 class Rasterizer
 {
@@ -68,8 +52,7 @@ private:
     void WorkerThreadLoop();
 
 
-    // On peut maintenant avoir plus de tâches que de threads ! (ex: 16 bandes pour 8 threads)
-    static constexpr int m_NUM_TASKS = 16;
+    
 
     int m_width;
     int m_height;
@@ -84,18 +67,7 @@ private:
         ClipPlane::Top,
         ClipPlane::Bottom
     };
-    RenderStats m_stats;
-
-    std::vector<std::thread> m_workers;              
-    std::queue<std::function<void()>> m_taskQueue;  
-
-    std::mutex m_queueMutex;                         // Verrou pour protéger l'accès à la file
-    std::condition_variable m_condition;             // Pour réveiller les threads endormis
-    bool m_stopThreads = false;                      // Signal pour tuer les threads à la fermeture
-
-    std::atomic<int> m_tasksCompleted{ 0 };            // Compteur des tâches terminées
-    std::mutex m_waitMutex;                          // Verrou pour le thread principal
-    std::condition_variable m_waitCondition;         // Pour réveiller le main() quand la frame est finie
+    RenderStats m_stats;    
 
     PixelShader m_currentShader;
 };

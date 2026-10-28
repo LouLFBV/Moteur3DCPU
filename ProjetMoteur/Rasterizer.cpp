@@ -16,27 +16,10 @@ Rasterizer::Rasterizer(int width, int height)
         uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * pixel.b + 0.5f, 0.0f, 255.0f));
         return (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
         };
-
-    unsigned int cores = std::thread::hardware_concurrency();
-
-    int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
-
-    for (int i = 0; i < numThreads; ++i) {
-        m_workers.emplace_back([this] { WorkerThreadLoop(); });
-    }
 }
 
 Rasterizer::~Rasterizer()
 {
-    {
-        std::lock_guard<std::mutex> lock(m_queueMutex);
-        m_stopThreads = true; // On donne l'ordre d'arrêt
-    }
-    m_condition.notify_all(); // On réveille tout le monde pour qu'ils voient l'ordre d'arrêt
-
-    for (std::thread& worker : m_workers) {
-        worker.join(); // On attend qu'ils aient fini de ranger leurs affaires
-    }
 }
 
 void Rasterizer::ResetStats()
@@ -45,7 +28,7 @@ void Rasterizer::ResetStats()
     m_stats.trianglesRasterized = 0;
     m_stats.pixelsProcessed.store(0);
     m_stats.frameTimeMs = 0.0f;
-    m_stats.threadsUsed = m_workers.size(); 
+    m_stats.threadsUsed = Multithreading::GetInstance().GetNumThreads();
 }
 
 const RenderStats& Rasterizer::GetStats() const
@@ -200,6 +183,7 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
             current.x = x; 
 
             uint32_t finalColor = m_currentShader(current);
+            //m_fragmentProcessor.ProcessFragment(current);
 
             Plot(x, y, current.z, finalColor);
         }
@@ -221,73 +205,6 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     }
 }
 
-Vertex Rasterizer::Mix(const Vertex& vertex1, const Vertex& vertex2, float t)
-{
-    return {
-        { Lerp(vertex1.position.x, vertex2.position.x, t),
-        Lerp(vertex1.position.y, vertex2.position.y, t),
-        Lerp(vertex1.position.z, vertex2.position.z, t),
-        Lerp(vertex1.position.w, vertex2.position.w, t) },
-
-        Lerp(vertex1.r, vertex2.r, t), Lerp(vertex1.g, vertex2.g, t), Lerp(vertex1.b, vertex2.b, t)
-    };
-}
-
-// Mesure la distance d'un sommet par rapport aux six plans du clipspace
-float Rasterizer::PlaneDist(const Vertex& vertex, ClipPlane plane)
-{
-    switch (plane) 
-    {
-        case ClipPlane::Near:
-            return vertex.position.w + vertex.position.z;
-        case ClipPlane::Far:
-            return vertex.position.w - vertex.position.z;
-        case ClipPlane::Left:
-            return vertex.position.w + vertex.position.x;
-        case ClipPlane::Right:
-            return vertex.position.w - vertex.position.x;
-        case ClipPlane::Bottom:
-            return vertex.position.w + vertex.position.y;
-        case ClipPlane::Top:
-            return vertex.position.w - vertex.position.y;
-    }
-    return 0.0f;
-}
-
-// Donne le vertex sur le plan de choisi, se trouvant entre les deux vertex en paramètre
-Vertex Rasterizer::CrossPlane(const Vertex& vertexFront, const Vertex& vertexBack, ClipPlane plane)
-{
-    float distanceFront = PlaneDist(vertexFront, plane);
-    float distanceBack = PlaneDist(vertexBack, plane);
-    return Mix(vertexFront, vertexBack, distanceFront / (distanceFront - distanceBack));
-}
-
-int Rasterizer::ClipAgainstPlane(ClipPlane plane, const Vertex* inVertices, Vertex* outVertices, int inCount)
-{
-    if (inCount == 0) return 0;
-
-    int newVertices = 0;
-    for (int i = 0; i < inCount; i ++ ) {
-
-        const Vertex& startPoint = inVertices[i];
-        const Vertex& endPoint = inVertices[(i + 1) % inCount]; // pour obtenir 0 lorsque startPoint est à inCount
-
-        bool startPointIn = PlaneDist(startPoint, plane) > 0;
-        bool endPointIn = PlaneDist(endPoint, plane) > 0;
-
-        if (startPointIn)
-        {
-            outVertices[newVertices++] = startPoint; // startPoint est dedans
-        }
-
-        if (startPointIn != endPointIn)
-        {
-            outVertices[newVertices++] = CrossPlane(startPoint, endPoint, plane); // l'arête traverse
-        }
-    }
-    return newVertices; 
-}
-
 
 void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY, std::vector<BordLigne>& longSide, std::vector<BordLigne>& shortSide)
 {
@@ -296,8 +213,6 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     ScreenVertex sv1 = ToScreen(vertex1);
     ScreenVertex sv2 = ToScreen(vertex2);
     ScreenVertex sv3 = ToScreen(vertex3);
-
-    //m_stats.trianglesRasterized++;
 
     SortByY(sv1, sv2, sv3);
 
@@ -310,143 +225,28 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
 
 }
 
-void Rasterizer::WorkerThreadLoop()
-{
-    for (;;) {
-        std::function<void()> task;
-
-        // 1. On cherche une tâche dans la file
-        {
-            std::unique_lock<std::mutex> lock(m_queueMutex);
-
-            // Le thread s'endort ici tant que la file est vide (et qu'on ne l'arrête pas)
-            m_condition.wait(lock, [this] 
-                {
-                    return m_stopThreads || !m_taskQueue.empty(); 
-                });
-
-            // Si on a reçu l'ordre de fermer et qu'il n'y a plus de travail, on quitte la boucle
-            if (m_stopThreads && m_taskQueue.empty()) 
-                return;
-
-            // On récupère la tâche tout en haut de la pile
-            task = std::move(m_taskQueue.front());
-            m_taskQueue.pop();
-        }
-
-        // 2. On exécute la tâche (sans verrouiller le reste du programme !)
-        task();
-
-        // 3. On signale au thread principal (le main) qu'on a terminé cette tâche
-        {
-            std::lock_guard<std::mutex> lock(m_waitMutex);
-            m_tasksCompleted++;
-        }
-        //Prend un thread endormi au hazard et il prend le mutex et fais son teste, si c'est vrai, il continue, sinon il dort
-        m_waitCondition.notify_one();
-    }
-}
-
-bool Rasterizer::IsBackFace(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
-{
-    // On fait la division perspective pour ramener les points en 2D
-    float vertex1X = vertex1.position.x / vertex1.position.w;
-    float vertex1Y = vertex1.position.y / vertex1.position.w;
-
-    float vertex2X = vertex2.position.x / vertex2.position.w;
-    float vertex2Y = vertex2.position.y / vertex2.position.w;
-
-    float vertex3X = vertex3.position.x / vertex3.position.w;
-    float vertex3Y = vertex3.position.y / vertex3.position.w;
-
-    float area2 = (vertex2X - vertex1X) * (vertex3Y - vertex1Y) - (vertex2Y - vertex1Y) * (vertex3X - vertex1X);
-
-    return area2 <= 0.0f;
-}
-
-
-void Rasterizer::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3)
-{
-    m_stats.trianglesProcessed++;
-
-    Vertex poly1[10];
-    Vertex poly2[10];
-
-    poly1[0] = vertex1;
-    poly1[1] = vertex2;
-    poly1[2] = vertex3;
-
-    int vertexCount = 3;
-
-    for (int i = 0; i < 6; i++) 
-    {
-        vertexCount = ClipAgainstPlane(m_planes[i], poly1, poly2, vertexCount);
-
-        if (vertexCount < 3) 
-            return;
-
-        for (int j = 0; j < vertexCount; j++) 
-        {
-            poly1[j] = poly2[j];
-        }
-    }
-
-    for (int i = 1; i < vertexCount - 1; i++)
-    {
-        Vertex vertexA = poly1[0];
-        Vertex vertexB = poly1[i];
-        Vertex vertexC = poly1[i + 1];
-
-        if (!IsBackFace(vertexA, vertexB, vertexC))
-            m_triangleQueue.push_back({ vertexA, vertexB, vertexC });
-    }
-}
-
 
 void Rasterizer::RenderScene()
-{
-    m_stats.threadsUsed = m_workers.size();
+{    
+    m_stats.threadsUsed = Multithreading::GetInstance().GetNumThreads();
     m_stats.trianglesRasterized = m_triangleQueue.size();
 
-    m_tasksCompleted.store(0);
-
     
-    int bandHeight = m_height / m_NUM_TASKS;
+    // 1. On distribue les tâches au Singleton en lui passant m_height et le travail par bande
+    Multithreading::GetInstance().DispatchTasks(m_height, [this](int taskId, int minY, int maxY) {
 
-    // 1. DISTRIBUTION DES TÂCHES
-    {
-        std::lock_guard<std::mutex> lock(m_queueMutex);
+        // ALLOCATION UNIQUE POUR TOUTE LA BANDE ! (Zéro attente OS)
+        std::vector<BordLigne> taskLongSide(m_height);
+        std::vector<BordLigne> taskShortSide(m_height);
 
-        for (int i = 0; i < m_NUM_TASKS; ++i) {
-            int minY = i * bandHeight;
-            int maxY = (i == m_NUM_TASKS - 1) ? m_height : (i + 1) * bandHeight;
-
-            // On emballe le code dans un std::function et on le met dans la queue
-            m_taskQueue.push([this, minY, maxY]() {
-
-                // ALLOCATION UNIQUE POUR TOUTE LA BANDE ! (Zéro attente OS)
-                std::vector<BordLigne> taskLongSide(m_height);
-                std::vector<BordLigne> taskShortSide(m_height);
-
-                for (const auto& tri : m_triangleQueue) {
-                    RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY, taskLongSide, taskShortSide);
-                }
-                });
+        for (const auto& tri : m_triangleQueue) {
+            RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY, taskLongSide, taskShortSide);
         }
-    }
+        });
 
-    // 2. COUP DE SIFFLET : On réveille tous les ouvriers endormis !
-    m_condition.notify_all();
+    // 2. Le thread principal (main) s'endort sagement jusqu'à la fin des calculs
+    Multithreading::GetInstance().WaitAll();
 
-    // 3. SALLE D'ATTENTE : Le thread principal (main) s'endort jusqu'à ce que les ouvriers aient fini
-    {
-        std::unique_lock<std::mutex> lock(m_waitMutex);
-        m_waitCondition.wait(lock, [this] 
-            {
-            return m_tasksCompleted.load() == m_NUM_TASKS;
-            });
-    }
-
-    // L'image est entièrement peinte ! On nettoie pour la frame suivante
+    // 3. L'image est entièrement peinte ! On nettoie la file pour la frame suivantem_triangleQueue.clear();
     m_triangleQueue.clear();
 }

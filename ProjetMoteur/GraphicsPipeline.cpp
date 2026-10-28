@@ -19,10 +19,7 @@ GraphicsPipeline::GraphicsPipeline(int width, int height)
         };
 }
 
-void GraphicsPipeline::SetVertexShader(VertexShader newVertexShader)
-{
-    m_vertexShader = newVertexShader;
-}
+
 
 void GraphicsPipeline::SetFragmentShader(FragmentShader newFragmentShader)
 {

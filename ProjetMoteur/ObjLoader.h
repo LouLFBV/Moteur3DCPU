@@ -2,14 +2,8 @@
 
 #include <vector>
 #include <glm/glm.hpp>
+#include "Types.h"
 
-struct T_OBJVertex
-{
-    glm::vec4 position;
-    float nx, ny, nz;
-    float tx, ty;
-    float r, g, b;
-};
 
 class T_OBJ
 {

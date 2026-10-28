@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\FragmentProcessor.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\FragmentProcessor.cpp.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\FragmentProcessor.cpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

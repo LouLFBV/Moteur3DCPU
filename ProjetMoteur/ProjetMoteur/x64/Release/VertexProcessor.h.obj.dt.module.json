@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\VertexProcessor.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\VertexProcessor.h.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\VertexProcessor.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}
