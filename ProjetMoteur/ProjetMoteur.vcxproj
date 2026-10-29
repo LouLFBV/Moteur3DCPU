@@ -145,6 +145,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="FragmentProcessor.cpp" />
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="main.cpp" />
@@ -152,17 +153,20 @@
     <ClCompile Include="Multithreading.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VertexProcessor.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Users\loulo\Downloads\tiny_obj_loader.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="FragmentProcessor.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Multithreading.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="Rasterizer.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="VertexProcessor.h" />
     <ClInclude Include="Window.h" />

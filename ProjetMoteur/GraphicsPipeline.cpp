@@ -1,38 +1,34 @@
 #include "GraphicsPipeline.h"
+#include "Multithreading.h"
 
 GraphicsPipeline::GraphicsPipeline(int width, int height)
     : m_rasterizer(width, height)
 {
-    // Vertex Shader par défaut : Application classique de la matrice MVP
-    m_vertexShader = [](const Vertex& vertex, const glm::mat4& mvp) {
+    // Vertex Shader par défaut appliqué sur le VertexProcessor
+    m_vertexProcessor.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
         transformed.position = mvp * vertex.position;
 
-        // Transformation de la normale pour que l'éclairage suive la rotation
-        // On extrait la partie 3x3 de la matrice pour faire pivoter la normale
         glm::mat3 normalMatrix = glm::mat3(mvp);
         glm::vec3 rotatedNormal = normalMatrix * vertex.normal;
-
-        // On normalise pour garder une longueur de 1
         transformed.normal = glm::normalize(rotatedNormal);
         return transformed;
-        };
+        });
 }
 
-
+void GraphicsPipeline::SetVertexShader(VertexShader newVertexShader)
+{
+    m_vertexProcessor.SetVertexShader(newVertexShader);
+}
 
 void GraphicsPipeline::SetFragmentShader(FragmentShader newFragmentShader)
 {
-    m_rasterizer.SetPixelShader(newFragmentShader);
+    m_fragmentProcessor.SetFragmentShader(newFragmentShader);
 }
 
-void GraphicsPipeline::DrawTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const glm::mat4& mvp)
+void GraphicsPipeline::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const glm::mat4& mvp)
 {
-    Vertex tv1 = m_vertexShader(vertex1, mvp);
-    Vertex tv2 = m_vertexShader(vertex2, mvp);
-    Vertex tv3 = m_vertexShader(vertex3, mvp);
-
-    m_rasterizer.DrawTriangle(tv1, tv2, tv3);
+    m_drawCommands.push_back({ v0, v1, v2, mvp });
 }
 
 void GraphicsPipeline::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4, const glm::mat4& mvp)
@@ -53,39 +49,77 @@ void GraphicsPipeline::DrawCube(const Cube& cube, const glm::mat4& mvp)
 
 void GraphicsPipeline::DrawSquareNDC(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
 {
-    m_rasterizer.DrawTriangle(vertex1, vertex2, vertex3);
-    m_rasterizer.DrawTriangle(vertex1, vertex3, vertex4);
+    glm::mat4 identity = glm::mat4(1.0f);
+    DrawTriangle(vertex1, vertex2, vertex3, identity);
+    DrawTriangle(vertex1, vertex3, vertex4, identity);
 }
 
-void GraphicsPipeline::Clear() 
+void GraphicsPipeline::Clear()
 {
-    m_rasterizer.Clear(); 
+    m_rasterizer.Clear();
 }
 
-void GraphicsPipeline::ClearZBuffer() 
+void GraphicsPipeline::ClearZBuffer()
 {
-    m_rasterizer.ClearZBuffer(); 
+    m_rasterizer.ClearZBuffer();
 }
 
-void GraphicsPipeline::RenderScene() 
+const void* GraphicsPipeline::GetPixels() const
 {
-    m_rasterizer.RenderScene(); 
+    return m_rasterizer.GetPixels();
 }
 
-const void* GraphicsPipeline::GetPixels() const 
+int GraphicsPipeline::GetPitch() const
 {
-    return m_rasterizer.GetPixels(); 
+    return m_rasterizer.GetPitch();
 }
 
-int GraphicsPipeline::GetPitch() const 
+void GraphicsPipeline::ResetStats()
 {
-    return m_rasterizer.GetPitch(); 
+    m_rasterizer.ResetStats();
 }
-void GraphicsPipeline::ResetStats() 
+
+const RenderStats& GraphicsPipeline::GetStats() const
 {
-    m_rasterizer.ResetStats(); 
+    return m_rasterizer.GetStats();
 }
-const RenderStats& GraphicsPipeline::GetStats() const 
+
+void GraphicsPipeline::RenderScene()
 {
-    return m_rasterizer.GetStats(); 
+    m_rasterizer.GetStats().threadsUsed = Multithreading::GetInstance().GetNumThreads();
+    m_rasterizer.GetStats().trianglesProcessed = m_drawCommands.size();
+
+    int height = m_rasterizer.GetHeight(); 
+
+    // Distribution aux workers
+    Multithreading::GetInstance().DispatchTasks(height, [this, height](int taskId, int minY, int maxY) {
+
+        // Buffers temporaires propres à chaque worker
+        std::vector<BordLigne> taskLongSide(height);
+        std::vector<BordLigne> taskShortSide(height);
+
+        // Callback générique vers le FragmentProcessor
+        auto pixelShaderCallback = [this](const BordLigne& pixel) {
+            return m_fragmentProcessor.ProcessFragment(pixel);
+            };
+
+        for (const auto& cmd : m_drawCommands) {
+
+            // 1. Passage dans le VertexProcessor (Vertex Shader + Clipping + Culling)
+            auto clippedTriangles = m_vertexProcessor.ProcessTriangle(cmd.v0, cmd.v1, cmd.v2, cmd.mvp);
+
+            // 2. Passage au Rasterizer avec le callback du FragmentProcessor
+            for (const auto& tri : clippedTriangles) {
+                m_rasterizer.RasterizeTriangle(
+                    tri[0], tri[1], tri[2],
+                    minY, maxY,
+                    pixelShaderCallback,
+                    taskLongSide, taskShortSide
+                );
+            }
+        }
+        });
+
+    Multithreading::GetInstance().WaitAll();
+    m_drawCommands.clear();
 }

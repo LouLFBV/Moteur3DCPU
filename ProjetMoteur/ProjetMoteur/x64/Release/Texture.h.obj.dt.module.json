@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\Texture.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\Texture.h.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\Texture.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

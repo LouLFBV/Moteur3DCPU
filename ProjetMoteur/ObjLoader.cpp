@@ -1,28 +1,46 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-
 #include "ObjLoader.h"
 #include <iostream>
 
-void Get_TOBJ(const char* path, T_OBJ& obj)
+void Get_TOBJ(const char* path, T_OBJ& obj, const char* baseDir)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn;
+    std::string err;
 
-    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, path);
+    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, path, baseDir);
 
     if (!success) {
-        std::cerr << "Erreur chargement OBJ : " << warn << std::endl;
+        std::cerr << "Erreur chargement OBJ : " << warn << " " << err << std::endl;
         return;
     }
 
     obj.vertices.clear();
 
-    for (size_t s = 0; s < shapes.size(); s++) {
+    // 1. Détection et chargement automatique de la texture depuis le .mtl
+    if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
+        std::string texturePath = materials[0].diffuse_texname;
+
+        // Si un dossier de base est spécifié, on reconstruit le chemin complet
+        if (baseDir) {
+            texturePath = std::string(baseDir) + "/" + texturePath;
+        }
+
+        if (obj.texture.LoadFromFile(texturePath)) {
+            obj.hasTexture = true;
+            std::cout << "Texture chargee avec succes : " << texturePath << std::endl;
+        }
+        else
+            std::cout << "Chemin de texture incorecte :" << texturePath << std::endl;
+    }
+
+    // 2. Extraction classique des sommets
+    for (size_t s = 0; s < shapes.size(); ++s) {
         size_t index_offset = 0;
-        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+        for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); ++f) {
             size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
             for (size_t v = 0; v < fv; v++) {
@@ -50,7 +68,9 @@ void Get_TOBJ(const char* path, T_OBJ& obj)
                 }
 
                 // Couleur par défaut
-                v_out.r = 0.8f; v_out.g = 0.8f; v_out.b = 0.8f;
+                v_out.r = 0.8f;
+                v_out.g = 0.8f;
+                v_out.b = 0.8f;
 
                 obj.vertices.push_back(v_out);
             }

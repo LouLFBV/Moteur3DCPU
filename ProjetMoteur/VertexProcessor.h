@@ -1,7 +1,9 @@
 #pragma once
+
 #include <functional>
 #include <vector>
 #include <array>
+#include "Types.h"
 #include "MathUtils.h"
 
 using VertexShader = std::function<Vertex(const Vertex&, const glm::mat4&)>;

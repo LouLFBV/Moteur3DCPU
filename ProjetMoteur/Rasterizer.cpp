@@ -2,36 +2,32 @@
 #include "MathUtils.h"
 #include <algorithm>
 #include <cmath>
-#include <thread>
 
 Rasterizer::Rasterizer(int width, int height)
     : m_width(width), m_height(height)
 {
     m_framebuffer.resize(width * height, 0xFF000000);
     m_zbuffer.resize(width * height, 1.0f);
-
-    m_currentShader = [](const BordLigne& pixel) {
-        uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * pixel.r + 0.5f, 0.0f, 255.0f));
-        uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * pixel.g + 0.5f, 0.0f, 255.0f));
-        uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * pixel.b + 0.5f, 0.0f, 255.0f));
-        return (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
-        };
 }
 
 Rasterizer::~Rasterizer()
-{
-}
+{}
 
 void Rasterizer::ResetStats()
 {
-    m_stats.trianglesProcessed = 0;      
+    m_stats.trianglesProcessed = 0;
     m_stats.trianglesRasterized = 0;
     m_stats.pixelsProcessed.store(0);
     m_stats.frameTimeMs = 0.0f;
-    m_stats.threadsUsed = Multithreading::GetInstance().GetNumThreads();
+    m_stats.threadsUsed = 0;
 }
 
 const RenderStats& Rasterizer::GetStats() const
+{
+    return m_stats;
+}
+
+RenderStats& Rasterizer::GetStats()
 {
     return m_stats;
 }
@@ -47,19 +43,24 @@ void Rasterizer::ClearZBuffer()
     std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
 }
 
-const void* Rasterizer::GetPixels() const 
+const void* Rasterizer::GetPixels() const
 {
-    return m_framebuffer.data(); 
+    return m_framebuffer.data();
 }
 
-int Rasterizer::GetPitch() const 
+int Rasterizer::GetPitch() const
 {
-    return m_width * sizeof(uint32_t); 
+    return m_width * sizeof(uint32_t);
 }
 
-void Rasterizer::SetPixelShader(PixelShader shader)
+int Rasterizer::GetHeight() const
 {
-    m_currentShader = shader;
+    return m_height;
+}
+
+int Rasterizer::GetWidth() const
+{
+    return m_width;
 }
 
 ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
@@ -79,9 +80,9 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
         {
             vertex.worldPos.x,
             vertex.worldPos.y,
-            vertex.worldPos.z 
+            vertex.worldPos.z
         }
-    }; 
+    };
 }
 
 void Rasterizer::Plot(int x, int y, float z, uint32_t color)
@@ -135,7 +136,7 @@ void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex&
                     Lerp(screenVertex1.worldPos.x, screenVertex2.worldPos.x, t),
                     Lerp(screenVertex1.worldPos.y, screenVertex2.worldPos.y, t),
                     Lerp(screenVertex1.worldPos.z, screenVertex2.worldPos.z, t)
-            }
+                }
             };
         }
         for (err += distanceX; err > distanceY; err -= distanceY)
@@ -143,18 +144,18 @@ void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex&
     }
 }
 
-void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY)
+void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY, const PixelShaderCallback& pixelShader)
 {
     int startY = std::max({ y0, 0, tileMinY });
     int endY = std::min({ y1, m_height, tileMaxY });
 
-    for (int y = startY; y < endY; ++y) 
+    for (int y = startY; y < endY; ++y)
     {
-        FillRowFast(y, left[y], right[y]);
+        FillRowFast(y, left[y], right[y], pixelShader);
     }
 }
 
-void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& right)
+void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& right, const PixelShaderCallback& pixelShader)
 {
     int width = std::max(right.x - left.x, 1);
 
@@ -175,16 +176,14 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     float deltaWorldY = (right.worldPos.y - left.worldPos.y) * invWidth;
     float deltaWorldZ = (right.worldPos.z - left.worldPos.z) * invWidth;
 
-    BordLigne current = left; 
+    BordLigne current = left;
 
     for (int x = left.x; x < right.x; x++) {
         if (x >= 0 && x < m_width)
         {
-            current.x = x; 
+            current.x = x;
 
-            uint32_t finalColor = m_currentShader(current);
-            //m_fragmentProcessor.ProcessFragment(current);
-
+            uint32_t finalColor = pixelShader ? pixelShader(current) : 0xFFFFFFFF;
             Plot(x, y, current.z, finalColor);
         }
 
@@ -205,10 +204,13 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     }
 }
 
-
-void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, int tileMinY, int tileMaxY, std::vector<BordLigne>& longSide, std::vector<BordLigne>& shortSide)
+void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3,
+    int tileMinY, int tileMaxY,
+    const PixelShaderCallback& pixelShader,
+    std::vector<BordLigne>& longSide,
+    std::vector<BordLigne>& shortSide)
 {
-    m_stats.pixelsProcessed++;
+    m_stats.trianglesRasterized++;
 
     ScreenVertex sv1 = ToScreen(vertex1);
     ScreenVertex sv2 = ToScreen(vertex2);
@@ -220,33 +222,6 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     WalkEdge(sv1, sv2, shortSide.data());
     WalkEdge(sv2, sv3, shortSide.data());
 
-    bool right = MiddleIsRight(sv1, sv2, sv3); 
-    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY);
-
-}
-
-
-void Rasterizer::RenderScene()
-{    
-    m_stats.threadsUsed = Multithreading::GetInstance().GetNumThreads();
-    m_stats.trianglesRasterized = m_triangleQueue.size();
-
-    
-    // 1. On distribue les tâches au Singleton en lui passant m_height et le travail par bande
-    Multithreading::GetInstance().DispatchTasks(m_height, [this](int taskId, int minY, int maxY) {
-
-        // ALLOCATION UNIQUE POUR TOUTE LA BANDE ! (Zéro attente OS)
-        std::vector<BordLigne> taskLongSide(m_height);
-        std::vector<BordLigne> taskShortSide(m_height);
-
-        for (const auto& tri : m_triangleQueue) {
-            RasterizeTriangle(tri[0], tri[1], tri[2], minY, maxY, taskLongSide, taskShortSide);
-        }
-        });
-
-    // 2. Le thread principal (main) s'endort sagement jusqu'à la fin des calculs
-    Multithreading::GetInstance().WaitAll();
-
-    // 3. L'image est entièrement peinte ! On nettoie la file pour la frame suivantem_triangleQueue.clear();
-    m_triangleQueue.clear();
+    bool right = MiddleIsRight(sv1, sv2, sv3);
+    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY, pixelShader);
 }

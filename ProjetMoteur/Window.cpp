@@ -57,18 +57,51 @@ void Window::Render()
     SDL_RenderPresent(m_renderer);
 }
 
-bool Window::PollEvents(bool& outIsPerspective)
+bool Window::IsInEditMode() const
+{
+    return m_editMode;
+}
+
+
+bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT)
-            return false;
+        if (event.type == SDL_EVENT_QUIT) return false;
+
         if (event.type == SDL_EVENT_KEY_DOWN) {
-            if (event.key.key == SDLK_ESCAPE) 
+            if (event.key.key == SDLK_ESCAPE) {
                 return false;
-            if (event.key.key == SDLK_SPACE && !event.key.repeat)
-                outIsPerspective = !outIsPerspective;
+            }
+            // Touche 'E' ou 'Tab' pour basculer en Mode Edit
+            if (event.key.key == SDLK_E || event.key.key == SDLK_TAB) {
+                m_editMode = !m_editMode;
+
+                // Capturer la souris et la cacher quand on est en mode Edit
+                SDL_SetWindowRelativeMouseMode(m_window,m_editMode);
+            }
+            if (event.key.key == SDLK_SPACE && !event.key.repeat) {
+                isPerspective = !isPerspective;
+            }
+        }
+
+        // Si le mode Edit est actif, la souris fait pivoter la caméra
+        if (m_editMode && event.type == SDL_EVENT_MOUSE_MOTION) {
+            // event.motion.yrel est inversé en coordonnées écran
+            camera.ProcessMouseMovement((float)event.motion.xrel, -(float)event.motion.yrel);   
         }
     }
+
+    // Gestion des déplacements continus au clavier (ZQSD / WASD + Espace/Shift)
+    if (m_editMode) {
+        const bool* state = SDL_GetKeyboardState(NULL);
+        if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_Z]) camera.ProcessKeyboard(CameraDirection::FORWARD, deltaTime);
+        if (state[SDL_SCANCODE_S])                          camera.ProcessKeyboard(CameraDirection::BACKWARD, deltaTime);
+        if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_Q]) camera.ProcessKeyboard(CameraDirection::LEFT, deltaTime);
+        if (state[SDL_SCANCODE_D])                          camera.ProcessKeyboard(CameraDirection::RIGHT, deltaTime);
+        if (state[SDL_SCANCODE_LALT])                      camera.ProcessKeyboard(CameraDirection::UP, deltaTime);
+        if (state[SDL_SCANCODE_LSHIFT])                     camera.ProcessKeyboard(CameraDirection::DOWN, deltaTime);
+    }
+
     return true;
 }

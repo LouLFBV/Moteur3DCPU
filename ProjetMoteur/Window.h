@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <string>
+#include "Camera.h"
 
 class Window {
 public:
@@ -13,7 +14,8 @@ public:
     bool Init();
     void UpdateTexture(const void* pixels, int pitch);
     void Render();
-    bool PollEvents(bool& outIsPerspective);
+    bool PollEvents(bool& outIsPerspective, Camera& camera, float deltaTime);
+    bool IsInEditMode()const;
 
 private:
     int m_renderWidth;
@@ -21,6 +23,7 @@ private:
     int m_windowWidth;
     int m_windowHeight;
     std::string m_title;
+    bool m_editMode;
 
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;

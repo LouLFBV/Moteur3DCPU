@@ -68,3 +68,8 @@ struct T_OBJVertex
     float tx, ty;
     float r, g, b;
 };
+
+struct DrawCommand {
+    Vertex v0, v1, v2;
+    glm::mat4 mvp;
+};

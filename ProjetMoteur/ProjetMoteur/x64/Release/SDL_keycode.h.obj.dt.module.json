@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "ProjetMoteur\\x64\\Release\\SDL_keycode.obj",
+            "outputs": [
+                "ProjetMoteur\\x64\\Release\\SDL_keycode.h.obj.dt.module.json",
+                "ProjetMoteur\\x64\\Release\\SDL_keycode.h.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}
