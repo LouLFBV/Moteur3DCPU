@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "SceneManager.h"
 #include <iostream>
 
 Window::Window(int renderWidth, int renderHeight, int windowWidth, int windowHeight, const std::string& title)
@@ -63,7 +64,7 @@ bool Window::IsInEditMode() const
 }
 
 
-bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime)
+bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime, SceneManager& sceneManager)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -90,6 +91,7 @@ bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime)
             // event.motion.yrel est inversé en coordonnées écran
             camera.ProcessMouseMovement((float)event.motion.xrel, -(float)event.motion.yrel);   
         }
+        sceneManager.HandleEvent(event, isPerspective);
     }
 
     // Gestion des déplacements continus au clavier (ZQSD / WASD + Espace/Shift)

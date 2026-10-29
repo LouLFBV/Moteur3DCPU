@@ -3,6 +3,8 @@
 #include <string>
 #include "Camera.h"
 
+class SceneManager;
+
 class Window {
 public:
     Window(int renderWidth, int renderHeight, int windowWidth, int windowHeight, const std::string& title);
@@ -14,7 +16,7 @@ public:
     bool Init();
     void UpdateTexture(const void* pixels, int pitch);
     void Render();
-    bool PollEvents(bool& outIsPerspective, Camera& camera, float deltaTime);
+    bool PollEvents(bool& outIsPerspective, Camera& camera, float deltaTime, SceneManager& sceneManager);
     bool IsInEditMode()const;
 
 private:

@@ -1,5 +1,4 @@
 #include "SceneManager.h"
-#include "Rasterizer.h"
 
 void SceneManager::ChangeScene(std::unique_ptr<Scene> newScene)
 {
@@ -48,11 +47,11 @@ void SceneManager::Update(float deltaTime)
     }
 }
 
-void SceneManager::Render(Rasterizer& rasterizer)
+void SceneManager::Render(GraphicsPipeline& pipeline)
 {
     if (m_currentScene)
     {
         // La scène active soumet ses primitives 3D (DrawTriangle, DrawSquare, DrawCube) 
-        m_currentScene->Render(rasterizer);
+        m_currentScene->Render(pipeline);
     }
 }

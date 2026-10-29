@@ -3,7 +3,7 @@
 #include <memory>
 #include <SDL3/SDL.h>
 
-class Rasterizer;
+class GraphicsPipeline;
 class SceneManager;
 
 class Scene
@@ -14,7 +14,7 @@ public:
     virtual void OnEnter() = 0;
     virtual void HandleEvent(const SDL_Event& event, bool& isPerspective, SceneManager& sceneManager) = 0;
     virtual void Update(float deltaTime) = 0;
-    virtual void Render(Rasterizer& rasterizer) = 0;
+    virtual void Render(GraphicsPipeline& pipeline) = 0;
     virtual void OnExit() = 0;
 };
 
@@ -33,7 +33,7 @@ public:
 
     void HandleEvent(const SDL_Event& event, bool& isPerspective);
     void Update(float deltaTime);
-    void Render(Rasterizer& rasterizer);
+    void Render(GraphicsPipeline& pipeline);
 
 private:
     // Exécute la transition en attente en début d'update

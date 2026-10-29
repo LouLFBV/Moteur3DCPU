@@ -5,6 +5,8 @@
 #include "ObjLoader.h"
 #include "Window.h"
 #include "GraphicsPipeline.h"
+#include "SceneManager.h"
+#include "MainScene.h"
 #include "Camera.h"
 
 const int RENDER_WIDTH = 320;
@@ -16,6 +18,11 @@ int main(int argc, char* argv[])
     if (!window.Init()) return 1;
 
     GraphicsPipeline pipeline(RENDER_WIDTH, RENDER_HEIGHT);
+
+    SceneManager sceneManager;
+
+    // Chargement de la scène initiale
+    sceneManager.ChangeScene(std::make_unique<MainScene>());
 
     T_OBJ objModel;
     const char* objPath = "external/Assets/catn0.obj";
@@ -78,7 +85,7 @@ int main(int argc, char* argv[])
 
 
         // On passe la caméra et deltaTime à PollEvents
-        if (!window.PollEvents(isPerspective, camera, deltaTime)) return 0;
+        if (!window.PollEvents(isPerspective, camera, deltaTime, sceneManager)) return 0;
 
         pipeline.ResetStats();
         pipeline.Clear();
