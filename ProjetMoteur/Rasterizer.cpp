@@ -246,7 +246,7 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
     ScreenVertex sv2 = ToScreen(vertex2);
     ScreenVertex sv3 = ToScreen(vertex3);
 
-    m_stats.trianglesRasterized++;
+/*    m_stats.trianglesRasterized++;*/
 
     SortByY(sv1, sv2, sv3);
 
@@ -283,6 +283,7 @@ void Rasterizer::WorkerThreadLoop()
         task();
 
         // 3. On signale au thread principal (le main) qu'on a terminé cette tâche
+        std::lock_guard<std::mutex> lock(m_waitMutex);
         m_tasksCompleted++;
         m_waitCondition.notify_one();
     }

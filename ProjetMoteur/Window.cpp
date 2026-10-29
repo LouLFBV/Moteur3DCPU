@@ -1,4 +1,7 @@
 #include "Window.h"
+#include "MainScene.h"
+#include "EmptyScene.h"
+#include "SceneManager.h"
 #include <iostream>
 
 Window::Window(int renderWidth, int renderHeight, int windowWidth, int windowHeight, const std::string& title)
@@ -57,7 +60,7 @@ void Window::Render()
     SDL_RenderPresent(m_renderer);
 }
 
-bool Window::PollEvents(bool& outIsPerspective)
+bool Window::PollEvents(bool& outIsPerspective, SceneManager& sceneManager)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -69,6 +72,7 @@ bool Window::PollEvents(bool& outIsPerspective)
             if (event.key.key == SDLK_SPACE && !event.key.repeat)
                 outIsPerspective = !outIsPerspective;
         }
+        sceneManager.HandleEvent(event, outIsPerspective);
     }
     return true;
 }

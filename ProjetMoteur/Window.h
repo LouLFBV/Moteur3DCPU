@@ -2,6 +2,8 @@
 #include <SDL3/SDL.h>
 #include <string>
 
+class SceneManager;
+
 class Window {
 public:
     Window(int renderWidth, int renderHeight, int windowWidth, int windowHeight, const std::string& title);
@@ -13,7 +15,7 @@ public:
     bool Init();
     void UpdateTexture(const void* pixels, int pitch);
     void Render();
-    bool PollEvents(bool& outIsPerspective);
+    bool PollEvents(bool& outIsPerspective, SceneManager& sceneManager);
 
 private:
     int m_renderWidth;
