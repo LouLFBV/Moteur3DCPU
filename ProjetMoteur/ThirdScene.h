@@ -18,4 +18,5 @@ private:
     T_OBJ m_objModel;
     bool m_loaded = false;
     float m_time = 0.0f;
+    std::vector<Vertex> m_gpuVertices;
 };

@@ -7,6 +7,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 #include <vector>
+#include <array>
 
 class GraphicsPipeline
 {
@@ -22,6 +23,7 @@ public:
     void DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const glm::mat4& mvp);
     void DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4, const glm::mat4& mvp);
     void DrawCube(const Cube& cube, const glm::mat4& mvp);
+    void DrawMesh(const std::vector<Vertex>& vertices, const glm::mat4& mvp);
 
     void DrawSquareNDC(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4);
 
@@ -40,4 +42,6 @@ private:
     FragmentProcessor m_fragmentProcessor;
 
     std::vector<DrawCommand> m_drawCommands;
+
+    std::vector<std::array<Vertex, 3>> m_clippedTriangles;
 };

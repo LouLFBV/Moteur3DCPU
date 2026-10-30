@@ -169,6 +169,8 @@
     <ClInclude Include="FragmentProcessor.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="MainScene.h" />
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="MaterialPresets.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Multithreading.h" />
     <ClInclude Include="ObjLoader.h" />

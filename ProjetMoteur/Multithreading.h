@@ -1,20 +1,26 @@
 #pragma once
 #include <thread>
 #include <vector>
-#include <queue>
+#include <deque> 
 #include <functional>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
+
+using Job = std::function<void()>; // Raccourci plus propre
 
 class Multithreading {
 public:
     static Multithreading& GetInstance();
 
-    void EnqueueTask(std::function<void()> task);
+    // Nouveau système de soumission (issu de ton cours)
+    void Submit(Job job, bool urgent = false);
 
+    // Attendre que TOUS les jobs en cours soient terminés
     void WaitAll();
 
-    void DispatchTasks(int height, std::function<void(int taskId, int minY, int maxY)> workerTask);
+    // Helper pour générer N tâches de rastérisation
+    void DispatchTasks(int numTasks, int height, std::function<void(int taskId, int minY, int maxY)> workerTask);
 
     int GetNumThreads() const;
 
@@ -24,18 +30,17 @@ private:
 
     void WorkerThreadLoop();
 
-    static constexpr int m_NUM_TASKS = 16;
-
     std::vector<std::thread> m_workers;
-    std::queue<std::function<void()>> m_taskQueue;
+    std::deque<Job> m_taskQueue; // Deque permet l'insertion en tête ou en queue
 
-    std::mutex m_queueMutex;                         // Verrou pour protéger l'accès à la file
-    std::condition_variable m_condition;             // Pour réveiller les threads endormis
-    bool m_stopThreads = false;                      // Signal pour tuer les threads à la fermeture
+    std::mutex m_queueMutex;
+    std::condition_variable m_condition;
+    bool m_stopThreads = false;
 
-    std::atomic<int> m_tasksCompleted{ 0 };            // Compteur des tâches terminées
-    std::mutex m_waitMutex;                          // Verrou pour le thread principal
-    std::condition_variable m_waitCondition;         // Pour réveiller le main() quand la frame est finie
+    // Compteur de jobs soumis mais pas encore terminés (remplace m_tasksCompleted et m_NUM_TASKS)
+    std::atomic<int> m_pendingTasks{ 0 };
+    std::mutex m_waitMutex;
+    std::condition_variable m_waitCondition;
 
     Multithreading(const Multithreading&) = delete;
     Multithreading& operator=(const Multithreading&) = delete;

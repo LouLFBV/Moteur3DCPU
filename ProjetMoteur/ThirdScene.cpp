@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include "MaterialPresets.h"
 
 ThirdScene::ThirdScene(SceneManager& sceneManager) : Scene(sceneManager)
 {}
@@ -23,10 +24,10 @@ void ThirdScene::OnEnter()
     if (m_loaded) {
         std::cout << "Obj Charge depuis : " << objPath << " (" << m_objModel.vertices.size() << " sommets)" << std::endl;
 
-        // Si la texture n'a pas été chargée automatiquement via le .mtl, on la charge à la main :
-        if (!m_objModel.hasTexture) {
-            if (m_objModel.texture.LoadFromFile(texturePath)) {
-                m_objModel.hasTexture = true;
+        // Si la texture n'a pas été chargée automatiquement via le .mtl, on la charge manuellement :
+        if (!m_objModel.material.hasTexture) {
+            if (m_objModel.material.texture.LoadFromFile(texturePath)) {
+                m_objModel.material.hasTexture = true;
                 std::cout << "Texture chargee manuellement : " << texturePath << std::endl;
             }
             else {
@@ -37,12 +38,47 @@ void ThirdScene::OnEnter()
     else {
         std::cerr << "Erreur : Impossible de charger " << objPath << std::endl;
     }
+
+   m_objModel.material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f); 
+
+
+   m_gpuVertices.clear();
+   m_gpuVertices.reserve(m_objModel.vertices.size());
+
+   for (const auto& src : m_objModel.vertices) {
+       m_gpuVertices.push_back({
+           src.position, src.r, src.g, src.b,
+           {src.tx, src.ty}, {src.nx, src.ny, src.nz}
+           });
+   }
+
+
+   // TESTE MATERIAL
+   // On applique un matériau Or au modèle
+   Texture oldTex = m_objModel.material.texture; // Conserver la texture si besoin
+   bool hadTex = m_objModel.material.hasTexture;
+
+   m_objModel.material = MaterialPresets::Gold();
+   m_objModel.material.texture = oldTex;
+   m_objModel.material.hasTexture = hadTex;
+
+
 }
 
 
 void ThirdScene::Update(float deltaTime)
 {
     m_time += deltaTime;
+
+    // TESTE MATERIAL 
+    if (m_loaded) {
+        // 1. Oscillation de la brillance de 4.0 (mat) à 128.0 (miroir)
+        m_objModel.material.shininess = 66.0f + std::sin(m_time * 2.0f) * 62.0f;
+
+        // 2. Pulsation de la couleur du reflet spéculaire (Blanc -> Magenta)
+        float pulse = (std::sin(m_time * 3.0f) + 1.0f) * 0.5f; // [0.0, 1.0]
+        m_objModel.material.specular = glm::vec3(1.0f, 1.0f - pulse, 1.0f);
+    }
 }
 
 void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
@@ -97,52 +133,67 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
 
     // 3. RENDU DU MODÈLE OBJ CHARGÉ
     if (m_loaded) {
-        // Fragment Shader pour le Chat (Échantillonnage + Lumière)
-        glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
 
-        pipeline.SetFragmentShader([this, lightDir, viewPos](const BordLigne& pixel)->uint32_t {
-            float rTex = 0.8f, gTex = 0.8f, bTex = 0.8f;
+        pipeline.SetFragmentShader([this, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+            const Material& mat = m_objModel.material;
 
-            if (m_objModel.hasTexture) {
-                uint32_t texColor = m_objModel.texture.Sample(pixel.u, pixel.v);
-                rTex = ((texColor >> 16) & 0xFF) / 255.0f;
-                gTex = ((texColor >> 8) & 0xFF) / 255.0f;
-                bTex = (texColor & 0xFF) / 255.0f;
+            // 1. On récupère la couleur interpolée du sommet (r, g, b)
+            glm::vec3 vertexColor(pixel.r, pixel.g, pixel.b);
+
+            // 2. Couleur diffuse de base = Matériau (Kd) x Couleur du sommet
+            glm::vec3 baseDiffuse = mat.diffuse * vertexColor;
+
+            // 3. Si une texture existe, elle vient teinter / moduler la couleur de base
+            if (mat.hasTexture) {
+                uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
+                float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
+                float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
+                float bTex = (texColor & 0xFF) / 255.0f;
+
+                baseDiffuse *= glm::vec3(rTex, gTex, bTex);
             }
 
-            // Lumière Blinn-Phong
+            // --- Calcul Blinn-Phong ---
             glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
             glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
             glm::vec3 vV = glm::normalize(viewPos - pixelPos);
             glm::vec3 vH = glm::normalize(lightDir + vV);
 
-            float diff = std::max(0.0f, glm::dot(normal, lightDir));
-            float spec = std::pow(std::max(0.0f, glm::dot(normal, vH)), 32.0f);
-            float lightIntensity = std::min(1.0f, 0.3f + diff + spec * 0.5f);
+            glm::vec3 ambient = mat.ambient * baseDiffuse;
 
-            uint8_t r = static_cast<uint8_t>(std::clamp(rTex * lightIntensity * 255.0f, 0.0f, 255.0f));
-            uint8_t g = static_cast<uint8_t>(std::clamp(gTex * lightIntensity * 255.0f, 0.0f, 255.0f));
-            uint8_t b = static_cast<uint8_t>(std::clamp(bTex * lightIntensity * 255.0f, 0.0f, 255.0f));
+            float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+            glm::vec3 diffuse = baseDiffuse * diffFactor;
+
+            float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
+            glm::vec3 specular = mat.specular * specFactor;
+
+            glm::vec3 finalColor = ambient + diffuse + specular;
+
+            uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+            uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+            uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
 
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
             });
 
-        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.2f, 0.7f));
         modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
         modelOBJ = glm::rotate(modelOBJ, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 mvpOBJ = viewProjection * modelOBJ;
 
-        for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
-            auto& src0 = m_objModel.vertices[i + 0];
-            auto& src1 = m_objModel.vertices[i + 1];
-            auto& src2 = m_objModel.vertices[i + 2];
+        //for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
+        //    auto& src0 = m_objModel.vertices[i + 0];
+        //    auto& src1 = m_objModel.vertices[i + 1];
+        //    auto& src2 = m_objModel.vertices[i + 2];
 
-            Vertex v0 = { src0.position, src0.r, src0.g, src0.b, {src0.tx, src0.ty}, {src0.nx, src0.ny, src0.nz} };
-            Vertex v1 = { src1.position, src1.r, src1.g, src1.b, {src1.tx, src1.ty}, {src1.nx, src1.ny, src1.nz} };
-            Vertex v2 = { src2.position, src2.r, src2.g, src2.b, {src2.tx, src2.ty}, {src2.nx, src2.ny, src2.nz} };
+        //    Vertex v0 = { src0.position, src0.r, src0.g, src0.b, {src0.tx, src0.ty}, {src0.nx, src0.ny, src0.nz} };
+        //    Vertex v1 = { src1.position, src1.r, src1.g, src1.b, {src1.tx, src1.ty}, {src1.nx, src1.ny, src1.nz} };
+        //    Vertex v2 = { src2.position, src2.r, src2.g, src2.b, {src2.tx, src2.ty}, {src2.nx, src2.ny, src2.nz} };
 
-            pipeline.DrawTriangle(v0, v1, v2, mvpOBJ);
-        }
+        //    pipeline.DrawTriangle(v0, v1, v2, mvpOBJ);
+        //}
+
+        pipeline.DrawMesh(m_gpuVertices, mvpOBJ);
 
         pipeline.RenderScene();
     }

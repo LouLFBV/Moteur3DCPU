@@ -47,6 +47,15 @@ void GraphicsPipeline::DrawCube(const Cube& cube, const glm::mat4& mvp)
     DrawSquare(cube.faceRight[0], cube.faceRight[1], cube.faceRight[2], cube.faceRight[3], mvp);
 }
 
+void GraphicsPipeline::DrawMesh(const std::vector<Vertex>& vertices, const glm::mat4& mvp)
+{
+    m_drawCommands.reserve(m_drawCommands.size() + vertices.size() / 3);
+
+    for (size_t i = 0; i + 2 < vertices.size(); i += 3) {
+        m_drawCommands.push_back({ vertices[i], vertices[i + 1], vertices[i + 2], mvp });
+    }
+}
+
 void GraphicsPipeline::DrawSquareNDC(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4)
 {
     glm::mat4 identity = glm::mat4(1.0f);
@@ -89,10 +98,28 @@ void GraphicsPipeline::RenderScene()
     m_rasterizer.GetStats().threadsUsed = Multithreading::GetInstance().GetNumThreads();
     m_rasterizer.GetStats().trianglesProcessed = m_drawCommands.size();
 
-    int height = m_rasterizer.GetHeight(); 
+    int height = m_rasterizer.GetHeight();
 
-    // Distribution aux workers
-    Multithreading::GetInstance().DispatchTasks(height, [this, height](int taskId, int minY, int maxY) {
+    // =========================================================================
+    // PASSE 1 : GÉOMÉTRIE (Exécutée une seule fois)
+    // =========================================================================
+    m_clippedTriangles.clear();
+
+    for (const auto& cmd : m_drawCommands) {
+        // Passage dans le VertexProcessor (Vertex Shader + Clipping + Culling)
+        auto clippedTriangles = m_vertexProcessor.ProcessTriangle(cmd.v0, cmd.v1, cmd.v2, cmd.mvp);
+
+        for (const auto& tri : clippedTriangles) {
+            m_clippedTriangles.push_back(tri);
+        }
+    }
+
+    // =========================================================================
+    // PASSE 2 : RASTÉRISATION (Distribuée aux workers via les Jobs)
+    // =========================================================================
+    int numJobs = 16; // On découpe l'écran en 16 bandes horizontales (16 jobs)
+
+    Multithreading::GetInstance().DispatchTasks(numJobs, height, [this, height](int taskId, int minY, int maxY) {
 
         // Buffers temporaires propres à chaque worker
         std::vector<BordLigne> taskLongSide(height);
@@ -103,23 +130,20 @@ void GraphicsPipeline::RenderScene()
             return m_fragmentProcessor.ProcessFragment(pixel);
             };
 
-        for (const auto& cmd : m_drawCommands) {
-
-            // 1. Passage dans le VertexProcessor (Vertex Shader + Clipping + Culling)
-            auto clippedTriangles = m_vertexProcessor.ProcessTriangle(cmd.v0, cmd.v1, cmd.v2, cmd.mvp);
-
-            // 2. Passage au Rasterizer avec le callback du FragmentProcessor
-            for (const auto& tri : clippedTriangles) {
-                m_rasterizer.RasterizeTriangle(
-                    tri[0], tri[1], tri[2],
-                    minY, maxY,
-                    pixelShaderCallback,
-                    taskLongSide, taskShortSide
-                );
-            }
+        // On boucle sur la liste des triangles DÉJÀ projetés en 2D !
+        for (const auto& tri : m_clippedTriangles) {
+            m_rasterizer.RasterizeTriangle(
+                tri[0], tri[1], tri[2],
+                minY, maxY,
+                pixelShaderCallback,
+                taskLongSide, taskShortSide
+            );
         }
         });
 
+    // On attend que les 16 jobs de rastérisation aient terminé
     Multithreading::GetInstance().WaitAll();
+
+    // Nettoyage pour la frame suivante
     m_drawCommands.clear();
 }

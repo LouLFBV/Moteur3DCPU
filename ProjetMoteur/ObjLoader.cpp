@@ -19,22 +19,35 @@ void Get_TOBJ(const char* path, T_OBJ& obj, const char* baseDir)
     }
 
     obj.vertices.clear();
+    obj.material.Reset();
 
-    // 1. Détection et chargement automatique de la texture depuis le .mtl
-    if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
-        std::string texturePath = materials[0].diffuse_texname;
+    // 1. Détection et chargement automatique de la texture et du material depuis le .mtl
+    if (!materials.empty()) {
+        const auto& mat = materials[0];
 
-        // Si un dossier de base est spécifié, on reconstruit le chemin complet
-        if (baseDir) {
-            texturePath = std::string(baseDir) + "/" + texturePath;
+        // Remplissage des composantes Blinn-Phong
+        obj.material.ambient = glm::vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
+        obj.material.diffuse = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
+        obj.material.specular = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+
+        if (mat.shininess > 0.0f) {
+            obj.material.shininess = mat.shininess;
         }
+        // Chargement automatique de la texture diffuse (map_Kd)
+        if (!mat.diffuse_texname.empty()) {
+            std::string texturePath = mat.diffuse_texname;
+            if (baseDir) {
+                texturePath = std::string(baseDir) + "/" + texturePath;
+            }
 
-        if (obj.texture.LoadFromFile(texturePath)) {
-            obj.hasTexture = true;
-            std::cout << "Texture chargee avec succes : " << texturePath << std::endl;
+            if (obj.material.texture.LoadFromFile(texturePath)) {
+                obj.material.hasTexture = true;
+                std::cout << "Texture chargee via MTL : " << texturePath << std::endl;
+            }
+            else {
+                std::cerr << "Impossible de charger l'image de texture : " << texturePath << std::endl;
+            }
         }
-        else
-            std::cout << "Chemin de texture incorecte :" << texturePath << std::endl;
     }
 
     // 2. Extraction classique des sommets
@@ -68,9 +81,9 @@ void Get_TOBJ(const char* path, T_OBJ& obj, const char* baseDir)
                 }
 
                 // Couleur par défaut
-                v_out.r = 0.8f;
-                v_out.g = 0.8f;
-                v_out.b = 0.8f;
+                v_out.r = 1.0f;
+                v_out.g = 1.0f;
+                v_out.b = 1.0f;
 
                 obj.vertices.push_back(v_out);
             }
