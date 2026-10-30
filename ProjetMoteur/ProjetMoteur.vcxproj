@@ -155,6 +155,7 @@
     <ClCompile Include="Multithreading.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="ThirdScene.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Multithreading.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="Rasterizer.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="ThirdScene.h" />

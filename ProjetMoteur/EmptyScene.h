@@ -1,17 +1,16 @@
 #pragma once
 
-#include "SceneManager.h"
+#include "Scene.h"
 
 class EmptyScene : public Scene
 {
 public:
-    EmptyScene() = default;
+    EmptyScene(SceneManager& sceneManager);
     ~EmptyScene() override = default;
 
     void OnEnter() override;
-    void HandleEvent(const SDL_Event& event, bool& isPerspective, SceneManager& sceneManager) override;
     void Update(float deltaTime) override;
-    void Render(GraphicsPipeline& pipeline) override;
+    void Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime) override;
     void OnExit() override;
 
 private:

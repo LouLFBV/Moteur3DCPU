@@ -1,44 +1,40 @@
 #pragma once
 
 #include <memory>
+#include "Scene.h"
+#include <vector>
 #include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+#include "Camera.h"
 
 class GraphicsPipeline;
 class SceneManager;
 
-class Scene
-{
-public:
-    virtual ~Scene() = default;
 
-    virtual void OnEnter() = 0;
-    virtual void HandleEvent(const SDL_Event& event, bool& isPerspective, SceneManager& sceneManager) = 0;
-    virtual void Update(float deltaTime) = 0;
-    virtual void Render(GraphicsPipeline& pipeline) = 0;
-    virtual void OnExit() = 0;
-};
-
-class SceneManager
-{
+class SceneManager {
 public:
     SceneManager() = default;
-    ~SceneManager() = default;
 
-    // Empêche la copie pour éviter la duplication d'états de scènes
-    SceneManager(const SceneManager&) = delete;
-    SceneManager& operator=(const SceneManager&) = delete;
+    void AddScene(std::unique_ptr<Scene> scene);
 
-    // Demande de changement de scène
-    void ChangeScene(std::unique_ptr<Scene> newScene);
+    void NextScene();
 
-    void HandleEvent(const SDL_Event& event, bool& isPerspective);
+
     void Update(float deltaTime);
-    void Render(GraphicsPipeline& pipeline);
+    void Render(GraphicsPipeline& pipeline, const glm::mat4& viewProj, const glm::vec3& viewPos, float time);
+
+    Scene* GetCurrentScene();
+    int GetWidth() const;
+    int GetHeight() const;
+
 
 private:
-    // Exécute la transition en attente en début d'update
-    void ProcessPendingTransition();
 
-    std::unique_ptr<Scene> m_currentScene = nullptr;
-    std::unique_ptr<Scene> m_nextScene = nullptr;
+    void SetScene(size_t index);
+
+    const int RENDER_WIDTH = 320;
+    const int RENDER_HEIGHT = 200;
+
+    std::vector<std::unique_ptr<Scene>> m_listScene;
+    int m_currentIndex = -1; 
 };

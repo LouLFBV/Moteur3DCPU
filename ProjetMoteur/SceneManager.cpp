@@ -1,57 +1,65 @@
 #include "SceneManager.h"
+#include "Scene.h"
 
-void SceneManager::ChangeScene(std::unique_ptr<Scene> newScene)
+void SceneManager::AddScene(std::unique_ptr<Scene> scene)
 {
-    // On met en attente la nouvelle scène. 
-    m_nextScene = std::move(newScene);
-}
+    m_listScene.push_back(std::move(scene));
 
-void SceneManager::ProcessPendingTransition()
-{
-    if (m_nextScene)
-    {
-        // 1. Quitter proprement la scène courante
-        if (m_currentScene)
-        {
-            m_currentScene->OnExit();
-        }
-
-        // 2. Basculer vers la nouvelle scène
-        m_currentScene = std::move(m_nextScene);
-
-        // 3. Initialiser la nouvelle scène
-        if (m_currentScene)
-        {
-            m_currentScene->OnEnter();
-        }
+    if (m_currentIndex == -1) {
+        SetScene(0);
     }
 }
 
-void SceneManager::HandleEvent(const SDL_Event& event, bool& isPerspective)
+void SceneManager::NextScene()
 {
-    if (m_currentScene)
-    {
-        // On passe à la scène active l'événement SDL, le booléen de perspective 
-        m_currentScene->HandleEvent(event, isPerspective, *this);
+    if (m_listScene.empty()) return;
+
+    // Calcul de l'index suivant avec boucle automatique grâce au modulo %
+    size_t nextIndex = (m_currentIndex + 1) % m_listScene.size();
+    SetScene(nextIndex);
+}
+
+void SceneManager::SetScene(size_t index)
+{
+    if (index >= m_listScene.size()) return;
+
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
+        m_listScene[m_currentIndex]->OnExit();
     }
+
+    m_currentIndex = static_cast<int>(index);
+
+    m_listScene[m_currentIndex]->OnEnter();
 }
 
 void SceneManager::Update(float deltaTime)
 {
-    // Sécurité : Vérifie et exécute un changement de scène en attente avant l'Update
-    ProcessPendingTransition();
-
-    if (m_currentScene)
-    {
-        m_currentScene->Update(deltaTime);
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
+        m_listScene[m_currentIndex]->Update(deltaTime);
     }
 }
 
-void SceneManager::Render(GraphicsPipeline& pipeline)
+void SceneManager::Render(GraphicsPipeline& pipeline, const glm::mat4& viewProj, const glm::vec3& viewPos, float time)
 {
-    if (m_currentScene)
-    {
-        // La scène active soumet ses primitives 3D (DrawTriangle, DrawSquare, DrawCube) 
-        m_currentScene->Render(pipeline);
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
+        m_listScene[m_currentIndex]->Render(pipeline, *this, viewProj, viewPos, time);
     }
+}
+
+Scene* SceneManager::GetCurrentScene()
+{
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
+        return m_listScene[m_currentIndex].get();
+    }
+    return nullptr;
+}
+
+int SceneManager::GetWidth() const
+{
+    return RENDER_WIDTH;
+}
+
+int SceneManager::GetHeight() const
+{
+    return RENDER_HEIGHT;
 }

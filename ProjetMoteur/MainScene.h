@@ -1,18 +1,19 @@
 #pragma once
 
-#include "SceneManager.h"
+#include "Scene.h"
 #include "ObjLoader.h"
+
+
 
 class MainScene : public Scene
 {
 public:
-    MainScene() = default;
+    MainScene(SceneManager& sceneManager);
     ~MainScene() override = default;
 
     void OnEnter() override;
-    void HandleEvent(const SDL_Event& event, bool& isPerspective, SceneManager& sceneManager) override;
     void Update(float deltaTime) override;
-    void Render(GraphicsPipeline& rasterizer) override;
+    void Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime) override;
     void OnExit() override;
 
 private:

@@ -84,6 +84,10 @@ bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime, Sc
             if (event.key.key == SDLK_SPACE && !event.key.repeat) {
                 isPerspective = !isPerspective;
             }
+            if (event.key.key == SDLK_T) {
+                std::cout << "Scene Changer" << std::endl;
+                sceneManager.NextScene();
+            }
         }
 
         // Si le mode Edit est actif, la souris fait pivoter la caméra
@@ -91,7 +95,6 @@ bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime, Sc
             // event.motion.yrel est inversé en coordonnées écran
             camera.ProcessMouseMovement((float)event.motion.xrel, -(float)event.motion.yrel);   
         }
-        sceneManager.HandleEvent(event, isPerspective);
     }
 
     // Gestion des déplacements continus au clavier (ZQSD / WASD + Espace/Shift)

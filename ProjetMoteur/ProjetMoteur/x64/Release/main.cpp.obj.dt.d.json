@@ -486,7 +486,10 @@
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\array",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\fragmentprocessor.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\scenemanager.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\mainscene.h"
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\scene.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\mainscene.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\emptyscene.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\thirdscene.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []
