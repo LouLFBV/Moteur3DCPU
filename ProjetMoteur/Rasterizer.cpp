@@ -15,9 +15,12 @@ Rasterizer::~Rasterizer()
 
 void Rasterizer::ResetStats()
 {
+    m_stats.trianglesSubmitted = 0;
+    m_stats.trianglesFrustumCulled = 0;
     m_stats.trianglesProcessed = 0;
-    m_stats.trianglesRasterized = 0;
+
     m_stats.pixelsProcessed.store(0);
+
     m_stats.frameTimeMs = 0.0f;
     m_stats.threadsUsed = 0;
 }
@@ -83,6 +86,17 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
             vertex.worldPos.z
         }
     };
+}
+
+bool Rasterizer::Barycentric(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& p, float l[3])
+{
+    float area = EdgeFunction(a, b, c);
+    if (std::abs(area) < 0.00001f) return false; 
+
+    l[0] = EdgeFunction(b, c, p) / area;
+    l[1] = EdgeFunction(c, a, p) / area;
+    l[2] = EdgeFunction(a, b, p) / area;
+    return true;
 }
 
 void Rasterizer::Plot(int x, int y, float z, uint32_t color)
@@ -204,13 +218,75 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     }
 }
 
+Box Rasterizer::BoundingBox(
+    const Vertex& a,
+    const Vertex& b,
+    const Vertex& c,
+    int width,
+    int height)
+{
+    constexpr float epsilon = 0.0000001f;
+
+    if (std::abs(a.position.w) < epsilon ||
+        std::abs(b.position.w) < epsilon ||
+        std::abs(c.position.w) < epsilon)
+    {
+        return { 0, 0, -1, -1 };
+    }
+
+    auto ToScreenPosition = [width, height](const Vertex& vertex)
+        {
+            float invW = 1.0f / vertex.position.w;
+
+            return glm::vec2(
+                (vertex.position.x * invW + 1.0f) * 0.5f * width,
+                (1.0f - vertex.position.y * invW) * 0.5f * height
+            );
+        };
+
+    glm::vec2 A = ToScreenPosition(a);
+    glm::vec2 B = ToScreenPosition(b);
+    glm::vec2 C = ToScreenPosition(c);
+
+    int minX = std::max(
+        0,
+        static_cast<int>(std::floor(std::min({ A.x, B.x, C.x })))
+    );
+
+    int minY = std::max(
+        0,
+        static_cast<int>(std::floor(std::min({ A.y, B.y, C.y })))
+    );
+
+    int maxX = std::min(
+        width - 1,
+        static_cast<int>(std::ceil(std::max({ A.x, B.x, C.x })))
+    );
+
+    int maxY = std::min(
+        height - 1,
+        static_cast<int>(std::ceil(std::max({ A.y, B.y, C.y })))
+    );
+
+    return { minX, minY, maxX, maxY };
+}
+
+float Rasterizer::Mix3(float a, float b, float c, const float l[3])
+{
+    return l[0] * a + l[1] * b + l[2] * c;
+}
+
+float Rasterizer::EdgeFunction(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
+{
+    return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
 void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3,
     int tileMinY, int tileMaxY,
     const PixelShaderCallback& pixelShader,
     std::vector<BordLigne>& longSide,
     std::vector<BordLigne>& shortSide)
 {
-    m_stats.trianglesRasterized++;
 
     ScreenVertex sv1 = ToScreen(vertex1);
     ScreenVertex sv2 = ToScreen(vertex2);
@@ -224,4 +300,112 @@ void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2,
 
     bool right = MiddleIsRight(sv1, sv2, sv3);
     FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY, pixelShader);
+}
+
+
+void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const Vertex& v2, int minY, int maxY, const PixelShaderCallback& pixelShaderCallback)
+{
+    //m_stats.trianglesRasterized++;
+
+    float invW0 = 1.0f / v0.position.w;
+    float invW1 = 1.0f / v1.position.w;
+    float invW2 = 1.0f / v2.position.w;
+
+    glm::vec2 A((v0.position.x * invW0 + 1.0f) * 0.5f * m_width, (1.0f - v0.position.y * invW0) * 0.5f * m_height);
+    glm::vec2 B((v1.position.x * invW1 + 1.0f) * 0.5f * m_width, (1.0f - v1.position.y * invW1) * 0.5f * m_height);
+    glm::vec2 C((v2.position.x * invW2 + 1.0f) * 0.5f * m_width, (1.0f - v2.position.y * invW2) * 0.5f * m_height);
+
+    float area = EdgeFunction(A, B, C);
+
+    // 1. BACKFACE CULLING : Ignore les faces cachées. Élimine instantanément le Z-Fighting du cube !
+    // ⚠️ ATTENTION : Si ton modèle devient invisible, change <= en >= (selon l'ordre de tes sommets OBJ)
+    if (std::abs(area) <= 0.00001f) return;
+
+    int minX_box = std::max(0, static_cast<int>(std::floor(std::min({ A.x, B.x, C.x }))));
+    int maxX_box = std::min(m_width - 1, static_cast<int>(std::ceil(std::max({ A.x, B.x, C.x }))));
+    int minY_box = std::max(0, static_cast<int>(std::floor(std::min({ A.y, B.y, C.y }))));
+    int maxY_box = std::min(m_height - 1, static_cast<int>(std::ceil(std::max({ A.y, B.y, C.y }))));
+
+    if (maxY_box < minY || minY_box >= maxY) return;
+
+    int startY = std::max(minY_box, minY);
+    int endY = std::min(maxY_box, maxY - 1);
+
+    // 2. TIE-BREAKING RULE (Règle Top-Left) : Détermine à qui appartient un pixel sur une bordure parfaite
+    auto isTopLeft = [](const glm::vec2& p1, const glm::vec2& p2) {
+        float dx = p2.x - p1.x;
+        float dy = p2.y - p1.y;
+        return (dy < 0.0f) || (dy == 0.0f && dx > 0.0f);
+        };
+    bool bias0 = isTopLeft(B, C);
+    bool bias1 = isTopLeft(C, A);
+    bool bias2 = isTopLeft(A, B);
+
+    // Pré-calcul du Z (qui n'a pas besoin de correction de perspective)
+    float z0 = v0.position.z * invW0, z1 = v1.position.z * invW1, z2 = v2.position.z * invW2;
+
+    for (int y = startY; y <= endY; y++) {
+        for (int x = minX_box; x <= maxX_box; x++) {
+            glm::vec2 p(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f);
+
+            // On utilise EdgeFunction au lieu des divisions pour tester l'inclusion parfaite
+            float w0 = EdgeFunction(B, C, p);
+            float w1 = EdgeFunction(C, A, p);
+            float w2 = EdgeFunction(A, B, p);
+
+            // Application stricte de la règle (bouche 100% des trous)
+            if (w0 < 0 || (w0 == 0.0f && !bias0)) continue;
+            if (w1 < 0 || (w1 == 0.0f && !bias1)) continue;
+            if (w2 < 0 || (w2 == 0.0f && !bias2)) continue;
+
+            m_stats.pixelsProcessed.fetch_add(
+                1,
+                std::memory_order_relaxed
+            );
+
+            // Normalisation pour l'interpolation
+            float l[3] = { w0 / area, w1 / area, w2 / area };
+            float z = Mix3(z0, z1, z2, l);
+            int index = y * m_width + x;
+
+            if (z < m_zbuffer[index]) {
+
+                // 3. CORRECTION DE PERSPECTIVE : Répare les textures et couleurs déformées
+                float invW_pixel = Mix3(invW0, invW1, invW2, l);
+                float w = 1.0f / invW_pixel;
+
+                BordLigne pixel{};
+
+                // Coordonnées du pixel sur l'écran
+                pixel.x = x;
+
+                // Profondeur
+                pixel.z = z;
+
+                // Inverse de W
+                pixel.invW = invW_pixel;
+
+                // Application du ratio W sur les UVs
+                pixel.u = Mix3(v0.uv.x * invW0, v1.uv.x * invW1, v2.uv.x * invW2, l) * w;
+                pixel.v = Mix3(v0.uv.y * invW0, v1.uv.y * invW1, v2.uv.y * invW2, l) * w;
+
+                // Application du ratio W sur les Couleurs
+                pixel.r = Mix3(v0.r * invW0, v1.r * invW1, v2.r * invW2, l) * w;
+                pixel.g = Mix3(v0.g * invW0, v1.g * invW1, v2.g * invW2, l) * w;
+                pixel.b = Mix3(v0.b * invW0, v1.b * invW1, v2.b * invW2, l) * w;
+
+                // Application du ratio W sur les Normales et Positions
+                pixel.nx = Mix3(v0.normal.x * invW0, v1.normal.x * invW1, v2.normal.x * invW2, l) * w;
+                pixel.ny = Mix3(v0.normal.y * invW0, v1.normal.y * invW1, v2.normal.y * invW2, l) * w;
+                pixel.nz = Mix3(v0.normal.z * invW0, v1.normal.z * invW1, v2.normal.z * invW2, l) * w;
+
+                pixel.worldPos.x = Mix3(v0.worldPos.x * invW0, v1.worldPos.x * invW1, v2.worldPos.x * invW2, l) * w;
+                pixel.worldPos.y = Mix3(v0.worldPos.y * invW0, v1.worldPos.y * invW1, v2.worldPos.y * invW2, l) * w;
+                pixel.worldPos.z = Mix3(v0.worldPos.z * invW0, v1.worldPos.z * invW1, v2.worldPos.z * invW2, l) * w;
+
+                m_zbuffer[index] = z;
+                m_framebuffer[index] = pixelShaderCallback(pixel);
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <memory>
 #include <algorithm>
+#include <map>
 #include "MathUtils.h"
 #include "ObjLoader.h"
 #include "Window.h"
@@ -101,9 +102,6 @@ int main(int argc, char* argv[])
         window.Render();
 
 
-
-
-
         // Statistiques de performance
         Uint64 endPerf = SDL_GetPerformanceCounter();
         float frameTimeMs = (endPerf - startPerf) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
@@ -115,13 +113,23 @@ int main(int argc, char* argv[])
         frameCount++;
 
         if (currentTime - lastLogTime >= 1000) {
-            printf("FPS: %d | CPU: %.2f ms | Triangles traites: %d | Triangles rasterises: %d | Pixels: %d | Threads: %d\n",
+
+            printf(
+                "FPS: %d | CPU: %.2f ms | "
+                "Soumis: %d | Frustum rejetes: %d | "
+                "Triangles conserves: %d | "
+                "Pixels: %d | Threads: %d\n",
+
                 frameCount,
                 frameTimeMs,
-                stats.trianglesProcessed,
-                stats.trianglesRasterized,
+
+                stats.trianglesSubmitted,
+                stats.trianglesFrustumCulled,
+                stats.trianglesSubmitted -  stats.trianglesFrustumCulled,
+
                 stats.pixelsProcessed.load(),
-                stats.threadsUsed);
+                stats.threadsUsed
+            );
 
             lastLogTime = currentTime;
             frameCount = 0;

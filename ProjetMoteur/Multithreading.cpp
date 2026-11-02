@@ -53,14 +53,27 @@ void Multithreading::WaitAll()
         });
 }
 
-void Multithreading::DispatchTasks(int numTasks, int height, std::function<void(int taskId, int minY, int maxY)> workerTask)
+void Multithreading::DispatchTasks(
+    int numTasks,
+    int height,
+    std::function<void(int taskId, int minY, int maxY)> workerTask)
 {
-    int bandHeight = height / numTasks;
+    if (height <= 0 || numTasks <= 0 || !workerTask)
+        return;
 
-    // On utilise directement la nouvelle méthode Submit pour chaque bande
+    // On ne crée jamais plus de tâches que de lignes disponibles.
+    numTasks = std::min(numTasks, height);
+
     for (int i = 0; i < numTasks; ++i) {
-        int minY = i * bandHeight;
-        int maxY = (i == numTasks - 1) ? height : (i + 1) * bandHeight;
+
+        // Répartition équilibrée de toutes les lignes.
+        int minY = static_cast<int>(
+            (static_cast<long long>(i) * height) / numTasks
+            );
+
+        int maxY = static_cast<int>(
+            (static_cast<long long>(i + 1) * height) / numTasks
+            );
 
         Submit([i, minY, maxY, workerTask]() {
             workerTask(i, minY, maxY);

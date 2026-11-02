@@ -39,3 +39,10 @@ Vertex RotateVertex(Vertex v, float a)
     v.position.y = x * std::sin(a) + y * std::cos(a);
     return v;
 }
+
+float SimpleNoise(float x, float z) {
+    float f1 = std::sin(x * 0.1f) * std::cos(z * 0.1f) * 5.0f;
+    float f2 = std::sin(x * 0.3f + 1.5f) * std::cos(z * 0.3f + 2.0f) * 2.0f;
+    float f3 = std::sin(x * 0.8f) * std::cos(z * 0.8f) * 0.5f;
+    return f1 + f2 + f3; 
+}

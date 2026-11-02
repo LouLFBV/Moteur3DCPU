@@ -37,6 +37,7 @@ void SceneManager::Update(float deltaTime)
     if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
         m_listScene[m_currentIndex]->Update(deltaTime);
     }
+    //  Affiche ou non SCENE SAUF EDIT MODE 
 }
 
 void SceneManager::Render(GraphicsPipeline& pipeline, const glm::mat4& viewProj, const glm::vec3& viewPos, float time)

@@ -21,6 +21,10 @@ public:
         std::vector<BordLigne>& longSide,
         std::vector<BordLigne>& shortSide);
 
+    void RasterizeTriangleBox(const Vertex& a, const Vertex& b, const Vertex& c,
+        int minY, int maxY,
+        const PixelShaderCallback& pixelShaderCallback);
+
     const void* GetPixels() const;
     int GetPitch() const;
     int GetHeight() const;
@@ -44,10 +48,21 @@ private:
     bool MiddleIsRight(const ScreenVertex& sv1, const ScreenVertex& sv2, const ScreenVertex& sv3);
     void WalkEdge(const ScreenVertex& sv1, const ScreenVertex& sv2, BordLigne* out) const;
 
-    void FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right,
-        int tileMinY, int tileMaxY, const PixelShaderCallback& pixelShader);
-    void FillRowFast(int y, const BordLigne& left, const BordLigne& right,
-        const PixelShaderCallback& pixelShader);
+    void FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY, const PixelShaderCallback& pixelShader);
+    void FillRowFast(int y, const BordLigne& left, const BordLigne& right, const PixelShaderCallback& pixelShader);
+
+    // Calcule la boîte englobante et la contraint aux dimensions de l'écran
+    Box BoundingBox(const Vertex& a, const Vertex& b, const Vertex& c, int width, int height);
+
+    // Fonction d'interpolation basée sur les poids barycentriques l
+    float Mix3(float a, float b, float c, const float l[3]);
+
+    // Calcule l'aire d'un triangle défini par 3 points 2D (utilisé pour les coordonnées barycentriques)
+    float EdgeFunction(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c);
+
+    // Remplit le tableau 'l' avec les poids barycentriques. Retourne false si le triangle est dégénéré.
+    bool Barycentric(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& p, float l[3]);
+
 
     void Plot(int x, int y, float z, uint32_t color);
 };

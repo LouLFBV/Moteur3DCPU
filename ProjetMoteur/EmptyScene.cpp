@@ -13,6 +13,37 @@ void EmptyScene::OnEnter()
 {
     Scene::OnEnter();
     std::cout << "Scene vide\n";
+
+    m_terrainVertices.clear();
+    float halfSize = (m_gridSize * m_cellSize) * 0.5f;
+
+    for (int z = 0; z < m_gridSize; ++z) {
+        for (int x = 0; x < m_gridSize; ++x) {
+            float x0 = x * m_cellSize - halfSize;
+            float z0 = z * m_cellSize - halfSize;
+            float x1 = (x + 1) * m_cellSize - halfSize;
+            float z1 = (z + 1) * m_cellSize - halfSize;
+
+            float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
+            float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
+
+            // Couleur bleue de base pour l'eau
+            float r = 0.31f, g = 0.55f, b = 0.14f;
+
+            Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
+            Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
+            Vertex vBL = { glm::vec4(x0, 0.0f, z1, 1.0f), r, g, b, {u0, v1}, {0, 1, 0} };
+            Vertex vBR = { glm::vec4(x1, 0.0f, z1, 1.0f), r, g, b, {u1, v1}, {0, 1, 0} };
+
+            m_terrainVertices.push_back(vTL);
+            m_terrainVertices.push_back(vBL);
+            m_terrainVertices.push_back(vTR);
+
+            m_terrainVertices.push_back(vTR);
+            m_terrainVertices.push_back(vBL);
+            m_terrainVertices.push_back(vBR);
+        }
+    }
 }
 
 
@@ -169,6 +200,62 @@ void EmptyScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
     pipeline.DrawCube(cubeFinal2, mvp2);
 
     pipeline.RenderScene();
+
+
+    float snapSpacing = m_cellSize;
+    float snappedCamX = std::floor(viewPos.x / snapSpacing) * snapSpacing;
+    float snappedCamZ = std::floor(viewPos.z / snapSpacing) * snapSpacing;
+    //float snappedCamX = viewPos.x;
+    //float snappedCamZ = viewPos.z;
+
+    // Matrice modèle du terrain centrée sous la caméra
+    glm::mat4 modelTerrain = glm::translate(glm::mat4(1.0f), glm::vec3(snappedCamX, -1.0f, snappedCamZ));
+    glm::mat4 mvpTerrain = viewProjection * modelTerrain;
+
+    pipeline.SetVertexShader([modelTerrain](const Vertex& vertex, const glm::mat4& mvp) {
+        Vertex transformed = vertex;
+
+        // Position absolue du sommet dans le monde
+        // (En supposant que tu passes modelTerrain dans ta lambda)
+        glm::vec4 worldPosCoord = modelTerrain * vertex.position;
+
+        // Application du bruit pour façonner la montagne
+        float height = SimpleNoise(worldPosCoord.x, worldPosCoord.z);
+        transformed.position.y += height;
+
+        // Calcul des dérivées pour les normales (essentiel pour que la lumière éclaire les pentes)
+        float eps = 0.1f;
+        float hL = SimpleNoise(worldPosCoord.x - eps, worldPosCoord.z);
+        float hR = SimpleNoise(worldPosCoord.x + eps, worldPosCoord.z);
+        float hD = SimpleNoise(worldPosCoord.x, worldPosCoord.z - eps);
+        float hU = SimpleNoise(worldPosCoord.x, worldPosCoord.z + eps);
+
+        glm::vec3 tangentX(2.0f * eps, hR - hL, 0.0f);
+        glm::vec3 tangentZ(0.0f, hU - hD, 2.0f * eps);
+        glm::vec3 surfaceNormal = glm::normalize(glm::cross(tangentZ, tangentX));
+
+        // Transformation standard MVP
+        transformed.position = mvp * transformed.position;
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        transformed.normal = glm::normalize(normalMatrix * surfaceNormal);
+
+        return transformed;
+        });
+
+    // Envoi au pipeline !
+    pipeline.DrawMesh(m_terrainVertices, mvpTerrain);
+
+    pipeline.RenderScene();
+
+    // Reset du Vertex Shader pour les prochains objets de la frame suivante
+    pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
+        Vertex transformed = vertex;
+        transformed.position = mvp * vertex.position;
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        transformed.normal = glm::normalize(normalMatrix * vertex.normal);
+        return transformed;
+        });
+
 }
 
 void EmptyScene::OnExit()

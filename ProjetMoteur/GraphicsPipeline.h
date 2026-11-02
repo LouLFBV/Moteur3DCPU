@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <array>
+#include <mutex>
 
 class GraphicsPipeline
 {
@@ -44,4 +45,5 @@ private:
     std::vector<DrawCommand> m_drawCommands;
 
     std::vector<std::array<Vertex, 3>> m_clippedTriangles;
+    std::mutex m_clippedMutex;
 };

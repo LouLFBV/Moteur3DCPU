@@ -7,6 +7,7 @@ class ThirdScene : public Scene
 {
 public:
     ThirdScene(SceneManager& sceneManager);
+    ThirdScene(SceneManager& sceneManager, int gridSize, float cellSize);
     ~ThirdScene() override = default;
 
     void OnEnter() override;
@@ -18,5 +19,5 @@ private:
     T_OBJ m_objModel;
     bool m_loaded = false;
     float m_time = 0.0f;
-    std::vector<Vertex> m_gpuVertices;
+    std::vector<Vertex> m_gpuVertices; 
 };

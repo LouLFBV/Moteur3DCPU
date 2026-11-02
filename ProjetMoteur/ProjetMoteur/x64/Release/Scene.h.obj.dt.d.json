@@ -443,7 +443,8 @@
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\ext\\matrix_clip_space.inl",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\ext\\matrix_transform.hpp",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\ext\\matrix_transform.inl",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\gtc\\matrix_transform.inl"
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\gtc\\matrix_transform.inl",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\types.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

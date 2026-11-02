@@ -1,5 +1,6 @@
 #include "GraphicsPipeline.h"
 #include "Multithreading.h"
+#include "VertexProcessor.h"
 
 GraphicsPipeline::GraphicsPipeline(int width, int height)
     : m_rasterizer(width, height)
@@ -26,9 +27,34 @@ void GraphicsPipeline::SetFragmentShader(FragmentShader newFragmentShader)
     m_fragmentProcessor.SetFragmentShader(newFragmentShader);
 }
 
-void GraphicsPipeline::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const glm::mat4& mvp)
+void GraphicsPipeline::DrawTriangle(
+    const Vertex& v0,
+    const Vertex& v1,
+    const Vertex& v2,
+    const glm::mat4& mvp)
 {
-    m_drawCommands.push_back({ v0, v1, v2, mvp });
+    RenderStats& stats = m_rasterizer.GetStats();
+
+    // 1. Triangle soumis au pipeline.
+    stats.trianglesSubmitted++;
+
+    // 2. Transformation des sommets (une seule fois).
+    Vertex tv0 = m_vertexProcessor.TransformVertex(v0, mvp);
+    Vertex tv1 = m_vertexProcessor.TransformVertex(v1, mvp);
+    Vertex tv2 = m_vertexProcessor.TransformVertex(v2, mvp);
+
+    // 3. Frustum Culling.
+    if (!m_vertexProcessor.IsTriangleVisibleClipSpace(tv0, tv1, tv2))
+    {
+        stats.trianglesFrustumCulled++;
+        return;
+    }
+
+    // 4. Triangle conservé.
+    stats.trianglesProcessed++;
+
+    // 5. Stockage des sommets déjà transformés.
+    m_drawCommands.push_back({ tv0, tv1, tv2 });
 }
 
 void GraphicsPipeline::DrawSquare(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4, const glm::mat4& mvp)
@@ -52,7 +78,7 @@ void GraphicsPipeline::DrawMesh(const std::vector<Vertex>& vertices, const glm::
     m_drawCommands.reserve(m_drawCommands.size() + vertices.size() / 3);
 
     for (size_t i = 0; i + 2 < vertices.size(); i += 3) {
-        m_drawCommands.push_back({ vertices[i], vertices[i + 1], vertices[i + 2], mvp });
+        DrawTriangle( vertices[i], vertices[i + 1], vertices[i + 2], mvp );
     }
 }
 
@@ -93,6 +119,7 @@ const RenderStats& GraphicsPipeline::GetStats() const
     return m_rasterizer.GetStats();
 }
 
+
 void GraphicsPipeline::RenderScene()
 {
     m_rasterizer.GetStats().threadsUsed = Multithreading::GetInstance().GetNumThreads();
@@ -100,47 +127,38 @@ void GraphicsPipeline::RenderScene()
 
     int height = m_rasterizer.GetHeight();
 
-    // =========================================================================
-    // PASSE 1 : GÉOMÉTRIE (Exécutée une seule fois)
-    // =========================================================================
     m_clippedTriangles.clear();
 
     for (const auto& cmd : m_drawCommands) {
-        // Passage dans le VertexProcessor (Vertex Shader + Clipping + Culling)
-        auto clippedTriangles = m_vertexProcessor.ProcessTriangle(cmd.v0, cmd.v1, cmd.v2, cmd.mvp);
-
+        auto clippedTriangles = m_vertexProcessor.ProcessTransformedTriangle(
+            cmd.v0,
+            cmd.v1,
+            cmd.v2
+        );
         for (const auto& tri : clippedTriangles) {
             m_clippedTriangles.push_back(tri);
         }
     }
 
-    // =========================================================================
-    // PASSE 2 : RASTÉRISATION (Distribuée aux workers via les Jobs)
-    // =========================================================================
 
-    Multithreading::GetInstance().DispatchTasks(Multithreading::GetInstance().GetNumJobs(), height, [this, height](int taskId, int minY, int maxY) {
 
-        // Buffers temporaires propres à chaque worker
-        std::vector<BordLigne> taskLongSide(height);
-        std::vector<BordLigne> taskShortSide(height);
+    int numJobs = Multithreading::GetInstance().GetNumJobs();
 
-        // Callback générique vers le FragmentProcessor
+    Multithreading::GetInstance().DispatchTasks(numJobs, height, [this](int taskId, int minY, int maxY) {
+
         auto pixelShaderCallback = [this](const BordLigne& pixel) {
             return m_fragmentProcessor.ProcessFragment(pixel);
             };
 
-        // On boucle sur la liste des triangles DÉJÀ projetés en 2D !
         for (const auto& tri : m_clippedTriangles) {
-            m_rasterizer.RasterizeTriangle(
+            m_rasterizer.RasterizeTriangleBox(
                 tri[0], tri[1], tri[2],
                 minY, maxY,
-                pixelShaderCallback,
-                taskLongSide, taskShortSide
+                pixelShaderCallback
             );
         }
         });
 
     Multithreading::GetInstance().WaitAll();
-
     m_drawCommands.clear();
 }

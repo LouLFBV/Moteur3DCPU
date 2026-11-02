@@ -45,9 +45,12 @@ struct Cube
 
 
 struct RenderStats {
+    int trianglesSubmitted = 0;
+    int trianglesFrustumCulled = 0;
     int trianglesProcessed = 0;
-    int trianglesRasterized = 0;
+
     std::atomic<int> pixelsProcessed{ 0 };
+
     int threadsUsed = 1;
     float frameTimeMs = 0.0f;
 };
@@ -71,5 +74,7 @@ struct T_OBJVertex
 
 struct DrawCommand {
     Vertex v0, v1, v2;
-    glm::mat4 mvp;
 };
+
+
+struct Box { int x0, y0, x1, y1; };
