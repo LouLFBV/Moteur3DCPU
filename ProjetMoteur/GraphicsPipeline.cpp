@@ -117,9 +117,8 @@ void GraphicsPipeline::RenderScene()
     // =========================================================================
     // PASSE 2 : RASTÉRISATION (Distribuée aux workers via les Jobs)
     // =========================================================================
-    int numJobs = 16; // On découpe l'écran en 16 bandes horizontales (16 jobs)
 
-    Multithreading::GetInstance().DispatchTasks(numJobs, height, [this, height](int taskId, int minY, int maxY) {
+    Multithreading::GetInstance().DispatchTasks(Multithreading::GetInstance().GetNumJobs(), height, [this, height](int taskId, int minY, int maxY) {
 
         // Buffers temporaires propres à chaque worker
         std::vector<BordLigne> taskLongSide(height);
@@ -141,9 +140,7 @@ void GraphicsPipeline::RenderScene()
         }
         });
 
-    // On attend que les 16 jobs de rastérisation aient terminé
     Multithreading::GetInstance().WaitAll();
 
-    // Nettoyage pour la frame suivante
     m_drawCommands.clear();
 }

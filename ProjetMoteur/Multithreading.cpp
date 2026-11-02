@@ -14,6 +14,7 @@ Multithreading::Multithreading()
     for (int i = 0; i < numThreads; ++i) {
         m_workers.emplace_back([this] { WorkerThreadLoop(); });
     }
+    M_NUM_JOBS = numThreads * 2;
 }
 
 Multithreading::~Multithreading()
@@ -70,6 +71,11 @@ void Multithreading::DispatchTasks(int numTasks, int height, std::function<void(
 int Multithreading::GetNumThreads() const
 {
     return static_cast<int>(m_workers.size());
+}
+
+int Multithreading::GetNumJobs() const
+{
+    return M_NUM_JOBS;
 }
 
 void Multithreading::WorkerThreadLoop()

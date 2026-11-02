@@ -23,6 +23,7 @@ public:
     void DispatchTasks(int numTasks, int height, std::function<void(int taskId, int minY, int maxY)> workerTask);
 
     int GetNumThreads() const;
+    int GetNumJobs() const;
 
 private:
     Multithreading();
@@ -30,6 +31,7 @@ private:
 
     void WorkerThreadLoop();
 
+    int M_NUM_JOBS;
     std::vector<std::thread> m_workers;
     std::deque<Job> m_taskQueue; // Deque permet l'insertion en tête ou en queue
 
