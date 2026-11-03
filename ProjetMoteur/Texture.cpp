@@ -47,3 +47,24 @@ uint32_t Texture::Sample(float u, float v) const {
 
     return m_pixels[y * m_width + x];
 }
+
+int Texture::GetWidth() const
+{
+    return m_width;
+}
+
+int Texture::GetHeight() const
+{
+    return m_height;
+}
+
+uint32_t Texture::GetPixel(int x, int y) const
+{
+    // Sécurité : si on demande un pixel en dehors de l'image, on renvoie de la transparence
+    if (x < 0 || x >= m_width || y < 0 || y >= m_height) {
+        return 0x00000000;
+    }
+
+    // Calcul de l'index 1D dans le vecteur/tableau m_pixels
+    return m_pixels[y * m_width + x];
+}

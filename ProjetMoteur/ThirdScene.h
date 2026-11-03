@@ -20,4 +20,6 @@ private:
     bool m_loaded = false;
     float m_time = 0.0f;
     std::vector<Vertex> m_gpuVertices; 
+    // Animation du texte
+    float m_hudAnimationTime = 0.0f;
 };

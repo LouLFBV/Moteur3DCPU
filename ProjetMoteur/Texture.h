@@ -13,6 +13,11 @@ public:
     // Échantillonne la couleur 32-bit (ARGB/RGBA) en coordonnées UV [0.0, 1.0]
     uint32_t Sample(float u, float v) const;
 
+    int GetWidth() const;
+    int GetHeight() const;
+
+    uint32_t GetPixel(int x, int y) const;
+
 private:
     int m_width = 0;
     int m_height = 0;

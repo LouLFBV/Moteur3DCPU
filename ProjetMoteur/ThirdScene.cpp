@@ -104,12 +104,20 @@ void ThirdScene::OnEnter()
        }
    }
 
+
+   if (m_fontTexture.LoadFromFile("external/Assets/boxy_bold_font_5.png"))
+       std::cout << "font texte charge !\n";
+   else
+       std::cout << "font texte pas trouve !\n";
+
 }
 
 
 void ThirdScene::Update(float deltaTime)
 {
     m_time += deltaTime;
+
+    m_hudAnimationTime += deltaTime;
 
     // TESTE MATERIAL 
     if (m_loaded) {
@@ -125,7 +133,6 @@ void ThirdScene::Update(float deltaTime)
 void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
 {
     glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
-
 
 
     // RESET DE FRAGMENT SHADER 
@@ -382,6 +389,112 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
         transformed.normal = glm::normalize(normalMatrix * vertex.normal);
         return transformed;
         });
+
+
+
+
+
+
+
+
+
+
+
+    pipeline.DrawText2D(
+        20, 20,
+        "FPS: 320",
+        m_fontTexture,
+        0xFFFFFFFF
+    );
+
+    // =====================================================
+    // ANIMATION DU TEXTE
+    // =====================================================
+
+// Durées des différentes phases.
+    constexpr float fadeInDuration = 0.8f;
+    constexpr float holdDuration = 1.4f;
+    constexpr float fadeOutDuration = 0.8f;
+    constexpr float pauseDuration = 1.0f;
+
+    constexpr float cycleDuration =
+        fadeInDuration + holdDuration +
+        fadeOutDuration + pauseDuration;
+
+    // Temps dans le cycle actuel.
+    float animationTime = std::fmod(
+        m_hudAnimationTime,
+        cycleDuration
+    );
+
+    float alpha = 0.0f;
+    float textX = 20.0f;
+
+    // Fonction d'interpolation douce.
+    auto SmoothStep = [](float t)
+        {
+            t = std::clamp(t, 0.0f, 1.0f);
+            return t * t * (3.0f - 2.0f * t);
+        };
+
+    // PHASE 1 : APPARITION
+    if (animationTime < fadeInDuration)
+    {
+        float progress = animationTime / fadeInDuration;
+        float eased = SmoothStep(progress);
+
+        alpha = eased;
+
+        // Le texte arrive depuis la gauche.
+        textX = -60.0f + 80.0f * eased;
+    }
+
+    // PHASE 2 : AFFICHAGE
+    else if (animationTime < fadeInDuration + holdDuration)
+    {
+        alpha = 1.0f;
+        textX = 20.0f;
+    }
+
+    // PHASE 3 : DISPARITION
+    else if (animationTime <
+        fadeInDuration + holdDuration + fadeOutDuration)
+    {
+        float progress =
+            (animationTime - fadeInDuration - holdDuration)
+            / fadeOutDuration;
+
+        float eased = SmoothStep(progress);
+
+        alpha = 1.0f - eased;
+
+        // Le texte repart vers la droite.
+        textX = 20.0f + 80.0f * eased;
+    }
+
+    // PHASE 4 : INVISIBLE
+    else
+    {
+        alpha = 0.0f;
+    }
+
+    // Conversion de l'alpha en entier [0, 255].
+    uint32_t alphaValue = static_cast<uint32_t>(
+        std::round(alpha * 255.0f)
+        );
+
+    // Couleur Cyan avec transparence variable.
+    uint32_t textColor =
+        (alphaValue << 24) | 0x0000FFFF;
+
+    // Affichage du texte animé.
+    pipeline.DrawText2D(
+        static_cast<int>(textX),
+        45,
+        "MOTEUR 3D CPU",
+        m_fontTexture,
+        textColor
+    );
 }
 
 void ThirdScene::OnExit()

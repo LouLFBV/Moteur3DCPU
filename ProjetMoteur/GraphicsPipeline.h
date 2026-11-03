@@ -28,6 +28,9 @@ public:
 
     void DrawSquareNDC(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3, const Vertex& vertex4);
 
+    void DrawText2D(int screenX, int screenY, const std::string& text, const Texture& fontAtlas, uint32_t color);
+    bool GetGlyphRect(char c, int atlasWidth, int atlasHeight, int& outX, int& outY, int& outW, int& outH);
+
     void Clear();
     void ClearZBuffer();
     void RenderScene();

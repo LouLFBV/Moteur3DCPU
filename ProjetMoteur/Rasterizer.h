@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Types.h"
+#include "Texture.h"
 #include <vector>
 #include <functional>
 #include <cstdint>
@@ -24,6 +25,9 @@ public:
     void RasterizeTriangleBox(const Vertex& a, const Vertex& b, const Vertex& c,
         int minY, int maxY,
         const PixelShaderCallback& pixelShaderCallback);
+
+    void DrawSubImage2D(int screenX, int screenY, int width, int height,
+        const Texture& texture, int srcX, int srcY, uint32_t textColor);
 
     const void* GetPixels() const;
     int GetPitch() const;

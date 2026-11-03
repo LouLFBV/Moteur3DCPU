@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include "Camera.h"
 #include "Types.h"
+#include "Texture.h"
 
 class GraphicsPipeline;
 class SceneManager;
@@ -30,4 +31,5 @@ protected:
     std::vector<Vertex> m_terrainVertices;
     int m_gridSize = 80;
     float m_cellSize = 1.0f;
+    Texture m_fontTexture;
 };

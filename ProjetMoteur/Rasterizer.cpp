@@ -409,3 +409,82 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
         }
     }
 }
+
+
+void Rasterizer::DrawSubImage2D(
+    int screenX, int screenY,
+    int width, int height,
+    const Texture& texture,
+    int srcX, int srcY,
+    uint32_t textColor)
+{
+    int texW = texture.GetWidth();
+    int texH = texture.GetHeight();
+
+    uint8_t textA = (textColor >> 24) & 0xFF;
+    uint8_t textR = (textColor >> 16) & 0xFF;
+    uint8_t textG = (textColor >> 8) & 0xFF;
+    uint8_t textB = textColor & 0xFF;
+
+    float textAlpha = textA / 255.0f;
+
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            int destX = screenX + x;
+            int destY = screenY + y;
+
+            if (destX < 0 || destX >= m_width ||
+                destY < 0 || destY >= m_height)
+                continue;
+
+            int texX = srcX + x;
+            int texY = srcY + y;
+
+            if (texX < 0 || texX >= texW ||
+                texY < 0 || texY >= texH)
+                continue;
+
+            uint32_t srcColor = texture.GetPixel(texX, texY);
+
+            uint8_t a = (srcColor >> 24) & 0xFF;
+            uint8_t r = (srcColor >> 16) & 0xFF;
+            uint8_t g = (srcColor >> 8) & 0xFF;
+            uint8_t b = srcColor & 0xFF;
+
+            // Blanc = caractère, transparent = arrière-plan.
+            float luminance = (r + g + b) / (3.0f * 255.0f);
+            float coverage = luminance * (a / 255.0f);
+            float alpha = coverage * textAlpha;
+
+            if (alpha <= 0.001f)
+                continue;
+
+            int index = destY * m_width + destX;
+
+            uint32_t dstColor = m_framebuffer[index];
+
+            uint8_t dstR = (dstColor >> 16) & 0xFF;
+            uint8_t dstG = (dstColor >> 8) & 0xFF;
+            uint8_t dstB = dstColor & 0xFF;
+
+            auto Blend = [alpha](uint8_t src, uint8_t dst)
+                {
+                    return static_cast<uint8_t>(
+                        src * alpha + dst * (1.0f - alpha) + 0.5f
+                        );
+                };
+
+            uint8_t finalR = Blend(textR, dstR);
+            uint8_t finalG = Blend(textG, dstG);
+            uint8_t finalB = Blend(textB, dstB);
+
+            m_framebuffer[index] =
+                (0xFFu << 24) |
+                (finalR << 16) |
+                (finalG << 8) |
+                finalB;
+        }
+    }
+}

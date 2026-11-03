@@ -162,3 +162,247 @@ void GraphicsPipeline::RenderScene()
     Multithreading::GetInstance().WaitAll();
     m_drawCommands.clear();
 }
+
+void GraphicsPipeline::DrawText2D(
+    int screenX,
+    int screenY,
+    const std::string& text,
+    const Texture& fontAtlas,
+    uint32_t color)
+{
+    int cursorX = screenX;
+    int cursorY = screenY;
+
+
+    constexpr int spacing = 1;
+    constexpr int spaceAdvance = 10;
+    constexpr int lineHeight = 22;
+
+    // Vérification de la texture.
+    if (fontAtlas.GetWidth() < 250 ||
+        fontAtlas.GetHeight() < 163)
+        return;
+
+    for (unsigned char c : text)
+    {
+        // Gestion des retours à la ligne.
+        if (c == '\n')
+        {
+            cursorX = screenX;
+            cursorY += lineHeight;
+            continue;
+        }
+
+        // Gestion des retours chariot Windows.
+        if (c == '\r')
+            continue;
+
+        // Gestion des espaces.
+        if (c == ' ')
+        {
+            cursorX += spaceAdvance;
+            continue;
+        }
+
+        int srcX = 0;
+        int srcY = 0;
+        int charW = 0;
+        int charH = 0;
+
+        // Récupération de la cellule du caractère.
+        if (!GetGlyphRect(
+            static_cast<char>(c),
+            fontAtlas.GetWidth(),
+            fontAtlas.GetHeight(),
+            srcX, srcY,
+            charW, charH))
+        {
+            continue;
+        }
+
+        // Dessin du caractère dans le framebuffer.
+        m_rasterizer.DrawSubImage2D(
+            cursorX,
+            cursorY,
+            charW,
+            charH,
+            fontAtlas,
+            srcX,
+            srcY,
+            color
+        );
+
+        // Passage au caractère suivant.
+        cursorX += charW + spacing;
+    }
+}
+
+
+bool GraphicsPipeline::GetGlyphRect(
+    char c,
+    int atlasWidth,
+    int atlasHeight,
+    int& outX,
+    int& outY,
+    int& outW,
+    int& outH)
+{
+    struct Glyph
+    {
+        int x;
+        int advance;
+    };
+
+    // Ligne 0 : ! " # $ % & ' ( ) * + , - . /
+    static constexpr Glyph row0[] = {
+        {4,12}, {16,18}, {34,22}, {56,18}, {74,25},
+        {99,22}, {121,12}, {133,13}, {146,14}, {160,15},
+        {175,21}, {196,13}, {209,16}, {225,11}, {236,14}
+    };
+
+    // Ligne 1 : 0 à 9
+    static constexpr Glyph row1[] = {
+        {4,18}, {22,12}, {34,18}, {52,18}, {70,18},
+        {88,18}, {106,18}, {124,18}, {142,18}, {160,18}
+    };
+
+    // Ligne 2 : : ; < = > ? @
+    static constexpr Glyph row2[] = {
+        {4,12}, {16,11}, {27,16}, {43,15},
+        {58,16}, {74,20}, {94,18}
+    };
+
+    // Ligne 3 : A à M
+    static constexpr Glyph row3[] = {
+        {4,18}, {22,18}, {40,18}, {58,18}, {76,18},
+        {94,18}, {112,18}, {130,18}, {148,12}, {160,18},
+        {178,18}, {196,18}, {214,18}
+    };
+
+    // Ligne 4 : N à Z
+    static constexpr Glyph row4[] = {
+        {4,21}, {25,18}, {43,18}, {61,20}, {81,18},
+        {99,18}, {117,20}, {137,18}, {155,18}, {173,23},
+        {196,18}, {214,20}, {234,16}
+    };
+
+    // Ligne 5 : [ \ ] ^ _ ` { | } ~
+    static constexpr Glyph row5[] = {
+        {4,14}, {18,16}, {34,13}, {47,20}, {67,16},
+        {83,14}, {97,13}, {110,11}, {121,14}, {135,18}
+    };
+
+    // Ligne 6 : a à n
+    static constexpr Glyph row6[] = {
+        {4,18}, {22,18}, {40,16}, {56,18}, {74,18},
+        {92,16}, {108,18}, {126,18}, {144,13}, {157,16},
+        {173,18}, {191,14}, {205,22}, {227,18}
+    };
+
+    // Ligne 7 : o à z
+    static constexpr Glyph row7[] = {
+        {4,18}, {22,18}, {40,18}, {58,18}, {76,18},
+        {94,16}, {110,18}, {128,18}, {146,23}, {169,18},
+        {187,18}, {205,18}
+    };
+
+    unsigned char ascii = static_cast<unsigned char>(c);
+
+    const Glyph* glyphs = nullptr;
+    int count = 0;
+    int index = -1;
+
+    int rowY = 0;
+    int rowHeight = 0;
+
+    if (ascii >= 33 && ascii <= 47)
+    {
+        glyphs = row0;
+        count = 15;
+        index = ascii - 33;
+        rowY = 0;
+        rowHeight = 16;
+    }
+    else if (ascii >= 48 && ascii <= 57)
+    {
+        glyphs = row1;
+        count = 10;
+        index = ascii - 48;
+        rowY = 20;
+        rowHeight = 16;
+    }
+    else if (ascii >= 58 && ascii <= 64)
+    {
+        glyphs = row2;
+        count = 7;
+        index = ascii - 58;
+        rowY = 40;
+        rowHeight = 16;
+    }
+    else if (ascii >= 65 && ascii <= 77)
+    {
+        glyphs = row3;
+        count = 13;
+        index = ascii - 65;
+        rowY = 60;
+        rowHeight = 16;
+    }
+    else if (ascii >= 78 && ascii <= 90)
+    {
+        glyphs = row4;
+        count = 13;
+        index = ascii - 78;
+        rowY = 80;
+        rowHeight = 16;
+    }
+    else if (ascii >= 91 && ascii <= 96)
+    {
+        glyphs = row5;
+        count = 10;
+        index = ascii - 91;
+        rowY = 100;
+        rowHeight = 16;
+    }
+    else if (ascii >= 123 && ascii <= 126)
+    {
+        glyphs = row5;
+        count = 10;
+        index = 6 + (ascii - 123);
+        rowY = 100;
+        rowHeight = 16;
+    }
+    else if (ascii >= 97 && ascii <= 110)
+    {
+        glyphs = row6;
+        count = 14;
+        index = ascii - 97;
+        rowY = 126;
+        rowHeight = 17;
+    }
+    else if (ascii >= 111 && ascii <= 122)
+    {
+        glyphs = row7;
+        count = 12;
+        index = ascii - 111;
+        rowY = 146;
+        rowHeight = 17;
+    }
+    else
+    {
+        return false;
+    }
+
+    if (index < 0 || index >= count)
+        return false;
+
+    outX = glyphs[index].x;
+    outY = rowY;
+    outW = glyphs[index].advance;
+    outH = rowHeight;
+
+    // Vérification des limites de l'atlas.
+    return outX >= 0 &&
+        outY >= 0 &&
+        outX + outW <= atlasWidth &&
+        outY + outH <= atlasHeight;
+}
