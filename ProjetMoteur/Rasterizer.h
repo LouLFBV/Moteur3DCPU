@@ -29,6 +29,9 @@ public:
     void DrawSubImage2D(int screenX, int screenY, int width, int height,
         const Texture& texture, int srcX, int srcY, uint32_t textColor);
 
+    void SetAlphaBlendingEnabled(bool enabled);
+    void SetDepthWriteEnabled(bool enabled);
+
     const void* GetPixels() const;
     int GetPitch() const;
     int GetHeight() const;
@@ -46,6 +49,11 @@ private:
     std::vector<float> m_zbuffer;
 
     RenderStats m_stats;
+
+    bool m_alphaBlendingEnabled = false;
+    bool m_depthWriteEnabled = true;
+
+    bool WritePixelColor(int index, uint32_t color);
 
     ScreenVertex ToScreen(const Vertex& vertex);
     void SortByY(ScreenVertex& sv1, ScreenVertex& sv2, ScreenVertex& sv3);

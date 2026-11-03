@@ -66,6 +66,59 @@ int Rasterizer::GetWidth() const
     return m_width;
 }
 
+bool Rasterizer::WritePixelColor(int index, uint32_t color)
+{
+    if (!m_alphaBlendingEnabled)
+    {
+        m_framebuffer[index] = color;
+        return true;
+    }
+
+    uint8_t srcA = (color >> 24) & 0xFF;
+
+    if (srcA == 0)
+        return false;
+
+    if (srcA == 255)
+    {
+        m_framebuffer[index] = color;
+        return true;
+    }
+
+    uint8_t srcR = (color >> 16) & 0xFF;
+    uint8_t srcG = (color >> 8) & 0xFF;
+    uint8_t srcB = color & 0xFF;
+
+    uint32_t destination = m_framebuffer[index];
+
+    uint8_t dstR = (destination >> 16) & 0xFF;
+    uint8_t dstG = (destination >> 8) & 0xFF;
+    uint8_t dstB = destination & 0xFF;
+
+    float alpha = srcA / 255.0f;
+    float inverseAlpha = 1.0f - alpha;
+
+    uint8_t finalR = static_cast<uint8_t>(
+        srcR * alpha + dstR * inverseAlpha + 0.5f
+        );
+
+    uint8_t finalG = static_cast<uint8_t>(
+        srcG * alpha + dstG * inverseAlpha + 0.5f
+        );
+
+    uint8_t finalB = static_cast<uint8_t>(
+        srcB * alpha + dstB * inverseAlpha + 0.5f
+        );
+
+    m_framebuffer[index] =
+        (0xFFu << 24) |
+        (static_cast<uint32_t>(finalR) << 16) |
+        (static_cast<uint32_t>(finalG) << 8) |
+        finalB;
+
+    return true;
+}
+
 ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
 {
     float inverseW = 1.0f / vertex.position.w;
@@ -84,7 +137,8 @@ ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
             vertex.worldPos.x,
             vertex.worldPos.y,
             vertex.worldPos.z
-        }
+        },
+        vertex.alpha
     };
 }
 
@@ -150,7 +204,8 @@ void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex&
                     Lerp(screenVertex1.worldPos.x, screenVertex2.worldPos.x, t),
                     Lerp(screenVertex1.worldPos.y, screenVertex2.worldPos.y, t),
                     Lerp(screenVertex1.worldPos.z, screenVertex2.worldPos.z, t)
-                }
+                },
+                Lerp(screenVertex1.alpha, screenVertex2.alpha, t)
             };
         }
         for (err += distanceX; err > distanceY; err -= distanceY)
@@ -190,6 +245,8 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     float deltaWorldY = (right.worldPos.y - left.worldPos.y) * invWidth;
     float deltaWorldZ = (right.worldPos.z - left.worldPos.z) * invWidth;
 
+    float deltaAlpha = (right.alpha - left.alpha) * invWidth;
+
     BordLigne current = left;
 
     for (int x = left.x; x < right.x; x++) {
@@ -215,6 +272,8 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
         current.worldPos.x += deltaWorldX;
         current.worldPos.y += deltaWorldY;
         current.worldPos.z += deltaWorldZ;
+
+        current.alpha += deltaAlpha;
     }
 }
 
@@ -405,6 +464,25 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
 
                 m_zbuffer[index] = z;
                 m_framebuffer[index] = pixelShaderCallback(pixel);
+
+                pixel.alpha = Mix3(
+                    v0.alpha * invW0,
+                    v1.alpha * invW1,
+                    v2.alpha * invW2,
+                    l
+                ) * w;
+
+
+                uint32_t finalColor = pixelShaderCallback(pixel);
+
+                // Mélange de la couleur avec le framebuffer.
+                bool pixelWritten = WritePixelColor(index, finalColor);
+
+                // Les particules transparentes ne modifient pas le Z-Buffer.
+                if (pixelWritten && m_depthWriteEnabled)
+                {
+                    m_zbuffer[index] = z;
+                }
             }
         }
     }
@@ -487,4 +565,14 @@ void Rasterizer::DrawSubImage2D(
                 finalB;
         }
     }
+}
+
+void Rasterizer::SetAlphaBlendingEnabled(bool enabled)
+{
+    m_alphaBlendingEnabled = enabled;
+}
+
+void Rasterizer::SetDepthWriteEnabled(bool enabled)
+{
+    m_alphaBlendingEnabled = enabled;
 }

@@ -11,6 +11,7 @@
 #include "MainScene.h"
 #include "EmptyScene.h"
 #include "ThirdScene.h"
+#include "Village.h"
 #include "Camera.h"
 
 int main(int argc, char* argv[])
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
     sceneManager.AddScene(std::make_unique<MainScene>(sceneManager));
     sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager));
     sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager));
+    sceneManager.AddScene(std::make_unique<Village>(sceneManager));
     // FIN INITIALISATION
     
     while (true) {
@@ -49,7 +51,9 @@ int main(int argc, char* argv[])
         float deltaTime = (currentTicks - lastFrameTicks) * 0.001f;
         lastFrameTicks = currentTicks;
 
-        if (window.IsInEditMode())
+        bool isEditMode = window.IsInEditMode();
+
+        if (isEditMode)
         {
             timeInEditMode = SDL_GetTicks() - lastTimeEditMode;
         }
@@ -62,6 +66,14 @@ int main(int argc, char* argv[])
 
         // On passe la caméra et deltaTime à PollEventsm
         if (!window.PollEvents(isPerspective, editCamera, deltaTime, sceneManager)) return 0;
+
+
+
+        if (auto* currentScene = dynamic_cast<ThirdScene*>(
+            sceneManager.GetCurrentScene()))
+        {
+            currentScene->SetParticlesFrozen(isEditMode);
+        }
 
 
         Camera* activeCamera = nullptr;
@@ -97,7 +109,7 @@ int main(int argc, char* argv[])
         pipeline.Clear();
 
         sceneManager.Update(deltaTime);
-        sceneManager.Render(pipeline, viewProjection, viewPos, time);  
+        sceneManager.Render(pipeline, view, viewProjection, viewPos, time);  
         window.UpdateTexture(pipeline.GetPixels(), pipeline.GetPitch());
         window.Render();
 

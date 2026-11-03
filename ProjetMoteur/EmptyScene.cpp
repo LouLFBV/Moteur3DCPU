@@ -52,7 +52,14 @@ void EmptyScene::Update(float deltaTime)
     m_time += deltaTime;
 }
 
-void EmptyScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
+void EmptyScene::Render(
+    GraphicsPipeline& pipeline,
+    SceneManager& sceneManager,
+    const glm::mat4& viewMatrix,
+    const glm::mat4& viewProjection,
+    const glm::vec3& viewPos,
+    float deltaTime
+)
 {
 
     pipeline.ResetStats();

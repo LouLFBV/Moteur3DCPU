@@ -12,7 +12,8 @@ Vertex VertexProcessor::Mix(const Vertex& vertex1, const Vertex& vertex2, float 
         Lerp(vertex1.r, vertex2.r, t), Lerp(vertex1.g, vertex2.g, t), Lerp(vertex1.b, vertex2.b, t),
         { Lerp(vertex1.uv.x, vertex2.uv.x, t), Lerp(vertex1.uv.y, vertex2.uv.y, t) },
         { Lerp(vertex1.normal.x, vertex2.normal.x, t), Lerp(vertex1.normal.y, vertex2.normal.y, t), Lerp(vertex1.normal.z, vertex2.normal.z, t) },
-        { Lerp(vertex1.worldPos.x, vertex2.worldPos.x, t), Lerp(vertex1.worldPos.y, vertex2.worldPos.y, t), Lerp(vertex1.worldPos.z, vertex2.worldPos.z, t) }
+        { Lerp(vertex1.worldPos.x, vertex2.worldPos.x, t), Lerp(vertex1.worldPos.y, vertex2.worldPos.y, t), Lerp(vertex1.worldPos.z, vertex2.worldPos.z, t) },
+        Lerp(vertex1.alpha, vertex2.alpha, t)
     };
 }
 

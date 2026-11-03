@@ -47,7 +47,14 @@ void MainScene::Update(float deltaTime)
     m_time += deltaTime;
 }
 
-void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
+void MainScene::Render(
+    GraphicsPipeline& pipeline,
+    SceneManager& sceneManager,
+    const glm::mat4& viewMatrix,
+    const glm::mat4& viewProjection,
+    const glm::vec3& viewPos,
+    float deltaTime
+)
 {
 
     glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));

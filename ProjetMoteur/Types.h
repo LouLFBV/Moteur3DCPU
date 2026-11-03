@@ -9,6 +9,7 @@ struct Vertex
     glm::vec2 uv;  
     glm::vec3 normal;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct ScreenVertex
@@ -20,6 +21,7 @@ struct ScreenVertex
     float u, v;
     float nx, ny, nz;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct BordLigne
@@ -31,6 +33,7 @@ struct BordLigne
     float u, v;
     float nx, ny, nz;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct Cube 
@@ -78,3 +81,14 @@ struct DrawCommand {
 
 
 struct Box { int x0, y0, x1, y1; };
+
+struct Particle {
+    glm::vec3 position{ 0.0f };
+    glm::vec3 velocity{ 0.0f };
+    glm::vec4 color{ 1.0f };
+    float size = 0.2f;
+    float lifetime = 0.0f;
+    float maxLifetime = 1.0f;
+    bool active = false;
+};
+;

@@ -40,6 +40,8 @@ public:
     void ResetStats();
     const RenderStats& GetStats() const;
 
+    void SetAlphaBlendingEnabled(bool enabled);
+    void SetDepthWriteEnabled(bool enabled);
 private:
     Rasterizer m_rasterizer;
     VertexProcessor m_vertexProcessor;

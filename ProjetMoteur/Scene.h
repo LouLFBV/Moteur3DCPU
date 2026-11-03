@@ -20,7 +20,14 @@ public:
 
     virtual void OnEnter() ;
     virtual void Update(float deltaTime) = 0;
-    virtual void Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime) = 0;
+    virtual void Render(
+        GraphicsPipeline& pipeline,
+        SceneManager& sceneManager,
+        const glm::mat4& viewMatrix,
+        const glm::mat4& viewProjection,
+        const glm::vec3& viewPos,
+        float deltaTime
+    ) = 0;
     virtual void OnExit() = 0;
 
     void GenerateTerrain(int size, float cellSize);

@@ -1,11 +1,11 @@
 #include "ThirdScene.h"
-#include "MainScene.h"
 #include "GraphicsPipeline.h"
 #include "Camera.h"
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include "MaterialPresets.h"
+#include "SceneManager.h"
 
 ThirdScene::ThirdScene(SceneManager& sceneManager) : Scene(sceneManager)
 {
@@ -110,27 +110,293 @@ void ThirdScene::OnEnter()
    else
        std::cout << "font texte pas trouve !\n";
 
+   
+   m_fireEmitter.Clear();
+   m_smokeEmitter.Clear();
+
+   m_explosionEmitter.Clear();
+   m_sparkEmitter.Clear();
+
+   m_magicEmitter.Clear();
+   m_teleportEmitter.Clear();
+   m_waterEmitter.Clear();
+
+   m_explosionTimer = 0.0f;
+   m_teleportTimer = 0.0f;
+   m_waterTimer = 0.0f;
+
+
+   // =====================================================
+// FEU
+// =====================================================
+
+   m_fireEmitter.position = glm::vec3(0.0f, 1.0f, -10.0f);
+
+   m_fireEmitter.spawnRate = 75.0f;
+
+   m_fireEmitter.velocityMin = glm::vec3(-0.35f, 1.5f, -0.35f);
+   m_fireEmitter.velocityMax = glm::vec3(0.35f, 3.0f, 0.35f);
+
+   m_fireEmitter.gravity = glm::vec3(0.0f, 0.8f, 0.0f);
+
+   m_fireEmitter.colorStart = glm::vec4(1.0f, 0.55f, 0.05f, 1.0f);
+   m_fireEmitter.colorEnd = glm::vec4(0.8f, 0.05f, 0.0f, 0.0f);
+
+   m_fireEmitter.lifeTimeMin = 0.6f;
+   m_fireEmitter.lifeTimeMax = 1.2f;
+
+   m_fireEmitter.sizeStart = 0.25f;
+   m_fireEmitter.sizeEnd = 0.04f;
+
+   m_fireEmitter.turbulence = 0.2f;
+   m_fireEmitter.SetEmissionEnabled(true);
+
+
+
+   // =====================================================
+// FUMEE
+// =====================================================
+
+   m_smokeEmitter.position = glm::vec3(0.0f, 1.7f, -10.0f);
+
+   m_smokeEmitter.spawnRate = 18.0f;
+
+   m_smokeEmitter.velocityMin = glm::vec3(-0.35f, 0.4f, -0.35f);
+   m_smokeEmitter.velocityMax = glm::vec3(0.35f, 0.9f, 0.35f);
+
+   m_smokeEmitter.gravity = glm::vec3(0.0f, 0.12f, 0.0f);
+
+   m_smokeEmitter.colorStart = glm::vec4(0.25f, 0.27f, 0.30f, 0.45f);
+   m_smokeEmitter.colorEnd = glm::vec4(0.45f, 0.45f, 0.48f, 0.0f);
+
+   m_smokeEmitter.lifeTimeMin = 2.5f;
+   m_smokeEmitter.lifeTimeMax = 4.5f;
+
+   m_smokeEmitter.sizeStart = 0.20f;
+   m_smokeEmitter.sizeEnd = 1.1f;
+
+   m_smokeEmitter.spawnRadius = 0.12f;
+   m_smokeEmitter.drag = 0.25f;
+   m_smokeEmitter.turbulence = 0.3f;
+
+   m_smokeEmitter.SetEmissionEnabled(true);
+
+
+   // =====================================================
+// EXPLOSION
+// =====================================================
+
+   m_explosionEmitter.spawnRate = 0.0f;
+
+   m_explosionEmitter.gravity = glm::vec3(0.0f, -2.5f, 0.0f);
+
+   m_explosionEmitter.colorStart = glm::vec4(1.0f, 0.95f, 0.45f, 1.0f);
+   m_explosionEmitter.colorEnd = glm::vec4(0.9f, 0.08f, 0.01f, 0.0f);
+
+   m_explosionEmitter.lifeTimeMin = 0.4f;
+   m_explosionEmitter.lifeTimeMax = 0.9f;
+
+   m_explosionEmitter.sizeStart = 0.16f;
+   m_explosionEmitter.sizeEnd = 0.025f;
+
+   m_explosionEmitter.drag = 0.4f;
+   m_explosionEmitter.SetEmissionEnabled(false);
+
+
+
+   // =====================================================
+// ETINCELLES
+// =====================================================
+
+   m_sparkEmitter.spawnRate = 0.0f;
+
+   m_sparkEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
+
+   m_sparkEmitter.colorStart = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
+   m_sparkEmitter.colorEnd = glm::vec4(1.0f, 0.25f, 0.0f, 0.0f);
+
+   m_sparkEmitter.lifeTimeMin = 0.2f;
+   m_sparkEmitter.lifeTimeMax = 0.65f;
+
+   m_sparkEmitter.sizeStart = 0.065f;
+   m_sparkEmitter.sizeEnd = 0.008f;
+
+   m_sparkEmitter.drag = 1.2f;
+   m_sparkEmitter.SetEmissionEnabled(false);
+
+   // =====================================================
+// MAGIE
+// =====================================================
+
+   m_magicEmitter.position = glm::vec3(-3.0f, 1.0f, -8.0f);
+
+   m_magicEmitter.spawnRate = 35.0f;
+
+   m_magicEmitter.velocityMin = glm::vec3(-0.4f, -0.2f, -0.4f);
+   m_magicEmitter.velocityMax = glm::vec3(0.4f, 0.5f, 0.4f);
+
+   m_magicEmitter.gravity = glm::vec3(0.0f);
+
+   m_magicEmitter.colorStart = glm::vec4(0.1f, 0.8f, 1.0f, 0.9f);
+   m_magicEmitter.colorEnd = glm::vec4(0.7f, 0.1f, 1.0f, 0.0f);
+
+   m_magicEmitter.lifeTimeMin = 1.5f;
+   m_magicEmitter.lifeTimeMax = 3.0f;
+
+   m_magicEmitter.sizeStart = 0.10f;
+   m_magicEmitter.sizeEnd = 0.025f;
+
+   m_magicEmitter.spawnRadius = 0.65f;
+   m_magicEmitter.swirlStrength = 2.5f;
+   m_magicEmitter.turbulence = 0.2f;
+
+   m_magicEmitter.SetEmissionEnabled(true);
+
+
+   // =====================================================
+// TELEPORTATION
+// =====================================================
+
+   m_teleportEmitter.position = glm::vec3(3.0f, 0.0f, -8.0f);
+
+   m_teleportEmitter.gravity = glm::vec3(0.0f, 0.2f, 0.0f);
+
+   m_teleportEmitter.colorStart = glm::vec4(0.1f, 0.9f, 1.0f, 1.0f);
+   m_teleportEmitter.colorEnd = glm::vec4(0.2f, 0.1f, 1.0f, 0.0f);
+
+   m_teleportEmitter.lifeTimeMin = 0.6f;
+   m_teleportEmitter.lifeTimeMax = 1.2f;
+
+   m_teleportEmitter.sizeStart = 0.10f;
+   m_teleportEmitter.sizeEnd = 0.015f;
+
+   m_teleportEmitter.SetEmissionEnabled(false);
+
+
+   // =====================================================
+// EAU
+// =====================================================
+
+   m_waterEmitter.position = glm::vec3(-3.0f, -0.5f, -8.0f);
+
+   m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
+
+   m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
+   m_waterEmitter.colorEnd = glm::vec4(0.05f, 0.45f, 1.0f, 0.0f);
+
+   m_waterEmitter.lifeTimeMin = 0.6f;
+   m_waterEmitter.lifeTimeMax = 1.3f;
+
+   m_waterEmitter.sizeStart = 0.075f;
+   m_waterEmitter.sizeEnd = 0.012f;
+
+   m_waterEmitter.drag = 0.15f;
+
+   m_waterEmitter.SetEmissionEnabled(false);
+
 }
+
+
 
 
 void ThirdScene::Update(float deltaTime)
 {
+    // Temps global de la scène.
     m_time += deltaTime;
 
-    m_hudAnimationTime += deltaTime;
+    // Temps de l'animation du HUD.
+    // L'animation est gelée en mode Edit.
+    if (!m_particlesFrozen)
+    {
+        m_hudAnimationTime += deltaTime;
+    }
 
-    // TESTE MATERIAL 
-    if (m_loaded) {
-        // 1. Oscillation de la brillance de 4.0 (mat) à 128.0 (miroir)
-        m_objModel.material.shininess = 66.0f + std::sin(m_time * 2.0f) * 62.0f;
+    // =====================================================
+    // SIMULATION DES PARTICULES
+    // =====================================================
 
-        // 2. Pulsation de la couleur du reflet spéculaire (Blanc -> Magenta)
-        float pulse = (std::sin(m_time * 3.0f) + 1.0f) * 0.5f; // [0.0, 1.0]
-        m_objModel.material.specular = glm::vec3(1.0f, 1.0f - pulse, 1.0f);
+    if (!m_particlesFrozen)
+    {
+        m_fireEmitter.position = glm::vec3(0.0f, 1.0f, -10.0f);
+
+        // Mise à jour des émetteurs.
+        m_fireEmitter.Update(deltaTime);
+        m_smokeEmitter.Update(deltaTime);
+        m_explosionEmitter.Update(deltaTime);
+        m_sparkEmitter.Update(deltaTime);
+        m_magicEmitter.Update(deltaTime);
+        m_teleportEmitter.Update(deltaTime);
+        m_waterEmitter.Update(deltaTime);
+
+        // Timers des effets ponctuels.
+        m_explosionTimer += deltaTime;
+        m_teleportTimer += deltaTime;
+        m_waterTimer += deltaTime;
+
+        // Explosion toutes les 5 secondes.
+        if (m_explosionTimer >= 5.0f)
+        {
+            glm::vec3 explosionPosition(2.0f, 0.0f, -10.0f);
+
+            m_explosionEmitter.Explode(
+                explosionPosition, 160, 2.0f, 6.0f
+            );
+
+            m_sparkEmitter.position = explosionPosition;
+            m_sparkEmitter.BurstRadial(65, 4.0f, 9.0f);
+
+            glm::vec3 previousSmokePosition = m_smokeEmitter.position;
+
+            m_smokeEmitter.position = explosionPosition;
+            m_smokeEmitter.BurstUpward(40, 0.5f, 1.5f);
+
+            m_smokeEmitter.position = previousSmokePosition;
+
+            m_explosionTimer = 0.0f;
+        }
+
+        // Téléportation toutes les 7 secondes.
+        if (m_teleportTimer >= 7.0f)
+        {
+            m_teleportEmitter.BurstRing(65, 1.5f, 3.5f);
+            m_teleportTimer = 0.0f;
+        }
+
+        // Éclaboussure toutes les 6 secondes.
+        if (m_waterTimer >= 6.0f)
+        {
+            m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
+            m_waterTimer = 0.0f;
+        }
+    }
+
+    // =====================================================
+    // MATERIAUX
+    // =====================================================
+
+    if (m_loaded)
+    {
+        m_objModel.material.shininess =
+            66.0f + std::sin(m_time * 2.0f) * 62.0f;
+
+        float pulse =
+            (std::sin(m_time * 3.0f) + 1.0f) * 0.5f;
+
+        m_objModel.material.specular =
+            glm::vec3(1.0f, 1.0f - pulse, 1.0f);
     }
 }
 
-void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
+
+
+void ThirdScene::Render(
+    GraphicsPipeline& pipeline,
+    SceneManager& sceneManager,
+    const glm::mat4& viewMatrix,
+    const glm::mat4& viewProjection,
+    const glm::vec3& viewPos,
+    float deltaTime
+)
 {
     glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
 
@@ -224,22 +490,10 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
             });
 
-        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.2f, 0.7f));
+        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.3f, 0.5f));
         modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
         modelOBJ = glm::rotate(modelOBJ, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 mvpOBJ = viewProjection * modelOBJ;
-
-        //for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
-        //    auto& src0 = m_objModel.vertices[i + 0];
-        //    auto& src1 = m_objModel.vertices[i + 1];
-        //    auto& src2 = m_objModel.vertices[i + 2];
-
-        //    Vertex v0 = { src0.position, src0.r, src0.g, src0.b, {src0.tx, src0.ty}, {src0.nx, src0.ny, src0.nz} };
-        //    Vertex v1 = { src1.position, src1.r, src1.g, src1.b, {src1.tx, src1.ty}, {src1.nx, src1.ny, src1.nz} };
-        //    Vertex v2 = { src2.position, src2.r, src2.g, src2.b, {src2.tx, src2.ty}, {src2.nx, src2.ny, src2.nz} };
-
-        //    pipeline.DrawTriangle(v0, v1, v2, mvpOBJ);
-        //}
 
         pipeline.DrawMesh(m_gpuVertices, mvpOBJ);
 
@@ -381,6 +635,7 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
 
     pipeline.RenderScene();
 
+
     // Reset du Vertex Shader pour les prochains objets de la frame suivante
     pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
@@ -393,8 +648,91 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
 
 
 
+// =====================================================
+// FRAGMENT SHADER DES PARTICULES
+// =====================================================
+
+    pipeline.SetFragmentShader(
+        [](const BordLigne& pixel) -> uint32_t
+        {
+
+            float dx = (pixel.u - 0.5f) * 2.0f;
+            float dy = (pixel.v - 0.5f) * 2.0f;
+
+            float radius = std::sqrt(dx * dx + dy * dy);
+
+            // Dégradé de transparence sur les bords.
+            float t = std::clamp((radius - 0.35f) / 0.65f, 0.0f, 1.0f);
+
+            float smooth = t * t * (3.0f - 2.0f * t);
+
+            float edgeAlpha = 1.0f - smooth;
+
+            // Alpha final.
+            float finalAlpha = pixel.alpha * edgeAlpha;
+
+            uint8_t a = static_cast<uint8_t>(
+                std::clamp(finalAlpha * 255.0f, 0.0f, 255.0f)
+                );
+
+            uint8_t r = static_cast<uint8_t>(
+                std::clamp(pixel.r * 255.0f + 0.5f, 0.0f, 255.0f)
+                );
+
+            uint8_t g = static_cast<uint8_t>(
+                std::clamp(pixel.g * 255.0f + 0.5f, 0.0f, 255.0f)
+                );
+
+            uint8_t b = static_cast<uint8_t>(
+                std::clamp(pixel.b * 255.0f + 0.5f, 0.0f, 255.0f)
+                );
 
 
+            return
+                (static_cast<uint32_t>(a) << 24) |
+                (static_cast<uint32_t>(r) << 16) |
+                (static_cast<uint32_t>(g) << 8) |
+                static_cast<uint32_t>(b);
+        }
+    );
+
+    // =====================================================
+    // CONFIGURATION DU RENDU TRANSPARENT
+    // =====================================================
+
+    // Les particules sont testées contre la profondeur de la scène.
+    pipeline.SetAlphaBlendingEnabled(true);
+
+    // Les particules ne doivent pas modifier le Z-Buffer.
+    pipeline.SetDepthWriteEnabled(false);
+
+    // =====================================================
+    // RENDU DES PARTICULES
+    // =====================================================
+
+
+    // Feu et fumée.
+    m_fireEmitter.Render(pipeline, viewMatrix, viewProjection);
+    m_smokeEmitter.Render(pipeline, viewMatrix, viewProjection);
+
+    // Effets magiques.
+    m_magicEmitter.Render(pipeline, viewMatrix, viewProjection);
+
+    // Effets ponctuels.
+    m_explosionEmitter.Render(pipeline, viewMatrix, viewProjection);
+    m_sparkEmitter.Render(pipeline, viewMatrix, viewProjection);
+    m_teleportEmitter.Render(pipeline, viewMatrix, viewProjection);
+    m_waterEmitter.Render(pipeline, viewMatrix, viewProjection);
+
+    // Une seule passe de rasterisation pour tous les émetteurs.
+    pipeline.RenderScene();
+
+    // =====================================================
+    // RESTAURATION DE L'ETAT DU RASTERIZER
+    // =====================================================
+
+    pipeline.SetDepthWriteEnabled(true);
+    pipeline.SetAlphaBlendingEnabled(false);
 
 
 
@@ -495,10 +833,20 @@ void ThirdScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, 
         m_fontTexture,
         textColor
     );
+
+
+    pipeline.RenderScene();
+
+    
 }
 
 void ThirdScene::OnExit()
 {
     m_objModel.vertices.clear();
     std::cout << "Troisieme Scene quittee\n";
+}
+
+void ThirdScene::SetParticlesFrozen(bool frozen)
+{
+    m_particlesFrozen = frozen;
 }

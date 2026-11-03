@@ -119,6 +119,16 @@ const RenderStats& GraphicsPipeline::GetStats() const
     return m_rasterizer.GetStats();
 }
 
+void GraphicsPipeline::SetAlphaBlendingEnabled(bool enabled)
+{
+    m_rasterizer.SetAlphaBlendingEnabled(enabled);
+}
+
+void GraphicsPipeline::SetDepthWriteEnabled(bool enabled)
+{
+    m_rasterizer.SetDepthWriteEnabled(enabled);
+}
+
 
 void GraphicsPipeline::RenderScene()
 {
