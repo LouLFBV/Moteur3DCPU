@@ -36,9 +36,9 @@ int main(int argc, char* argv[])
     float timeInEditMode = 0.0f;
 
 
-    sceneManager.AddScene(std::make_unique<MainScene>(sceneManager));
-    sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager));
-    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager));
+    sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
+    sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
+    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 15.0f);
     // FIN INITIALISATION
     
     while (true) {
@@ -95,7 +95,12 @@ int main(int argc, char* argv[])
         pipeline.ResetStats();
         pipeline.Clear();
 
-        sceneManager.Update(deltaTime);
+        sceneManager.Update(deltaTime, window.IsInEditMode());
+
+        if (!sceneManager.m_isRunning) {
+            break;
+        }
+
         sceneManager.Render(pipeline, viewProjection, viewPos, time);  
         window.UpdateTexture(pipeline.GetPixels(), pipeline.GetPitch());
         window.Render();

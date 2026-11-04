@@ -42,6 +42,7 @@ void ThirdScene::OnEnter()
 
 void ThirdScene::Update(float deltaTime)
 {
+    Scene::Update(deltaTime);
     m_time += deltaTime;
 }
 

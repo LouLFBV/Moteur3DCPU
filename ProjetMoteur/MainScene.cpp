@@ -6,6 +6,7 @@
 #include <cmath>
 #include <algorithm>
 #include "Camera.h"
+#include "Scene.h"
 
 MainScene::MainScene(SceneManager& sceneManager) : Scene(sceneManager)
 {}
@@ -13,6 +14,12 @@ MainScene::MainScene(SceneManager& sceneManager) : Scene(sceneManager)
 void MainScene::OnEnter()
 {
     Scene::OnEnter();
+
+    AddKeyframe(&m_catRotation, 0.0f, 0.0f);
+    AddKeyframe(&m_catRotation, 1.0f, 1.0f);
+    AddKeyframe(&m_catRotation, 2.0f, -1.0f);
+    AddKeyframe(&m_catRotation, 5.0f, 100.0f);
+
     const char* objPath = "external/Assets/catn0.obj";
     const char* texturePath = "external/Assets/cat_text_m.jpeg";
 
@@ -43,6 +50,7 @@ void MainScene::OnEnter()
 
 void MainScene::Update(float deltaTime)
 {
+    Scene::Update(deltaTime);
     m_time += deltaTime;
 }
 
@@ -177,7 +185,7 @@ void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
 
         glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
         modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
-        modelOBJ = glm::rotate(modelOBJ, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+        modelOBJ = glm::rotate(modelOBJ, m_catRotation, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 mvpOBJ = viewProjection * modelOBJ;
 
         for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
