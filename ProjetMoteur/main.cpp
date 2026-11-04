@@ -15,6 +15,7 @@
 #include "Aqua.h"
 #include "Mer.h"
 #include "Beach.h"
+#include "End.h"
 #include "Camera.h"
 
 int main(int argc, char* argv[])
@@ -41,13 +42,14 @@ int main(int argc, char* argv[])
     float timeInEditMode = 0.0f;
 
 
-    sceneManager.AddScene(std::make_unique<MainScene>(sceneManager));
-    sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager));
-    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager));
-    sceneManager.AddScene(std::make_unique<Aqua>(sceneManager));
-    sceneManager.AddScene(std::make_unique<Mer>(sceneManager));
-    sceneManager.AddScene(std::make_unique<Beach>(sceneManager));
-    sceneManager.AddScene(std::make_unique<Village>(sceneManager));
+    sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
+    sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
+    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 15.0f);
+    sceneManager.AddScene(std::make_unique<Aqua>(sceneManager), 10.0f, 15.0f);
+    sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 15.0f, 20.0f);
+    sceneManager.AddScene(std::make_unique<Beach>(sceneManager), 20.0f, 25.0f);
+    sceneManager.AddScene(std::make_unique<Village>(sceneManager), 25.0f, 30.0f);
+    sceneManager.AddScene(std::make_unique<End>(sceneManager), 30.0f, 40.0f);
     // FIN INITIALISATION
     
     while (true) {
@@ -83,23 +85,23 @@ int main(int argc, char* argv[])
 
         if (auto* aqua = dynamic_cast<Aqua*>(sceneManager.GetCurrentScene()))
         {
-            aqua->SetEditMode(window.IsInEditMode());
+            aqua->SetEditMode(isEditMode);
         }
         if (auto* mer = dynamic_cast<Mer*>(sceneManager.GetCurrentScene()))
         {
-            mer->SetEditMode(window.IsInEditMode());
+            mer->SetEditMode(isEditMode);
         }
         if (auto* beach = dynamic_cast<Beach*>(sceneManager.GetCurrentScene()))
         {
-            beach->SetEditMode(window.IsInEditMode());
+            beach->SetEditMode(isEditMode);
         }
         if (auto* village = dynamic_cast<Village*>(sceneManager.GetCurrentScene()))
         {
-            village->SetEditMode(window.IsInEditMode());
+            village->SetEditMode(isEditMode);
         }
         Camera* activeCamera = nullptr;
 
-        if (window.IsInEditMode()) {
+        if (isEditMode) {
             activeCamera = &editCamera; // En mode Edit, on prend la freecam globale
         }
         else if (sceneManager.GetCurrentScene()) {
@@ -129,8 +131,9 @@ int main(int argc, char* argv[])
         pipeline.ResetStats();
         pipeline.Clear();
 
-        sceneManager.Update(deltaTime);
+        sceneManager.Update(deltaTime, isEditMode);
         sceneManager.Render(pipeline, view, viewProjection, viewPos, time);  
+
         window.UpdateTexture(pipeline.GetPixels(), pipeline.GetPitch());
         window.Render();
 

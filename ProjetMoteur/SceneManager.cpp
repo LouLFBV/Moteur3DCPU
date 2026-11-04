@@ -63,10 +63,10 @@ void SceneManager::Update(float deltaTime, bool isEditMode)
     }
 }
 
-void SceneManager::Render(GraphicsPipeline& pipeline, const glm::mat4& viewProj, const glm::vec3& viewPos, float time)
+void SceneManager::Render(    GraphicsPipeline& pipeline,    const glm::mat4& viewMatrix,    const glm::mat4& viewProjection,    const glm::vec3& viewPos,    float time)
 {
     if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
-        m_listScene[m_currentIndex].scene->Render(pipeline, *this, viewProj, viewPos, time);
+        m_listScene[m_currentIndex].scene->Render(pipeline, *this, viewMatrix, viewProjection, viewPos, time);
     }
 }
 

@@ -86,8 +86,8 @@ void Aqua::OnEnter()
             float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
             float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
 
-            // Couleur verte
-            float r = 0.31f, g = 0.55f, b = 0.14f;
+            // Couleur ocean
+            float r = 0.45f, g = 0.72f, b = 0.85f;
 
             Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
             Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
@@ -140,6 +140,8 @@ void Aqua::OnEnter()
 
 void Aqua::Update(float deltaTime)
 {
+
+    Scene::Update(deltaTime);
     // Temps global de la scène.
     m_time += deltaTime;
 
@@ -176,7 +178,7 @@ void Aqua::Update(float deltaTime)
 
 void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewMatrix, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
 {
-    glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
+    glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, -1.0f, 0.5f));
 
 
     // RESET DE FRAGMENT SHADER 
@@ -194,10 +196,10 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
 
     // 1. FOND (Ciel en NDC)
     Vertex baseBackground[4] = {
-        { { -1.0f,  1.0f, 0.9999f, 1.0f }, 0.2f, 0.4f, 0.8f },
-        { { -1.0f, -1.0f, 0.9999f, 1.0f }, 0.6f, 0.8f, 1.0f },
-        { {  1.0f, -1.0f, 0.9999f, 1.0f }, 0.6f, 0.8f, 1.0f },
-        { {  1.0f,  1.0f, 0.9999f, 1.0f }, 0.2f, 0.4f, 0.8f }
+    { { -1.0f,  1.0f, 0.9999f, 1.0f }, 0.30f, 0.65f, 0.75f },
+    { { -1.0f, -1.0f, 0.9999f, 1.0f }, 0.00f, 0.25f, 0.50f },
+    { {  1.0f, -1.0f, 0.9999f, 1.0f }, 0.00f, 0.25f, 0.50f },
+    { {  1.0f,  1.0f, 0.9999f, 1.0f }, 0.30f, 0.65f, 0.75f }
     };
     pipeline.DrawSquareNDC(baseBackground[0], baseBackground[1], baseBackground[2], baseBackground[3]);
 
@@ -356,37 +358,89 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
     pipeline.RenderScene();
 
 
+    // Reset du Vertex Shader pour les prochains objets de la frame suivante
+    pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
+        Vertex transformed = vertex;
+        transformed.position = mvp * vertex.position;
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        transformed.normal = glm::normalize(normalMatrix * vertex.normal);
+        return transformed;
+        });
+
+    // --- SHADER DE L'EAU ---
+
+// 1. FRAGMENT SHADER (Lumière Blinn-Phong pour l'eau)
+    pipeline.SetFragmentShader([lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+        // Couleur de base (le bleu qu'on a mis dans GenerateTerrain)
+        glm::vec3 baseColor(pixel.r, pixel.g, pixel.b);
+
+        glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+        glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
+
+        glm::vec3 vV = glm::normalize(viewPos - pixelPos);
+        glm::vec3 vH = glm::normalize(lightDir + vV);
+
+        // Lumière Ambiante et Diffuse
+        glm::vec3 ambient = baseColor * 0.3f;
+        float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+        glm::vec3 diffuse = baseColor * diffFactor * 0.8f;
+
+        // Lumière Spéculaire (Le reflet du soleil sur les vagues !)
+        float shininess = 128.0f; // Très élevé pour un reflet net typique de l'eau
+        float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), shininess);
+        glm::vec3 specular = glm::vec3(1.0f, 1.0f, 1.0f) * specFactor; // Reflet blanc pur
+
+        glm::vec3 finalColor = ambient + diffuse + specular;
+
+        // Conversion en pixels
+        uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
+
+        return (0xFF << 24) | (r << 16) | (g << 8) | b;
+        });
+
+
+    // 1. Récupération de la position de la caméra pour ancrer la grille
+    // (Supposons que viewPos contienne la position 3D de la caméra)
     float snapSpacing = m_cellSize;
     float snappedCamX = std::floor(viewPos.x / snapSpacing) * snapSpacing;
     float snappedCamZ = std::floor(viewPos.z / snapSpacing) * snapSpacing;
     //float snappedCamX = viewPos.x;
     //float snappedCamZ = viewPos.z;
 
-    // Matrice modèle du terrain centrée sous la caméra
-    glm::mat4 modelTerrain = glm::translate(glm::mat4(1.0f), glm::vec3(snappedCamX, -1.0f, snappedCamZ));
+    glm::mat4 modelTerrain = glm::mat4(1.0f);
+
+    // A. On place l'eau AU-DESSUS de la caméra (ex: y = 3.0f au lieu de -1.0f)
+    modelTerrain = glm::translate(modelTerrain, glm::vec3(snappedCamX, 3.0f, snappedCamZ));
+
+    // B. On la retourne à 180 degrés sur l'axe X pour que la face visible regarde vers le bas
+    modelTerrain = glm::rotate(modelTerrain, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
     glm::mat4 mvpTerrain = viewProjection * modelTerrain;
 
-    pipeline.SetVertexShader([modelTerrain](const Vertex& vertex, const glm::mat4& mvp) {
+
+    pipeline.SetVertexShader([deltaTime, modelTerrain](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
 
-        // Position absolue du sommet dans le monde
-        // (En supposant que tu passes modelTerrain dans ta lambda)
+        // On calcule la position absolue dans le monde pour que le bruit/vagues 
+        // ne bouge pas de manière rigide avec la grille, mais reste fixé dans l'espace global.
         glm::vec4 worldPosCoord = modelTerrain * vertex.position;
 
-        // Application du bruit pour façonner la montagne
-        float height = SimpleNoise(worldPosCoord.x, worldPosCoord.z);
-        transformed.position.y += height;
+        float amplitude = 0.4f;
+        float frequence = 1.5f;
+        float vitesse = 2.5f;
 
-        // Calcul des dérivées pour les normales (essentiel pour que la lumière éclaire les pentes)
-        float eps = 0.1f;
-        float hL = SimpleNoise(worldPosCoord.x - eps, worldPosCoord.z);
-        float hR = SimpleNoise(worldPosCoord.x + eps, worldPosCoord.z);
-        float hD = SimpleNoise(worldPosCoord.x, worldPosCoord.z - eps);
-        float hU = SimpleNoise(worldPosCoord.x, worldPosCoord.z + eps);
+        // Ondulations basées sur la position absolue du monde
+        float waveX = std::sin(worldPosCoord.x * frequence + deltaTime * vitesse);
+        float waveZ = std::cos(worldPosCoord.z * frequence + deltaTime * vitesse);
 
-        glm::vec3 tangentX(2.0f * eps, hR - hL, 0.0f);
-        glm::vec3 tangentZ(0.0f, hU - hD, 2.0f * eps);
-        glm::vec3 surfaceNormal = glm::normalize(glm::cross(tangentZ, tangentX));
+        transformed.position.y += (waveX + waveZ) * amplitude;
+
+        // Recalcul mathématique de la normale pour la lumière spéculaire
+        float dYdX = std::cos(worldPosCoord.x * frequence + deltaTime * vitesse) * frequence * amplitude;
+        float dYdZ = -std::sin(worldPosCoord.z * frequence + deltaTime * vitesse) * frequence * amplitude;
+        glm::vec3 surfaceNormal = glm::normalize(glm::vec3(-dYdX, 1.0f, -dYdZ));
 
         // Transformation standard MVP
         transformed.position = mvp * transformed.position;
@@ -398,9 +452,6 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
 
     // Envoi au pipeline !
     pipeline.DrawMesh(m_terrainVertices, mvpTerrain);
-
-    pipeline.RenderScene();
-
 
     pipeline.RenderScene();
 

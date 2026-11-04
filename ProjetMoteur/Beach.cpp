@@ -86,8 +86,8 @@ void Beach::OnEnter()
             float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
             float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
 
-            // Couleur verte
-            float r = 0.31f, g = 0.55f, b = 0.14f;
+            // Couleur jaune sable
+            float r = 0.76f, g = 0.70f, b = 0.50f;
 
             Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
             Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
@@ -140,6 +140,8 @@ void Beach::OnEnter()
 
 void Beach::Update(float deltaTime)
 {
+
+    Scene::Update(deltaTime);
     // Temps global de la scène.
     m_time += deltaTime;
 

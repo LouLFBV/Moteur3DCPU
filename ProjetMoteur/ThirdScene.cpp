@@ -301,6 +301,8 @@ void ThirdScene::OnEnter()
 
 void ThirdScene::Update(float deltaTime)
 {
+
+    Scene::Update(deltaTime);
     // Temps global de la scène.
     m_time += deltaTime;
 

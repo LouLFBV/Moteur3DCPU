@@ -140,6 +140,8 @@ void Village::OnEnter()
 
 void Village::Update(float deltaTime)
 {
+
+    Scene::Update(deltaTime);
     // Temps global de la scène.
     m_time += deltaTime;
 

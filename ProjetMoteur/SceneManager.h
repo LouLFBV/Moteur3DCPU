@@ -28,7 +28,13 @@ public:
 
 
     void Update(float deltaTime, bool isEditMode = false);
-    void Render(GraphicsPipeline& pipeline, const glm::mat4& viewProj, const glm::vec3& viewPos, float time);
+    void Render(
+        GraphicsPipeline& pipeline,
+        const glm::mat4& viewMatrix,
+        const glm::mat4& viewProjection,
+        const glm::vec3& viewPos,
+        float time
+    );
 
     Scene* GetCurrentScene();
     int GetWidth() const;

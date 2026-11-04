@@ -90,6 +90,9 @@
     <ClCompile Include="Aqua.cpp">
       <Filter>Fichiers sources\Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="End.cpp">
+      <Filter>Fichiers sources\Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -162,6 +165,9 @@
       <Filter>Fichiers d%27en-tête\Scenes</Filter>
     </ClInclude>
     <ClInclude Include="Aqua.h">
+      <Filter>Fichiers d%27en-tête\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="End.h">
       <Filter>Fichiers d%27en-tête\Scenes</Filter>
     </ClInclude>
   </ItemGroup>

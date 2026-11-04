@@ -13,7 +13,14 @@ public:
 
     void OnEnter() override;
     void Update(float deltaTime);
-    void Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime) override;
+    void Render(
+        GraphicsPipeline& pipeline,
+        SceneManager& sceneManager,
+        const glm::mat4& viewMatrix,
+        const glm::mat4& viewProjection,
+        const glm::vec3& viewPos,
+        float time
+    ) override;
     void OnExit() override;
 
 private:

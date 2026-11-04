@@ -149,6 +149,7 @@
     <ClCompile Include="Beach.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EmptyScene.cpp" />
+    <ClCompile Include="End.cpp" />
     <ClCompile Include="FragmentProcessor.cpp" />
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="main.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Beach.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EmptyScene.h" />
+    <ClInclude Include="End.h" />
     <ClInclude Include="FragmentProcessor.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="MainScene.h" />
