@@ -49,6 +49,7 @@ void EmptyScene::OnEnter()
 
 void EmptyScene::Update(float deltaTime)
 {
+    Scene::Update(deltaTime);
     m_time += deltaTime;
 }
 
