@@ -65,12 +65,12 @@ void Village::OnEnter()
 
     // TESTE MATERIAL
     // On applique un matériau Or au modèle
-    Texture oldTex = m_objModel.material.texture; // Conserver la texture si besoin
-    bool hadTex = m_objModel.material.hasTexture;
+    //Texture oldTex = m_objModel.material.texture; // Conserver la texture si besoin
+    //bool hadTex = m_objModel.material.hasTexture;
 
-    m_objModel.material = MaterialPresets::Gold();
-    m_objModel.material.texture = oldTex;
-    m_objModel.material.hasTexture = hadTex;
+    //m_objModel.material = MaterialPresets::Gold();
+    //m_objModel.material.texture = oldTex;
+    //m_objModel.material.hasTexture = hadTex;
 
 
     m_terrainVertices.clear();
@@ -86,8 +86,8 @@ void Village::OnEnter()
             float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
             float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
 
-            // Couleur bleue de base pour l'eau
-            float r = 0.1f, g = 0.4f, b = 0.8f;
+            // Couleur verte
+            float r = 0.31f, g = 0.55f, b = 0.14f;
 
             Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
             Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
@@ -170,21 +170,6 @@ void Village::Update(float deltaTime)
         }
     }
 
-    // =====================================================
-    // MATERIAUX
-    // =====================================================
-
-    if (m_loaded)
-    {
-        m_objModel.material.shininess =
-            66.0f + std::sin(m_time * 2.0f) * 62.0f;
-
-        float pulse =
-            (std::sin(m_time * 3.0f) + 1.0f) * 0.5f;
-
-        m_objModel.material.specular =
-            glm::vec3(1.0f, 1.0f - pulse, 1.0f);
-    }
 }
 
 
@@ -232,32 +217,30 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
     // 3. RENDU DU MODÈLE OBJ CHARGÉ
     if (m_loaded) {
 
+
         pipeline.SetFragmentShader([this, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
             const Material& mat = m_objModel.material;
 
-            // 1. On récupère la couleur interpolée du sommet (r, g, b)
-            glm::vec3 vertexColor(pixel.r, pixel.g, pixel.b);
+            // 1. Couleur diffuse de base (Couleur du matériau x Texture si présente)
+            glm::vec3 baseDiffuse = mat.diffuse;
 
-            // 2. Couleur diffuse de base = Matériau (Kd) x Couleur du sommet
-            glm::vec3 baseDiffuse = mat.diffuse * vertexColor;
-
-            // 3. Si une texture existe, elle vient teinter / moduler la couleur de base
             if (mat.hasTexture) {
                 uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
                 float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
                 float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
                 float bTex = (texColor & 0xFF) / 255.0f;
 
-                baseDiffuse *= glm::vec3(rTex, gTex, bTex);
+                baseDiffuse *= glm::vec3(rTex, gTex, bTex); // On applique la texture
             }
 
-            // --- Calcul Blinn-Phong ---
+            // 2. Préparation des vecteurs de lumière
             glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
             glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
             glm::vec3 vV = glm::normalize(viewPos - pixelPos);
             glm::vec3 vH = glm::normalize(lightDir + vV);
 
-            glm::vec3 ambient = mat.ambient * baseDiffuse;
+            // 3. Calculs des composantes Blinn-Phong
+            glm::vec3 ambient = mat.ambient * baseDiffuse; // Lumière ambiante du matériau
 
             float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
             glm::vec3 diffuse = baseDiffuse * diffFactor;
@@ -265,8 +248,10 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
             float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
             glm::vec3 specular = mat.specular * specFactor;
 
+            // 4. Couleur finale cumulée
             glm::vec3 finalColor = ambient + diffuse + specular;
 
+            // 5. Conversion vers le format 32-bit ARGB
             uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
             uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
             uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
@@ -274,26 +259,58 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
             });
 
-        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.3f, 0.5f));
-        modelOBJ = glm::scale(modelOBJ, glm::vec3(0.001f, 0.001f, 0.001f));
-        //modelOBJ = glm::rotate(modelOBJ, deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
+        // =====================================================
+// POSITIONNEMENT DE L'OBJ PAR RAPPORT À LA CAMÉRA
+// =====================================================
+
+// En mode normal, l'OBJ reste devant la caméra.
+// En mode Edit, on conserve sa dernière position.
+        if (!m_isEditMode || !m_hasLastModelMatrix)
+        {
+            // Transformation de la caméra vers l'espace monde.
+            glm::mat4 cameraWorld = glm::inverse(viewMatrix);
+
+            // Position locale par rapport à la caméra :
+            // X = centré horizontalement
+            // Y = légèrement sous le centre
+            // Z = devant la caméra (axe -Z local).
+            glm::mat4 cameraOffset = glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(0.0f, -0.80f, -1.0f)
+            );
+
+            // Échelle du modèle.
+            glm::mat4 modelScale = glm::scale(
+                glm::mat4(1.0f),
+                glm::vec3(0.001f)
+            );
+
+            // Matrice finale dans le monde.// Rotation de 90 degrés autour de l'axe vertical local de l'OBJ.
+            glm::mat4 modelRotation = glm::rotate(
+                glm::mat4(1.0f),
+                glm::radians(-90.0f),
+                glm::vec3(0.0f, 1.0f, 0.0f)
+            );
+
+            glm::mat4 modelRotationX = glm::rotate(
+                glm::mat4(1.0f),
+                glm::radians(25.0f),
+                glm::vec3(0.0f, 0.0f, 1.0f)
+            );
+
+            m_lastModelMatrix = cameraWorld * cameraOffset * modelRotation * modelRotationX * modelScale;
+
+            m_hasLastModelMatrix = true;
+        }
+
+        // On utilise toujours la dernière matrice enregistrée.
+        glm::mat4 modelOBJ = m_lastModelMatrix;
+
         glm::mat4 mvpOBJ = viewProjection * modelOBJ;
 
         pipeline.DrawMesh(m_gpuVertices, mvpOBJ);
-
-        pipeline.RenderScene();
     }
 
-
-    pipeline.SetFragmentShader([](const BordLigne& pixel) {
-        // On convertit les floats [0.0, 1.0] de BordLigne en entiers [0, 255]
-        uint8_t ir = static_cast<uint8_t>(std::clamp(255.0f * pixel.r + 0.5f, 0.0f, 255.0f));
-        uint8_t ig = static_cast<uint8_t>(std::clamp(255.0f * pixel.g + 0.5f, 0.0f, 255.0f));
-        uint8_t ib = static_cast<uint8_t>(std::clamp(255.0f * pixel.b + 0.5f, 0.0f, 255.0f));
-
-        // On assemble le tout au format 32-bit (Alpha, Rouge, Vert, Bleu)
-        return (0xFF << 24) | (ir << 16) | (ig << 8) | ib;
-        });
 
 
 
@@ -342,8 +359,9 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
         });
 
 
-    // 1. Récupération de la position de la caméra pour ancrer la grille
-    // (Supposons que viewPos contienne la position 3D de la caméra)
+    pipeline.RenderScene();
+
+
     float snapSpacing = m_cellSize;
     float snappedCamX = std::floor(viewPos.x / snapSpacing) * snapSpacing;
     float snappedCamZ = std::floor(viewPos.z / snapSpacing) * snapSpacing;
@@ -354,39 +372,41 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
     glm::mat4 modelTerrain = glm::translate(glm::mat4(1.0f), glm::vec3(snappedCamX, -1.0f, snappedCamZ));
     glm::mat4 mvpTerrain = viewProjection * modelTerrain;
 
+    pipeline.SetVertexShader([modelTerrain](const Vertex& vertex, const glm::mat4& mvp) {
+        Vertex transformed = vertex;
 
-    //pipeline.SetVertexShader([deltaTime, modelTerrain](const Vertex& vertex, const glm::mat4& mvp) {
-    //    Vertex transformed = vertex;
+        // Position absolue du sommet dans le monde
+        // (En supposant que tu passes modelTerrain dans ta lambda)
+        glm::vec4 worldPosCoord = modelTerrain * vertex.position;
 
-    //    // On calcule la position absolue dans le monde pour que le bruit/vagues 
-    //    // ne bouge pas de manière rigide avec la grille, mais reste fixé dans l'espace global.
-    //    glm::vec4 worldPosCoord = modelTerrain * vertex.position;
+        // Application du bruit pour façonner la montagne
+        float height = SimpleNoise(worldPosCoord.x, worldPosCoord.z);
+        transformed.position.y += height;
 
-    //    float amplitude = 0.4f;
-    //    float frequence = 1.5f;
-    //    float vitesse = 2.5f;
+        // Calcul des dérivées pour les normales (essentiel pour que la lumière éclaire les pentes)
+        float eps = 0.1f;
+        float hL = SimpleNoise(worldPosCoord.x - eps, worldPosCoord.z);
+        float hR = SimpleNoise(worldPosCoord.x + eps, worldPosCoord.z);
+        float hD = SimpleNoise(worldPosCoord.x, worldPosCoord.z - eps);
+        float hU = SimpleNoise(worldPosCoord.x, worldPosCoord.z + eps);
 
-    //    // Ondulations basées sur la position absolue du monde
-    //    float waveX = std::sin(worldPosCoord.x * frequence + deltaTime * vitesse);
-    //    float waveZ = std::cos(worldPosCoord.z * frequence + deltaTime * vitesse);
+        glm::vec3 tangentX(2.0f * eps, hR - hL, 0.0f);
+        glm::vec3 tangentZ(0.0f, hU - hD, 2.0f * eps);
+        glm::vec3 surfaceNormal = glm::normalize(glm::cross(tangentZ, tangentX));
 
-    //    transformed.position.y += (waveX + waveZ) * amplitude;
+        // Transformation standard MVP
+        transformed.position = mvp * transformed.position;
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        transformed.normal = glm::normalize(normalMatrix * surfaceNormal);
 
-    //    // Recalcul mathématique de la normale pour la lumière spéculaire
-    //    float dYdX = std::cos(worldPosCoord.x * frequence + deltaTime * vitesse) * frequence * amplitude;
-    //    float dYdZ = -std::sin(worldPosCoord.z * frequence + deltaTime * vitesse) * frequence * amplitude;
-    //    glm::vec3 surfaceNormal = glm::normalize(glm::vec3(-dYdX, 1.0f, -dYdZ));
+        return transformed;
+        });
 
-    //    // Transformation standard MVP
-    //    transformed.position = mvp * transformed.position;
-    //    glm::mat3 normalMatrix = glm::mat3(mvp);
-    //    transformed.normal = glm::normalize(normalMatrix * surfaceNormal);
+    // Envoi au pipeline !
+    pipeline.DrawMesh(m_terrainVertices, mvpTerrain);
 
-    //    return transformed;
-    //    });
+    pipeline.RenderScene();
 
-    //// Envoi au pipeline !
-    //pipeline.DrawMesh(m_terrainVertices, mvpTerrain);
 
     pipeline.RenderScene();
 
@@ -586,4 +606,10 @@ void Village::OnExit()
 void Village::SetParticlesFrozen(bool frozen)
 {
     m_particlesFrozen = frozen;
+}
+
+void Village::SetEditMode(bool editMode)
+{
+    m_isEditMode = editMode;
+    SetParticlesFrozen(editMode);
 }

@@ -12,6 +12,9 @@
 #include "EmptyScene.h"
 #include "ThirdScene.h"
 #include "Village.h"
+#include "Aqua.h"
+#include "Mer.h"
+#include "Beach.h"
 #include "Camera.h"
 
 int main(int argc, char* argv[])
@@ -41,6 +44,9 @@ int main(int argc, char* argv[])
     sceneManager.AddScene(std::make_unique<MainScene>(sceneManager));
     sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager));
     sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager));
+    sceneManager.AddScene(std::make_unique<Aqua>(sceneManager));
+    sceneManager.AddScene(std::make_unique<Mer>(sceneManager));
+    sceneManager.AddScene(std::make_unique<Beach>(sceneManager));
     sceneManager.AddScene(std::make_unique<Village>(sceneManager));
     // FIN INITIALISATION
     
@@ -75,7 +81,22 @@ int main(int argc, char* argv[])
             currentScene->SetParticlesFrozen(isEditMode);
         }
 
-
+        if (auto* aqua = dynamic_cast<Aqua*>(sceneManager.GetCurrentScene()))
+        {
+            aqua->SetEditMode(window.IsInEditMode());
+        }
+        if (auto* mer = dynamic_cast<Mer*>(sceneManager.GetCurrentScene()))
+        {
+            mer->SetEditMode(window.IsInEditMode());
+        }
+        if (auto* beach = dynamic_cast<Beach*>(sceneManager.GetCurrentScene()))
+        {
+            beach->SetEditMode(window.IsInEditMode());
+        }
+        if (auto* village = dynamic_cast<Village*>(sceneManager.GetCurrentScene()))
+        {
+            village->SetEditMode(window.IsInEditMode());
+        }
         Camera* activeCamera = nullptr;
 
         if (window.IsInEditMode()) {

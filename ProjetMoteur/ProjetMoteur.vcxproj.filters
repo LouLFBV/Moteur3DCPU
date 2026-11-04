@@ -81,6 +81,15 @@
     <ClCompile Include="Village.cpp">
       <Filter>Fichiers sources\Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="Mer.cpp">
+      <Filter>Fichiers sources\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Beach.cpp">
+      <Filter>Fichiers sources\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="Aqua.cpp">
+      <Filter>Fichiers sources\Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -144,6 +153,15 @@
       <Filter>Fichiers d%27en-tête\Rasterizer</Filter>
     </ClInclude>
     <ClInclude Include="Village.h">
+      <Filter>Fichiers d%27en-tête\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Mer.h">
+      <Filter>Fichiers d%27en-tête\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Beach.h">
+      <Filter>Fichiers d%27en-tête\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="Aqua.h">
       <Filter>Fichiers d%27en-tête\Scenes</Filter>
     </ClInclude>
   </ItemGroup>

@@ -145,6 +145,8 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Aqua.cpp" />
+    <ClCompile Include="Beach.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="EmptyScene.cpp" />
     <ClCompile Include="FragmentProcessor.cpp" />
@@ -152,6 +154,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainScene.cpp" />
     <ClCompile Include="MathUtils.cpp" />
+    <ClCompile Include="Mer.cpp" />
     <ClCompile Include="Multithreading.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="ParticleEmitter.cpp" />
@@ -166,6 +169,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Users\loulo\Downloads\tiny_obj_loader.h" />
+    <ClInclude Include="Aqua.h" />
+    <ClInclude Include="Beach.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="EmptyScene.h" />
     <ClInclude Include="FragmentProcessor.h" />
@@ -174,6 +179,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialPresets.h" />
     <ClInclude Include="MathUtils.h" />
+    <ClInclude Include="Mer.h" />
     <ClInclude Include="Multithreading.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="ParticleEmitter.h" />

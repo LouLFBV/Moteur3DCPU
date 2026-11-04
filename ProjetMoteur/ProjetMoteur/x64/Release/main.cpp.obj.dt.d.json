@@ -499,7 +499,10 @@
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\emptyscene.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\thirdscene.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\particleemitter.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\village.h"
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\village.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\aqua.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\mer.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\beach.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []
