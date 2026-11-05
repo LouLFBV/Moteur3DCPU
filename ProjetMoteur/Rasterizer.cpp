@@ -30,6 +30,11 @@ const RenderStats& Rasterizer::GetStats() const
     return m_stats;
 }
 
+void Rasterizer::SetDepthTestEnabled(bool enabled)
+{
+    m_depthTestEnabled = enabled;
+}
+
 RenderStats& Rasterizer::GetStats()
 {
     return m_stats;
@@ -427,7 +432,7 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
             float z = Mix3(z0, z1, z2, l);
             int index = y * m_width + x;
 
-            if (z < m_zbuffer[index]) {
+            if (!m_depthTestEnabled || z < m_zbuffer[index]) {
 
                 // 3. CORRECTION DE PERSPECTIVE : Répare les textures et couleurs déformées
                 float invW_pixel = Mix3(invW0, invW1, invW2, l);
@@ -462,9 +467,7 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
                 pixel.worldPos.y = Mix3(v0.worldPos.y * invW0, v1.worldPos.y * invW1, v2.worldPos.y * invW2, l) * w;
                 pixel.worldPos.z = Mix3(v0.worldPos.z * invW0, v1.worldPos.z * invW1, v2.worldPos.z * invW2, l) * w;
 
-                m_zbuffer[index] = z;
-                m_framebuffer[index] = pixelShaderCallback(pixel);
-
+                // Interpolation de l'alpha.
                 pixel.alpha = Mix3(
                     v0.alpha * invW0,
                     v1.alpha * invW1,
@@ -472,13 +475,14 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
                     l
                 ) * w;
 
-
+                // Calcul de la couleur finale du fragment.
                 uint32_t finalColor = pixelShaderCallback(pixel);
 
                 // Mélange de la couleur avec le framebuffer.
                 bool pixelWritten = WritePixelColor(index, finalColor);
 
-                // Les particules transparentes ne modifient pas le Z-Buffer.
+                // Les fragments transparents ne modifient pas le Z-Buffer
+                // si l'écriture de profondeur est désactivée.
                 if (pixelWritten && m_depthWriteEnabled)
                 {
                     m_zbuffer[index] = z;
@@ -574,5 +578,5 @@ void Rasterizer::SetAlphaBlendingEnabled(bool enabled)
 
 void Rasterizer::SetDepthWriteEnabled(bool enabled)
 {
-    m_alphaBlendingEnabled = enabled;
+    m_depthWriteEnabled = enabled;
 }

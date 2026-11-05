@@ -55,4 +55,5 @@ private:
     float m_waterTimer = 0.0f;
 
     bool m_particlesFrozen = false;
+    bool m_textPrinted = false;
 };

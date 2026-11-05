@@ -152,7 +152,7 @@ bool Window::PollEvents(bool& isPerspective, Camera& camera, float deltaTime, Sc
             }
             if (event.key.key == SDLK_T) {
                 std::cout << "Scene Changer" << std::endl;
-                sceneManager.NextScene();
+                sceneManager.NextScene(true);
             }
         }
 

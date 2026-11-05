@@ -821,11 +821,7 @@ void ThirdScene::Render(
         m_fontTexture,
         textColor
     );
-
-
-    pipeline.RenderScene();
-
-    
+    pipeline.RenderScene();    
 }
 
 void ThirdScene::OnExit()

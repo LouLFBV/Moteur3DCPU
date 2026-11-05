@@ -40,6 +40,7 @@ public:
     void ResetStats();
     RenderStats& GetStats();
     const RenderStats& GetStats() const;
+    void SetDepthTestEnabled(bool enabled);
 
 private:
     int m_width;
@@ -52,6 +53,7 @@ private:
 
     bool m_alphaBlendingEnabled = false;
     bool m_depthWriteEnabled = true;
+    bool m_depthTestEnabled = true;
 
     bool WritePixelColor(int index, uint32_t color);
 
@@ -77,4 +79,5 @@ private:
 
 
     void Plot(int x, int y, float z, uint32_t color);
+
 };

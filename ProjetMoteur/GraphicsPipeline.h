@@ -42,6 +42,8 @@ public:
 
     void SetAlphaBlendingEnabled(bool enabled);
     void SetDepthWriteEnabled(bool enabled);
+    void SetDepthTestEnabled(bool enabled);
+    void DrawFadeOverlay(float alpha, const glm::vec3& color);
 private:
     Rasterizer m_rasterizer;
     VertexProcessor m_vertexProcessor;

@@ -129,6 +129,11 @@ void GraphicsPipeline::SetDepthWriteEnabled(bool enabled)
     m_rasterizer.SetDepthWriteEnabled(enabled);
 }
 
+void GraphicsPipeline::SetDepthTestEnabled(bool enabled)
+{
+    m_rasterizer.SetDepthTestEnabled(enabled);
+}
+
 
 void GraphicsPipeline::RenderScene()
 {
@@ -415,4 +420,34 @@ bool GraphicsPipeline::GetGlyphRect(
         outY >= 0 &&
         outX + outW <= atlasWidth &&
         outY + outH <= atlasHeight;
+}
+
+void GraphicsPipeline::DrawFadeOverlay(float alpha, const glm::vec3& color)
+{
+    if (alpha <= 0.0f) return;
+
+    uint32_t aInt = static_cast<uint32_t>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f);
+    if (aInt == 0) return;
+
+    uint32_t targetR = static_cast<uint32_t>(std::clamp(color.r, 0.0f, 1.0f) * 255.0f);
+    uint32_t targetG = static_cast<uint32_t>(std::clamp(color.g, 0.0f, 1.0f) * 255.0f);
+    uint32_t targetB = static_cast<uint32_t>(std::clamp(color.b, 0.0f, 1.0f) * 255.0f);
+
+    // Récupération directe du pointeur de pixels de ton Rastériseur
+    uint32_t* pixels = static_cast<uint32_t*>(const_cast<void*>(m_rasterizer.GetPixels()));
+    int totalPixels = m_rasterizer.GetWidth() * m_rasterizer.GetHeight();
+
+    for (int i = 0; i < totalPixels; ++i) {
+        uint32_t currentPixel = pixels[i];
+
+        uint32_t r = (currentPixel >> 16) & 0xFF;
+        uint32_t g = (currentPixel >> 8) & 0xFF;
+        uint32_t b = currentPixel & 0xFF;
+
+        r = r + (((targetR - r) * aInt) >> 8);
+        g = g + (((targetG - g) * aInt) >> 8);
+        b = b + (((targetB - b) * aInt) >> 8);
+
+        pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+    }
 }

@@ -25,6 +25,7 @@ public:
     Scene(SceneManager& sceneManager);
     virtual ~Scene() = default;
 
+
     virtual void Update(float deltaTime);
     virtual void Render(
         GraphicsPipeline& pipeline,

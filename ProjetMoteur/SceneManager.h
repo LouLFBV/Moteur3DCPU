@@ -11,6 +11,13 @@ class GraphicsPipeline;
 class SceneManager;
 
 
+enum class FadeState
+{
+    None,
+    FadeIn,
+    FadeOut
+};
+
 struct clip
 {
     std::unique_ptr<Scene> scene;
@@ -20,11 +27,11 @@ struct clip
 
 class SceneManager {
 public:
-    SceneManager() = default;
+    SceneManager();
 
     void AddScene(std::unique_ptr<Scene> scene, float t_start = 0.0f, float t_end = 0.0f);
 
-    void NextScene();
+    void NextScene(bool isEditMode = false);
 
 
     void Update(float deltaTime, bool isEditMode = false);
@@ -42,10 +49,12 @@ public:
 
     bool m_isRunning = true;
 
+    void SetFadeDuration(float duration);
+
 
 private:
 
-    void SetScene(size_t index);
+    void SetScene(size_t index, bool isEditMode = false);
 
     const int RENDER_WIDTH = 320;
     const int RENDER_HEIGHT = 200;
@@ -53,4 +62,20 @@ private:
     std::vector<clip> m_listScene;
     int m_currentIndex = -1;
     float m_globalTime = 0.0f;
+
+    FadeState m_fadeState = FadeState::None;
+
+    glm::vec3 m_fadeColor = glm::vec3(0.0f);
+
+    float m_fadeDuration = 1.0f;
+
+    float m_fadeTimer = 0.0f;
+
+    int m_pendingSceneIndex = -1;
+
+    float m_fadeAlpha = 0.0f;
+
+    void ActivateScene(size_t index);
+    void UpdateFade(float deltaTime);
+    void RenderFade(GraphicsPipeline& pipeline) const;
 };

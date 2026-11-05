@@ -521,7 +521,7 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
         };
 
     // PHASE 1 : APPARITION
-    if (animationTime < fadeInDuration)
+    if (animationTime < fadeInDuration && !m_textPrinted)
     {
         float progress = animationTime / fadeInDuration;
         float eased = SmoothStep(progress);
@@ -533,7 +533,7 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
     }
 
     // PHASE 2 : AFFICHAGE
-    else if (animationTime < fadeInDuration + holdDuration)
+    else if (animationTime < fadeInDuration + holdDuration && !m_textPrinted)
     {
         alpha = 1.0f;
         textX = 20.0f;
@@ -541,7 +541,7 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
 
     // PHASE 3 : DISPARITION
     else if (animationTime <
-        fadeInDuration + holdDuration + fadeOutDuration)
+        fadeInDuration + holdDuration + fadeOutDuration && !m_textPrinted)
     {
         float progress =
             (animationTime - fadeInDuration - holdDuration)
@@ -559,6 +559,7 @@ void Village::Render(    GraphicsPipeline& pipeline,    SceneManager& sceneManag
     else
     {
         alpha = 0.0f;
+        m_textPrinted = true;
     }
 
     // Conversion de l'alpha en entier [0, 255].
