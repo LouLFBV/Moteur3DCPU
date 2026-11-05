@@ -13,9 +13,9 @@ Scene::Scene(SceneManager& sceneManager)
     m_sceneTime = 0.0f;
 }
 
-void Scene::AddKeyframe(float* target, float t, float v)
+void Scene::AddKeyframe(float* target, float t, float v, bool smoothing)
 {
-    keys[target].push_back({ t, v });
+    keys[target].push_back({ t, v, smoothing });
     std::sort(keys[target].begin(), keys[target].end(), [](const Key& a, const Key& b) {
         return a.t < b.t;
         });
@@ -41,6 +41,10 @@ void Scene::Update(float deltaTime)
             if (k[i].t >= m_sceneTime)
             {
                 float mu = (m_sceneTime - k[i - 1].t) / (k[i].t - k[i - 1].t);
+                if (k[i].smoothing)
+                {
+                    mu = -glm::cos(mu * glm::pi<float>()) * 0.5f + 0.5f;
+                }
                 v = (1 - mu) * k[i - 1].v + mu * k[i].v;
                 break;
             }

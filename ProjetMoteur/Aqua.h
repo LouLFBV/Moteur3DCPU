@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "ObjLoader.h"
 #include "ParticleEmitter.h"
+#include "Types.h"
 
 class Aqua : public Scene
 {
@@ -27,7 +28,15 @@ public:
     void SetEditMode(bool editMode);
     bool m_isEditMode = false;
 private:
+    glm::mat4 m_lastModelMatrix = glm::mat4(1.0f);
+    bool m_hasLastModelMatrix = false;
+
+    T_OBJ m_objModel;
+    bool m_loaded = false;
     float m_time = 0.0f;
+    std::vector<Vertex> m_gpuVertices;
+
+    GameObject m_fish;
     // Animation du texte
     float m_hudAnimationTime = 0.0f;
 
