@@ -50,4 +50,6 @@ protected:
     int m_gridSize = 80;
     float m_cellSize = 1.0f;
     Texture m_fontTexture;
+
+    std::vector<GameObject> m_gameObjects;
 };

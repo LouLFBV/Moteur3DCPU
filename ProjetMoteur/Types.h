@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <atomic>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct Vertex
 {
@@ -91,4 +92,34 @@ struct Particle {
     float maxLifetime = 1.0f;
     bool active = false;
 };
-;
+
+
+struct Transform
+{
+    glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 rotation{ 0.0f, 0.0f, 0.0f }; // Angles en radians sur X, Y, Z
+    glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
+
+    // Génère et retourne la matrice Model (TRS)
+    glm::mat4 GetModelMatrix() const
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, translation);
+        model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, scale);
+        return model;
+    }
+};
+
+struct GameObject
+{
+    Transform transform;
+    glm::mat4 modelMatrix{ 1.0f };
+
+    void UpdateTransform()
+    {
+        modelMatrix = transform.GetModelMatrix();
+    }
+};
