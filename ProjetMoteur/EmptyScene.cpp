@@ -7,13 +7,7 @@
 #include <iostream>
 
 EmptyScene::EmptyScene(SceneManager& sceneManager) : Scene(sceneManager)
-{}
-
-void EmptyScene::OnEnter()
 {
-    Scene::OnEnter();
-    std::cout << "Scene vide\n";
-
     m_terrainVertices.clear();
     float halfSize = (m_gridSize * m_cellSize) * 0.5f;
 

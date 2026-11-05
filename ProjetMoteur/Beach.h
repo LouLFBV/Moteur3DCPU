@@ -13,7 +13,6 @@ public:
     Beach(SceneManager& sceneManager, int gridSize, float cellSize);
     ~Beach() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime) override;
     void Render(
         GraphicsPipeline& pipeline,

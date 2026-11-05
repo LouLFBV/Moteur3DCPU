@@ -23,6 +23,7 @@ Mer::Mer(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(scene
 void Mer::OnEnter()
 {
     Scene::OnEnter();
+    m_sceneCamera = glm::vec3(0.0f, 2.0f, 1.0f);
     const char* objPath = "external/Assets/Village/owl.obj";
     const char* texturePath = "external/Assets/Village/wild_animals_map.png";
 

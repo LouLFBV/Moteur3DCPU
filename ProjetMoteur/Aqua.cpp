@@ -63,14 +63,6 @@ void Aqua::OnEnter()
     }
 
 
-    // TESTE MATERIAL
-    // On applique un matériau Or au modèle
-    //Texture oldTex = m_objModel.material.texture; // Conserver la texture si besoin
-    //bool hadTex = m_objModel.material.hasTexture;
-
-    //m_objModel.material = MaterialPresets::Gold();
-    //m_objModel.material.texture = oldTex;
-    //m_objModel.material.hasTexture = hadTex;
 
 
     m_terrainVertices.clear();
@@ -196,10 +188,10 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
 
     // 1. FOND (Ciel en NDC)
     Vertex baseBackground[4] = {
-    { { -1.0f,  1.0f, 0.9999f, 1.0f }, 0.30f, 0.65f, 0.75f },
-    { { -1.0f, -1.0f, 0.9999f, 1.0f }, 0.00f, 0.25f, 0.50f },
-    { {  1.0f, -1.0f, 0.9999f, 1.0f }, 0.00f, 0.25f, 0.50f },
-    { {  1.0f,  1.0f, 0.9999f, 1.0f }, 0.30f, 0.65f, 0.75f }
+    { { -1.0f,  1.0f, 0.9999f, 1.0f }, 0.40f, 0.66f, 0.82f },
+    { { -1.0f, -1.0f, 0.9999f, 1.0f }, 0.10f, 0.30f, 0.55f },
+    { {  1.0f, -1.0f, 0.9999f, 1.0f }, 0.10f, 0.30f, 0.55f },
+    { {  1.0f,  1.0f, 0.9999f, 1.0f }, 0.40f, 0.66f, 0.82f }
     };
     pipeline.DrawSquareNDC(baseBackground[0], baseBackground[1], baseBackground[2], baseBackground[3]);
 

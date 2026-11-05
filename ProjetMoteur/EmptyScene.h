@@ -8,7 +8,6 @@ public:
     EmptyScene(SceneManager& sceneManager);
     ~EmptyScene() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime) override;
     void Render(
         GraphicsPipeline& pipeline,

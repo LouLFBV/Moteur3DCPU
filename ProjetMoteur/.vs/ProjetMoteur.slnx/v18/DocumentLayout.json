@@ -3,36 +3,68 @@
   "WorkspaceRootPath": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Village.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\SceneManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:SceneManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EmptyScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Aqua.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Mer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Aqua.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ThirdScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EmptyScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ThirdScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ThirdScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Beach.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Aqua.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Mer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Village.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Scene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Scene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Aqua.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Beach.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Mer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\SceneManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:SceneManager.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\SCENEMANAGER.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -47,40 +79,12 @@
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:End.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Village.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Village.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MainScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:MainScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MAINSCENE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:MAINSCENE.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Scene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Scene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Beach.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:Mer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EmptyScene.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MaterialPresets.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -117,10 +121,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ParticleEmitter.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:ParticleEmitter.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|solutionrelative:EmptyScene.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2CAD54E2-C068-43B3-8231-2E599BACFE37}|ProjetMoteur.vcxproj|C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ParticleEmitter.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -202,11 +202,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 14,
               "Title": "main.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\main.cpp",
               "RelativeDocumentMoniker": "main.cpp",
@@ -220,13 +220,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 0,
               "Title": "Village.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.cpp",
               "RelativeDocumentMoniker": "Village.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.cpp",
               "RelativeToolTip": "Village.cpp",
-              "ViewState": "AgIAAIgAAAAAAAAAAAAAAI8AAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAAAIQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-03T17:06:41.141Z",
               "IsPinned": true,
@@ -234,13 +234,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 8,
               "Title": "Village.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.h",
               "RelativeDocumentMoniker": "Village.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Village.h",
               "RelativeToolTip": "Village.h",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAYwDsAAAACAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-11-03T17:06:31.757Z",
               "IsPinned": true,
@@ -248,13 +248,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 13,
               "Title": "Mer.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.cpp",
               "RelativeDocumentMoniker": "Mer.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.cpp",
               "RelativeToolTip": "Mer.cpp",
-              "ViewState": "AgIAADYAAAAAAAAAAAAAAFgAAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABkAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-04T21:31:25.671Z",
               "IsPinned": true,
@@ -262,26 +262,27 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 7,
               "Title": "Mer.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.h",
               "RelativeDocumentMoniker": "Mer.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Mer.h",
               "RelativeToolTip": "Mer.h",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAYwBoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-11-04T21:31:19.606Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "Aqua.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.h",
               "RelativeDocumentMoniker": "Aqua.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.h",
               "RelativeToolTip": "Aqua.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-11-04T21:38:22.525Z",
               "IsPinned": true,
@@ -289,13 +290,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 11,
               "Title": "Aqua.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.cpp",
               "RelativeDocumentMoniker": "Aqua.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Aqua.cpp",
               "RelativeToolTip": "Aqua.cpp",
-              "ViewState": "AgIAAH4AAAAAAAAAAAAAALQAAAA5AAAAAAAAAA==",
+              "ViewState": "AgIAAKMAAAAAAAAAAAAmwMIAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-04T21:38:13.855Z",
               "IsPinned": true,
@@ -303,13 +304,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 12,
               "Title": "Beach.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.cpp",
               "RelativeDocumentMoniker": "Beach.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.cpp",
               "RelativeToolTip": "Beach.cpp",
-              "ViewState": "AgIAAEQAAAAAAAAAAAAAAF4AAAA6AAAAAAAAAA==",
+              "ViewState": "AgIAADQCAAAAAAAAAAAAAE4CAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-04T21:35:10.401Z",
               "IsPinned": true,
@@ -317,20 +318,21 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 5,
               "Title": "Beach.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.h",
               "RelativeDocumentMoniker": "Beach.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Beach.h",
               "RelativeToolTip": "Beach.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAALAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-11-04T21:35:01.52Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 17,
               "Title": "End.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\End.cpp",
               "RelativeDocumentMoniker": "End.cpp",
@@ -339,12 +341,11 @@
               "ViewState": "AgIAAAoBAAAAIMIxy375vxgBAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-04T22:33:51.545Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 18,
               "Title": "End.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\End.h",
               "RelativeDocumentMoniker": "End.h",
@@ -353,8 +354,7 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-11-04T22:33:41.997Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Bookmark",
@@ -362,33 +362,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "ThirdScene.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.cpp",
               "RelativeDocumentMoniker": "ThirdScene.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.cpp",
               "RelativeToolTip": "ThirdScene.cpp",
-              "ViewState": "AgIAABICAAAAAAAAAAAAACQCAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-11-04T22:21:46.042Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 10,
               "Title": "Scene.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.h",
               "RelativeDocumentMoniker": "Scene.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.h",
               "RelativeToolTip": "Scene.h",
-              "ViewState": "AgIAABMAAAAAAAAAAAAnwCoAAAAUAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABgAAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-10-30T14:45:43.383Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 16,
               "Title": "SceneManager.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\SceneManager.h",
               "RelativeDocumentMoniker": "SceneManager.h",
@@ -396,12 +396,11 @@
               "RelativeToolTip": "SceneManager.h",
               "ViewState": "AgIAAAwAAAAAAAAAAAAAAB0AAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-29T17:08:35.103Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T17:08:35.103Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 19,
               "Title": "MainScene.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MainScene.cpp",
               "RelativeDocumentMoniker": "MainScene.cpp",
@@ -409,12 +408,11 @@
               "RelativeToolTip": "MainScene.cpp",
               "ViewState": "AgIAABsAAAAAAAAAAAAnwDYAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-29T17:15:42.619Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T17:15:42.619Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 15,
               "Title": "SceneManager.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\SceneManager.cpp",
               "RelativeDocumentMoniker": "SceneManager.cpp",
@@ -422,18 +420,17 @@
               "RelativeToolTip": "SceneManager.cpp",
               "ViewState": "AgIAACAAAAAAAAAAAAAnwC8AAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-29T17:27:38.076Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T17:27:38.076Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 9,
               "Title": "Scene.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.cpp",
               "RelativeDocumentMoniker": "Scene.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Scene.cpp",
               "RelativeToolTip": "Scene.cpp",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAABAAAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-10-30T14:45:31.304Z",
               "EditorCaption": ""
@@ -452,7 +449,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "ParticleEmitter.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ParticleEmitter.cpp",
               "RelativeDocumentMoniker": "ParticleEmitter.cpp",
@@ -464,13 +461,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 3,
               "Title": "ThirdScene.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.h",
               "RelativeDocumentMoniker": "ThirdScene.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\ThirdScene.h",
               "RelativeToolTip": "ThirdScene.h",
-              "ViewState": "AgIAAAUAAAAAAAAAAAAkwA8AAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-10-29T17:20:04.772Z",
               "EditorCaption": ""
@@ -513,15 +510,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 2,
               "Title": "EmptyScene.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.cpp",
               "RelativeDocumentMoniker": "EmptyScene.cpp",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.cpp",
               "RelativeToolTip": "EmptyScene.cpp",
-              "ViewState": "AgIAAN4AAAAAAAAAAAAAANAAAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADEAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-29T17:13:33.834Z"
+              "WhenOpened": "2026-10-29T17:13:33.834Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -561,7 +559,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 20,
               "Title": "MainScene.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MainScene.h",
               "RelativeDocumentMoniker": "MainScene.h",
@@ -569,12 +567,11 @@
               "RelativeToolTip": "MainScene.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-29T17:10:38.203Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-29T17:10:38.203Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "Material.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Material.h",
               "RelativeDocumentMoniker": "Material.h",
@@ -586,7 +583,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "MaterialPresets.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\MaterialPresets.h",
               "RelativeDocumentMoniker": "MaterialPresets.h",
@@ -610,19 +607,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 1,
               "Title": "EmptyScene.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.h",
               "RelativeDocumentMoniker": "EmptyScene.h",
               "ToolTip": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\EmptyScene.h",
               "RelativeToolTip": "EmptyScene.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-29T17:14:15.296Z"
+              "WhenOpened": "2026-10-29T17:14:15.296Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "VertexProcessor.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\VertexProcessor.cpp",
               "RelativeDocumentMoniker": "VertexProcessor.cpp",
@@ -658,7 +656,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "FragmentProcessor.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\FragmentProcessor.cpp",
               "RelativeDocumentMoniker": "FragmentProcessor.cpp",
@@ -670,7 +668,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "FragmentProcessor.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\FragmentProcessor.h",
               "RelativeDocumentMoniker": "FragmentProcessor.h",
@@ -682,7 +680,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "GraphicsPipeline.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\GraphicsPipeline.h",
               "RelativeDocumentMoniker": "GraphicsPipeline.h",
@@ -718,7 +716,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "Texture.cpp",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Texture.cpp",
               "RelativeDocumentMoniker": "Texture.cpp",
@@ -730,7 +728,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "Texture.h",
               "DocumentMoniker": "C:\\CoursGTech\\B3\\Moteur3DCPUCours\\Moteur3DCPU\\ProjetMoteur\\Texture.h",
               "RelativeDocumentMoniker": "Texture.h",

@@ -11,7 +11,6 @@ public:
     ThirdScene(SceneManager& sceneManager, int gridSize, float cellSize);
     ~ThirdScene() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime) override;
     void Render(
         GraphicsPipeline& pipeline,

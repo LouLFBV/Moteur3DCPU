@@ -9,11 +9,6 @@ Scene::Scene(SceneManager& sceneManager)
     float aspect = (float)sceneManager.GetWidth() / (float)sceneManager.GetHeight();
     float zNear = 0.1f;
     float zFar = 100.0f;
-}
-
-void Scene::OnEnter()
-{
-    m_sceneCamera = glm::vec3(0.0f, 0.0f, 1.0f);
     m_sceneTime = 0.0f;
 }
 

@@ -12,7 +12,6 @@ public:
     Aqua(SceneManager& sceneManager, int gridSize, float cellSize);
     ~Aqua() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime) override;
     void Render(
         GraphicsPipeline& pipeline,

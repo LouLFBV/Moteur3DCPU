@@ -23,11 +23,11 @@ Beach::Beach(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(s
 void Beach::OnEnter()
 {
     Scene::OnEnter();
-    const char* objPath = "external/Assets/Aqua/Shark.obj";
-    const char* texturePath = "external/Assets/Village/";
+    const char* objPath = "external/Assets/Village/owl.obj";
+    const char* texturePath = "external/Assets/Village/wild_animals_map.png";
 
     // On passe le dossier "external/Assets" pour que tinyobj cherche le .mtl au bon endroit
-    Get_TOBJ(objPath, m_objModel, "external/Assets/Aqua");
+    Get_TOBJ(objPath, m_objModel, "external/Assets");
 
     m_loaded = !m_objModel.vertices.empty();
 
@@ -588,7 +588,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     pipeline.DrawText2D(
         static_cast<int>(textX),
         55,
-        "Sur la Plage",
+        "La Plage",
         m_fontTexture,
         textColor
     );
