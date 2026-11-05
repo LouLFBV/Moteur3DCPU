@@ -31,7 +31,7 @@ void Scene::Update(float deltaTime)
         if (k.empty())
             return;
         if (k.size() == 1 && m_sceneTime >= k[0].t)
-        v = k[0].v;
+            v = k[0].v;
         if (m_sceneTime < k.front().t)
             v = k.front().v;
         if (m_sceneTime >= k.back().t)
@@ -51,6 +51,11 @@ void Scene::Update(float deltaTime)
         }
         *ptr = v;
     }
+}
+
+Camera& Scene::GetCamera()
+{
+    return m_sceneCamera;
 }
 
 void Scene::GenerateTerrain(int size, float cellSize) {
@@ -96,12 +101,6 @@ void Scene::GenerateTerrain(int size, float cellSize) {
         }
     }
 }
-
-Camera& Scene::GetCamera()
-{
-	return m_sceneCamera;
-}
-
 
 bool Scene::LoadGameObject(GameObject& go, const char* objPath, const char* texturePath, const char* mtlDir)
 {

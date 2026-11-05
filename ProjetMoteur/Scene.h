@@ -18,6 +18,7 @@ struct Key
 {
     float t;
     float v;
+    bool smoothing = false;
 };
 
 class Scene
@@ -41,7 +42,7 @@ public:
     Camera& GetCamera();
     void GenerateTerrain(int size, float cellSize);
     bool LoadGameObject(GameObject& go, const char* objPath, const char* texturePath = nullptr, const char* mtlDir = "external/Assets");
-    void AddKeyframe(float* target, float t, float v);
+    void AddKeyframe(float* target, float t, float v, bool smoothing = false);
     float GetSceneTime() const { return m_sceneTime; }
 
 protected:
