@@ -9,6 +9,34 @@
 
 Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
 {
+    m_fish.transform.scale = glm::vec3(1.0f);
+    m_fish.transform.translation = glm::vec3(0.0f, -0.80f, -3.0f);
+    m_fish.transform.rotation = glm::vec3(0.0f, glm::radians(180.0f), 0.0f);
+
+    AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 5.0f, -20.0f);
+
+    AddKeyframe(&m_sceneCamera.yaw, 0.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 1.0f, -70.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 2.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 3.0f, -70.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 4.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 5.0f, -70.0f, true);
+
+    AddKeyframe(&m_fish.transform.rotation.y, 0.0f, glm::radians(190.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 0.5f, glm::radians(170.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 1.0f, glm::radians(190.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 1.5f, glm::radians(170.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 2.0f, glm::radians(190.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 2.5f, glm::radians(170.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 3.0f, glm::radians(190.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 3.5f, glm::radians(170.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 4.0f, glm::radians(190.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 4.5f, glm::radians(170.0f), true);
+    AddKeyframe(&m_fish.transform.rotation.y, 5.0f, glm::radians(190.0f), true);
+
+
+
     const char* objPath = "external/Assets/Aqua/Fish1.obj";
     const char* texturePath = "external/Assets/Village/wild_animals_map.png";
 
@@ -90,7 +118,7 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
 
 
 
-    // =====================================================
+ // =====================================================
  // EAU
  // =====================================================
 
@@ -110,6 +138,34 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
     m_waterEmitter.drag = 0.15f;
 
     m_waterEmitter.SetEmissionEnabled(false);
+
+// =====================================================
+// MAGIE
+// =====================================================
+
+    m_magicEmitter.position = glm::vec3(0.0f, 0.0f, -20.0f);
+
+    m_magicEmitter.spawnRate = 100.0f;
+
+    m_magicEmitter.velocityMin = glm::vec3(-0.4f, -0.2f, -0.4f);
+    m_magicEmitter.velocityMax = glm::vec3(0.4f, 0.5f, 0.4f);
+
+    m_magicEmitter.gravity = glm::vec3(0.0f);
+
+    m_magicEmitter.colorStart = glm::vec4(0.1f, 0.8f, 1.0f, 0.9f);
+    m_magicEmitter.colorEnd = glm::vec4(0.7f, 0.1f, 1.0f, 0.0f);
+
+    m_magicEmitter.lifeTimeMin = 1.5f;
+    m_magicEmitter.lifeTimeMax = 3.0f;
+
+    m_magicEmitter.sizeStart = 0.10f;
+    m_magicEmitter.sizeEnd = 0.025f;
+
+    m_magicEmitter.spawnRadius = 20.0f;
+    m_magicEmitter.swirlStrength = 5.5f;
+    m_magicEmitter.turbulence = 0.8f;
+
+    m_magicEmitter.SetEmissionEnabled(true);
 }
 
 
@@ -121,6 +177,12 @@ void Aqua::Update(float deltaTime)
     Scene::Update(deltaTime);
     // Temps global de la scène.
     m_time += deltaTime;
+
+    // 2. Reconstruit les vecteurs d'orientation de la caméra
+    m_sceneCamera.ProcessMouseMovement(0.0f, 0.0f);
+
+    // 3. Calcule la nouvelle matrice Model du poisson avec l'offset interpolé
+    m_fish.UpdateTransform();
 
     // Temps de l'animation du HUD.
     // L'animation est gelée en mode Edit.
@@ -136,7 +198,7 @@ void Aqua::Update(float deltaTime)
     if (!m_particlesFrozen)
     {
         m_fireEmitter.position = glm::vec3(0.0f, 1.0f, -10.0f);
-
+        m_magicEmitter.Update(deltaTime);
         m_waterEmitter.Update(deltaTime);
 
         m_waterTimer += deltaTime;
@@ -271,7 +333,7 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
                 glm::vec3(0.0f, 1.0f, 0.0f)
             );
 
-            m_lastModelMatrix = cameraWorld * cameraOffset * modelRotation * modelScale;
+            m_lastModelMatrix = cameraWorld * m_fish.modelMatrix;
 
             m_hasLastModelMatrix = true;
         }
@@ -507,7 +569,7 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
     // RENDU DES PARTICULES
     // =====================================================
 
-
+    m_magicEmitter.Render(pipeline, viewMatrix, viewProjection);
     m_waterEmitter.Render(pipeline, viewMatrix, viewProjection);
 
     // Une seule passe de rasterisation pour tous les émetteurs.
