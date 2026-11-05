@@ -16,6 +16,7 @@
 #include "Mer.h"
 #include "Beach.h"
 #include "End.h"
+#include "Intro.h"
 #include "Camera.h"
 
 int main(int argc, char* argv[])
@@ -44,7 +45,8 @@ int main(int argc, char* argv[])
 
     sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
     sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
-    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 15.0f);
+    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 12.0f);
+    sceneManager.AddScene(std::make_unique<Intro>(sceneManager), 12.0f, 15.0f);
     sceneManager.AddScene(std::make_unique<Aqua>(sceneManager), 10.0f, 15.0f);
     sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 15.0f, 20.0f);
     sceneManager.AddScene(std::make_unique<Beach>(sceneManager), 20.0f, 25.0f);

@@ -7,26 +7,78 @@
 #include "MaterialPresets.h"
 #include "SceneManager.h"
 
+// =====================================================
+// CONSTRUCTEUR
+// =====================================================
 Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
 {
     m_gameObjects.clear();
 
+    // -----------------------------------------------------
+    // REHAUSSEMENT ET ANIMATION DE LA CAMÉRA
+    // -----------------------------------------------------
+    m_sceneCamera.position.y = 3.5f; // Hauteur initiale élevée
+    m_sceneCamera.pitch = -12.0f;    // Regard légèrement incliné vers le bas
+
+    AddKeyframe(&m_sceneCamera.position.y, 0.0f, 3.5f);
+    AddKeyframe(&m_sceneCamera.position.y, 10.0f, 3.5f);
+
+    AddKeyframe(&m_sceneCamera.position.z, 0.0f, 5.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 10.0f, -20.0f);
+
     // 1. CHOUETTE (index 0 : Attachée à la caméra / POV)
     GameObject owl;
     owl.transform.scale = glm::vec3(0.001f);
-    if (LoadGameObject(owl, "external/Assets/Village/owl.obj", "external/Assets/Beach/wild_animals_map.png")) {
+    if (LoadGameObject(owl, "external/Assets/Village/owl.obj", "external/Assets/Village/wild_animals_map.png", "external/Assets")) {
         m_gameObjects.push_back(owl);
     }
 
-    // 2. PALMIER (index 1 : Objet du décor dans le monde)
-    GameObject palmTree;
-    palmTree.transform.translation = glm::vec3(2.0f, 0.0f, -5.0f);
-    palmTree.transform.scale = glm::vec3(1.0f);
-    if (LoadGameObject(palmTree, "external/Assets/Beach/Large_Palm.obj", "external/Assets/Beach/BeachPropAtlas.png", "external/Assets/Beach")) {
-        m_gameObjects.push_back(palmTree);
+    // 2. PLACEMENT DE 5 GRANDS PALMIERS (index 1 à 5 - Shader Cyan/Violet)
+    struct PalmTransform {
+        glm::vec3 pos;
+        float rotY;
+        float scale;
+    };
+
+    PalmTransform palms[5] = {
+        { glm::vec3(2.5f, -0.2f,  -4.0f),  15.0f, 1.15f },
+        { glm::vec3(-3.0f,  0.3f,  -7.0f), -45.0f, 0.85f },
+        { glm::vec3(4.0f, -0.5f, -11.0f), 110.0f, 1.30f },
+        { glm::vec3(-2.2f,  0.1f, -14.5f),  60.0f, 0.95f },
+        { glm::vec3(3.2f, -0.1f, -18.0f), -80.0f, 1.25f }
+    };
+
+    for (int i = 0; i < 5; ++i) {
+        GameObject palmTree;
+        palmTree.transform.translation = palms[i].pos;
+        palmTree.transform.rotation = glm::vec3(0.0f, glm::radians(palms[i].rotY), 0.0f);
+        palmTree.transform.scale = glm::vec3(palms[i].scale);
+
+        if (LoadGameObject(palmTree, "external/Assets/Beach/Large_Palm.obj", nullptr, "external/Assets/Beach/")) {
+            m_gameObjects.push_back(palmTree);
+        }
     }
 
-    // 3. GÉNÉRATION DU TERRAIN (SABLE)
+    // 3. PLACEMENT DE 4 PALMIERS À COCOS (index 6 à 9 - Shader Sunset/Gold)
+    PalmTransform coconutPalms[4] = {
+        { glm::vec3(-4.5f, -0.1f,  -5.5f), 130.0f, 1.10f },
+        { glm::vec3(4.8f, -0.3f,  -8.5f), -30.0f, 1.35f },
+        { glm::vec3(-3.8f,  0.2f, -12.5f),  85.0f, 0.90f },
+        { glm::vec3(1.5f, -0.4f, -16.0f), -115.0f, 1.20f }
+    };
+
+    for (int i = 0; i < 4; ++i) {
+        GameObject coconutPalm;
+        coconutPalm.transform.translation = coconutPalms[i].pos;
+        coconutPalm.transform.rotation = glm::vec3(0.0f, glm::radians(coconutPalms[i].rotY), 0.0f);
+        coconutPalm.transform.scale = glm::vec3(coconutPalms[i].scale);
+
+        if (LoadGameObject(coconutPalm, "external/Assets/Beach/palm_pr_leaning.obj", nullptr, "external/Assets/Beach/")) {
+            m_gameObjects.push_back(coconutPalm);
+        }
+    }
+
+    // 4. GÉNÉRATION DU TERRAIN (SABLE)
     m_terrainVertices.clear();
     float halfSize = (m_gridSize * m_cellSize) * 0.5f;
 
@@ -58,12 +110,42 @@ Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
         }
     }
 
-    // 4. POLICE DE CARACTÈRES
+    // 5. GÉNÉRATION DE LA GRILLE DE L'EAU (MER BLEUE)
+    m_waterVertices.clear();
+    for (int z = 0; z < m_gridSize; ++z) {
+        for (int x = 0; x < m_gridSize; ++x) {
+            float x0 = x * m_cellSize - halfSize;
+            float z0 = z * m_cellSize - halfSize;
+            float x1 = (x + 1) * m_cellSize - halfSize;
+            float z1 = (z + 1) * m_cellSize - halfSize;
+
+            float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
+            float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
+
+            // Couleur bleue de l'eau
+            float r = 0.1f, g = 0.4f, b = 0.8f;
+
+            Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
+            Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
+            Vertex vBL = { glm::vec4(x0, 0.0f, z1, 1.0f), r, g, b, {u0, v1}, {0, 1, 0} };
+            Vertex vBR = { glm::vec4(x1, 0.0f, z1, 1.0f), r, g, b, {u1, v1}, {0, 1, 0} };
+
+            m_waterVertices.push_back(vTL);
+            m_waterVertices.push_back(vBL);
+            m_waterVertices.push_back(vTR);
+
+            m_waterVertices.push_back(vTR);
+            m_waterVertices.push_back(vBL);
+            m_waterVertices.push_back(vBR);
+        }
+    }
+
+    // 6. POLICE DE CARACTÈRES
     if (!m_fontTexture.LoadFromFile("external/Assets/boxy_bold_font_5.png")) {
         std::cerr << "[Erreur] Police introuvable !\n";
     }
 
-    // 5. ÉMETTEUR DE PARTICULES D'EAU
+    // 7. ÉMETTEUR DE PARTICULES D'EAU
     m_waterEmitter.position = glm::vec3(-3.0f, -0.5f, -8.0f);
     m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
     m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
@@ -131,44 +213,39 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     for (size_t i = 0; i < m_gameObjects.size(); ++i) {
         if (!m_gameObjects[i].loaded) continue;
 
-        // Configuration du Fragment Shader (Blinn-Phong) propre à chaque objet
-        pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-            const Material& mat = m_gameObjects[i].objModel.material;
-
-            // On combine la couleur du matériau et celle des sommets
-            glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
-
-            if (mat.hasTexture) {
-                uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
-                float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
-                float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
-                float bTex = (texColor & 0xFF) / 255.0f;
-                baseDiffuse *= glm::vec3(rTex, gTex, bTex);
-            }
-
-            glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
-            glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
-            glm::vec3 vV = glm::normalize(viewPos - pixelPos);
-            glm::vec3 vH = glm::normalize(lightDir + vV);
-
-            glm::vec3 ambient = mat.ambient * baseDiffuse;
-            float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
-            glm::vec3 diffuse = baseDiffuse * diffFactor;
-            float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
-            glm::vec3 specular = mat.specular * specFactor;
-
-            glm::vec3 finalColor = ambient + diffuse + specular;
-            uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
-            uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
-            uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
-
-            return (0xFF << 24) | (r << 16) | (g << 8) | b;
-            });
-
-        // Calcul de la matrice Modèle
-        glm::mat4 modelMat;
         if (i == 0) {
-            // Index 0 : Objet attaché à la caméra (ex: Chouette)
+            // --- Index 0 : Chouette (Attachée à la caméra avec Blinn-Phong standard) ---
+            pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+                const Material& mat = m_gameObjects[i].objModel.material;
+                glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
+
+                if (mat.hasTexture) {
+                    uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
+                    float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
+                    float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
+                    float bTex = (texColor & 0xFF) / 255.0f;
+                    baseDiffuse *= glm::vec3(rTex, gTex, bTex);
+                }
+
+                glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+                glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
+                glm::vec3 vV = glm::normalize(viewPos - pixelPos);
+                glm::vec3 vH = glm::normalize(lightDir + vV);
+
+                glm::vec3 ambient = mat.ambient * baseDiffuse;
+                float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+                glm::vec3 diffuse = baseDiffuse * diffFactor;
+                float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
+                glm::vec3 specular = mat.specular * specFactor;
+
+                glm::vec3 finalColor = ambient + diffuse + specular;
+                uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+                uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+                uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
+
+                return (0xFF << 24) | (r << 16) | (g << 8) | b;
+                });
+
             if (!m_isEditMode || !m_gameObjects[0].hasLastModelMatrix) {
                 glm::mat4 cameraWorld = glm::inverse(viewMatrix);
                 glm::mat4 cameraOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.80f, -1.0f));
@@ -179,21 +256,52 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
                 m_gameObjects[0].lastModelMatrix = cameraWorld * cameraOffset * modelRotationY * modelRotationZ * modelScale;
                 m_gameObjects[0].hasLastModelMatrix = true;
             }
-            modelMat = m_gameObjects[0].lastModelMatrix;
+            glm::mat4 mvpObj = viewProjection * m_gameObjects[0].lastModelMatrix;
+            pipeline.DrawMesh(m_gameObjects[0].gpuVertices, mvpObj);
+            pipeline.RenderScene();
+        }
+        else if (i >= 1 && i <= 5) {
+            // --- Index 1 à 5 : Grands Palmiers (Shader Cyberpunk Cyan / Violet) ---
+            pipeline.SetFragmentShader([this](const BordLigne& pixel) -> uint32_t {
+                float wave = std::sin(pixel.x * 0.05f + pixel.z * 15.0f + m_time * 3.0f);
+                float intensity = (wave * 0.5f) + 0.5f;
+
+                uint8_t r = static_cast<uint8_t>(intensity * 255.0f);
+                uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 150.0f);
+                uint8_t b = 255;
+
+                return (0xFF << 24) | (r << 16) | (g << 8) | b;
+                });
+
+            m_gameObjects[i].UpdateTransform();
+            glm::mat4 mvpObj = viewProjection * m_gameObjects[i].modelMatrix;
+            pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
+            pipeline.RenderScene();
         }
         else {
-            // Index > 0 : Objet placé librement dans le monde 3D (ex: Palmier)
-            m_gameObjects[i].UpdateTransform();
-            modelMat = m_gameObjects[i].modelMatrix;
-        }
+            // --- Index 6 à 9 : Palmiers à Cocos (NOUVEAU Shader Sunset Gold / Orange / Magenta) ---
+            pipeline.SetFragmentShader([this](const BordLigne& pixel) -> uint32_t {
+                // Onde dorée et magenta ondulant selon Y et X
+                float wave = std::sin(pixel.worldPos.y * 4.0f + pixel.worldPos.x * 1.5f + m_time * 4.0f);
+                float intensity = wave * 0.5f + 0.5f; // [0.0, 1.0]
 
-        glm::mat4 mvpObj = viewProjection * modelMat;
-        pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
-        pipeline.RenderScene();
+                // Transition entre un Or incandescent (255, 180, 20) et un Magenta profond (220, 20, 160)
+                uint8_t r = static_cast<uint8_t>(255.0f * intensity + 220.0f * (1.0f - intensity));
+                uint8_t g = static_cast<uint8_t>(180.0f * intensity + 20.0f * (1.0f - intensity));
+                uint8_t b = static_cast<uint8_t>(20.0f * intensity + 160.0f * (1.0f - intensity));
+
+                return (0xFF << 24) | (r << 16) | (g << 8) | b;
+                });
+
+            m_gameObjects[i].UpdateTransform();
+            glm::mat4 mvpObj = viewProjection * m_gameObjects[i].modelMatrix;
+            pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
+            pipeline.RenderScene();
+        }
     }
 
     // -----------------------------------------------------
-    // PASSE 3 : TERRAIN (SABLE ET BRUIT PROCÉDURAL)
+    // PASSE 3 : TERRAIN DE SABLE (RELIEF MODÉRÉ)
     // -----------------------------------------------------
     pipeline.SetFragmentShader([lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
         glm::vec3 baseColor(pixel.r, pixel.g, pixel.b);
@@ -225,14 +333,15 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
         Vertex transformed = vertex;
         glm::vec4 worldPosCoord = modelTerrain * vertex.position;
 
-        float height = SimpleNoise(worldPosCoord.x, worldPosCoord.z);
+        float sandHeightScale = 0.5f;
+        float height = SimpleNoise(worldPosCoord.x, worldPosCoord.z) * sandHeightScale;
         transformed.position.y += height;
 
         float eps = 0.1f;
-        float hL = SimpleNoise(worldPosCoord.x - eps, worldPosCoord.z);
-        float hR = SimpleNoise(worldPosCoord.x + eps, worldPosCoord.z);
-        float hD = SimpleNoise(worldPosCoord.x, worldPosCoord.z - eps);
-        float hU = SimpleNoise(worldPosCoord.x, worldPosCoord.z + eps);
+        float hL = SimpleNoise(worldPosCoord.x - eps, worldPosCoord.z) * sandHeightScale;
+        float hR = SimpleNoise(worldPosCoord.x + eps, worldPosCoord.z) * sandHeightScale;
+        float hD = SimpleNoise(worldPosCoord.x, worldPosCoord.z - eps) * sandHeightScale;
+        float hU = SimpleNoise(worldPosCoord.x, worldPosCoord.z + eps) * sandHeightScale;
 
         glm::vec3 tangentX(2.0f * eps, hR - hL, 0.0f);
         glm::vec3 tangentZ(0.0f, hU - hD, 2.0f * eps);
@@ -248,6 +357,57 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     pipeline.DrawMesh(m_terrainVertices, mvpTerrain);
     pipeline.RenderScene();
 
+    // -----------------------------------------------------
+    // PASSE 4 : EAU (MER ANIMÉE)
+    // -----------------------------------------------------
+    pipeline.SetFragmentShader([lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+        glm::vec3 baseColor(pixel.r, pixel.g, pixel.b);
+        glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+        glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
+        glm::vec3 vV = glm::normalize(viewPos - pixelPos);
+        glm::vec3 vH = glm::normalize(lightDir + vV);
+
+        glm::vec3 ambient = baseColor * 0.3f;
+        float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+        glm::vec3 diffuse = baseColor * diffFactor * 0.8f;
+        float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), 128.0f);
+        glm::vec3 specular = glm::vec3(1.0f) * specFactor;
+
+        glm::vec3 finalColor = ambient + diffuse + specular;
+        uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
+
+        return (0xFF << 24) | (r << 16) | (g << 8) | b;
+        });
+
+    glm::mat4 modelWater = glm::translate(glm::mat4(1.0f), glm::vec3(snappedCamX, -1.3f, snappedCamZ));
+    glm::mat4 mvpWater = viewProjection * modelWater;
+
+    pipeline.SetVertexShader([deltaTime, modelWater](const Vertex& vertex, const glm::mat4& mvp) {
+        Vertex transformed = vertex;
+        glm::vec4 worldPosCoord = modelWater * vertex.position;
+
+        float amplitude = 0.15f, frequence = 1.5f, vitesse = 2.5f;
+        float waveX = std::sin(worldPosCoord.x * frequence + deltaTime * vitesse);
+        float waveZ = std::cos(worldPosCoord.z * frequence + deltaTime * vitesse);
+
+        transformed.position.y += (waveX + waveZ) * amplitude;
+
+        float dYdX = std::cos(worldPosCoord.x * frequence + deltaTime * vitesse) * frequence * amplitude;
+        float dYdZ = -std::sin(worldPosCoord.z * frequence + deltaTime * vitesse) * frequence * amplitude;
+        glm::vec3 surfaceNormal = glm::normalize(glm::vec3(-dYdX, 1.0f, -dYdZ));
+
+        transformed.position = mvp * transformed.position;
+        glm::mat3 normalMatrix = glm::mat3(mvp);
+        transformed.normal = glm::normalize(normalMatrix * surfaceNormal);
+
+        return transformed;
+        });
+
+    pipeline.DrawMesh(m_waterVertices, mvpWater);
+    pipeline.RenderScene();
+
     // Reset du Vertex Shader standard
     pipeline.SetVertexShader([](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
@@ -258,7 +418,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
         });
 
     // -----------------------------------------------------
-    // PASSE 4 : PARTICULES D'EAU (TRANSPARENCE)
+    // PASSE 5 : PARTICULES D'EAU (TRANSPARENCE)
     // -----------------------------------------------------
     pipeline.SetFragmentShader([](const BordLigne& pixel) -> uint32_t {
         float dx = (pixel.u - 0.5f) * 2.0f;
@@ -288,7 +448,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     pipeline.SetAlphaBlendingEnabled(false);
 
     // -----------------------------------------------------
-    // PASSE 5 : TEXTE 2D (HUD)
+    // PASSE 6 : TEXTE 2D (HUD)
     // -----------------------------------------------------
     constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 1.0f;
     constexpr float cycleDuration = fadeInDuration + holdDuration + fadeOutDuration + pauseDuration;

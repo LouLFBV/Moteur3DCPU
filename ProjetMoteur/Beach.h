@@ -29,6 +29,7 @@ public:
     void SetEditMode(bool editMode);
     bool m_isEditMode = false;
 private:
+    std::vector<Vertex> m_waterVertices;
     float m_time = 0.0f;
     // Animation du texte
     float m_hudAnimationTime = 0.0f;
