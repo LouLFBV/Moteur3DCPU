@@ -119,6 +119,34 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
     m_waterEmitter.drag = 0.15f;
 
     m_waterEmitter.SetEmissionEnabled(false);
+
+    // =====================================================
+// MAGIE
+// =====================================================
+
+    m_magicEmitter.position = glm::vec3(0.0f, -10.0f, -10.0f);
+
+    m_magicEmitter.spawnRate = 100.0f;
+
+    m_magicEmitter.velocityMin = glm::vec3(-0.4f, -0.2f, -0.4f);
+    m_magicEmitter.velocityMax = glm::vec3(0.4f, 0.5f, 0.4f);
+
+    m_magicEmitter.gravity = glm::vec3(0.0f);
+
+    m_magicEmitter.colorStart = glm::vec4(0.1f, 0.8f, 1.0f, 0.9f);
+    m_magicEmitter.colorEnd = glm::vec4(0.7f, 0.1f, 1.0f, 0.0f);
+
+    m_magicEmitter.lifeTimeMin = 1.5f;
+    m_magicEmitter.lifeTimeMax = 3.0f;
+
+    m_magicEmitter.sizeStart = 0.10f;
+    m_magicEmitter.sizeEnd = 0.025f;
+
+    m_magicEmitter.spawnRadius = 20.0f;
+    m_magicEmitter.swirlStrength = 5.5f;
+    m_magicEmitter.turbulence = 0.8f;
+
+    m_magicEmitter.SetEmissionEnabled(true);
 }
 
 
@@ -148,6 +176,7 @@ void Mer::Update(float deltaTime)
 
         m_waterEmitter.Update(deltaTime);
 
+        m_magicEmitter.Update(deltaTime);
         m_waterTimer += deltaTime;
 
         // Éclaboussure toutes les 6 secondes.
@@ -429,7 +458,7 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
     // RENDU DES PARTICULES
     // =====================================================
 
-
+    m_magicEmitter.Render(pipeline, viewMatrix, viewProjection);
     m_waterEmitter.Render(pipeline, viewMatrix, viewProjection);
 
     // Une seule passe de rasterisation pour tous les émetteurs.
