@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "Types.h"
 #include "Texture.h"
+#include "GameObject.h"
 
 class GraphicsPipeline;
 class SceneManager;
@@ -39,7 +40,7 @@ public:
 
     Camera& GetCamera();
     void GenerateTerrain(int size, float cellSize);
-
+    bool LoadGameObject(GameObject& go, const char* objPath, const char* texturePath = nullptr, const char* mtlDir = "external/Assets");
     void AddKeyframe(float* target, float t, float v);
     float GetSceneTime() const { return m_sceneTime; }
 
@@ -53,4 +54,5 @@ protected:
     Texture m_fontTexture;
 
     std::vector<GameObject> m_gameObjects;
+
 };

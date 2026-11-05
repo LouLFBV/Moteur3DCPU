@@ -176,6 +176,7 @@
     <ClInclude Include="EmptyScene.h" />
     <ClInclude Include="End.h" />
     <ClInclude Include="FragmentProcessor.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="MainScene.h" />
     <ClInclude Include="Material.h" />

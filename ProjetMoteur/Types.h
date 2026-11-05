@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 #include <atomic>
 #include <glm/gtc/matrix_transform.hpp>
-
 struct Vertex
 {
     glm::vec4 position;
@@ -94,6 +93,10 @@ struct Particle {
 };
 
 
+
+#include "ObjLoader.h"
+
+
 struct Transform
 {
     glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
@@ -110,16 +113,5 @@ struct Transform
         model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, scale);
         return model;
-    }
-};
-
-struct GameObject
-{
-    Transform transform;
-    glm::mat4 modelMatrix{ 1.0f };
-
-    void UpdateTransform()
-    {
-        modelMatrix = transform.GetModelMatrix();
     }
 };

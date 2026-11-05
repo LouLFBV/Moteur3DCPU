@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "SceneManager.h"
 #include <algorithm>
+#include <iostream>
 
 Scene::Scene(SceneManager& sceneManager)
 {
@@ -95,4 +96,42 @@ void Scene::GenerateTerrain(int size, float cellSize) {
 Camera& Scene::GetCamera()
 {
 	return m_sceneCamera;
+}
+
+
+bool Scene::LoadGameObject(GameObject& go, const char* objPath, const char* texturePath, const char* mtlDir)
+{
+    Get_TOBJ(objPath, go.objModel, mtlDir);
+    go.loaded = !go.objModel.vertices.empty();
+
+    if (!go.loaded) {
+        std::cerr << "[Erreur] Impossible de charger le modele OBJ : " << objPath << std::endl;
+        return false;
+    }
+
+    std::cout << "[Info] OBJ Charge : " << objPath << " (" << go.objModel.vertices.size() << " sommets)" << std::endl;
+
+    if (texturePath && !go.objModel.material.hasTexture) {
+        if (go.objModel.material.texture.LoadFromFile(texturePath)) {
+            go.objModel.material.hasTexture = true;
+            std::cout << "[Info] Texture chargee : " << texturePath << std::endl;
+        }
+        else {
+            std::cerr << "[Erreur] Echec chargement texture : " << texturePath << std::endl;
+        }
+    }
+
+    go.objModel.material.diffuse = glm::vec3(1.0f);
+
+    go.gpuVertices.clear();
+    go.gpuVertices.reserve(go.objModel.vertices.size());
+    for (const auto& src : go.objModel.vertices) {
+        go.gpuVertices.push_back({
+            src.position, src.r, src.g, src.b,
+            {src.tx, src.ty}, {src.nx, src.ny, src.nz}
+            });
+    }
+
+    go.UpdateTransform();
+    return true;
 }

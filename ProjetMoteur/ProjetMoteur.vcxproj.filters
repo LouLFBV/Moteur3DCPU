@@ -170,5 +170,8 @@
     <ClInclude Include="End.h">
       <Filter>Fichiers d%27en-tête\Scenes</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

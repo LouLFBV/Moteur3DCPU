@@ -125,6 +125,7 @@
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\xnode_handle.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\mathutils.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\types.h",
+            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\vector",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\glm.hpp",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\detail\\_fixes.hpp",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\detail\\setup.hpp",
@@ -164,7 +165,6 @@
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\unordered_map",
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\xhash",
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\list",
-            "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\vector",
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\xbit_ops.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\detail\\_vectorize.hpp",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\glm\\ext\\vector_bool3_precision.hpp",
@@ -482,6 +482,9 @@
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_begin_code.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_close_code.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_oldnames.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_mixer.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_begin_code.h",
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_close_code.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\camera.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\graphicspipeline.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\rasterizer.h",
@@ -503,10 +506,7 @@
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\aqua.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\mer.h",
             "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\beach.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\end.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_mixer.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_begin_code.h",
-            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\external\\include\\sdl3\\sdl_close_code.h"
+            "c:\\coursgtech\\b3\\moteur3dcpucours\\moteur3dcpu\\projetmoteur\\end.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []
