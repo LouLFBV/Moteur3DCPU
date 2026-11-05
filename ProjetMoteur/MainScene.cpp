@@ -7,18 +7,38 @@
 #include <algorithm>
 #include "Camera.h"
 #include "Scene.h"
+#include "Types.h"
 
 MainScene::MainScene(SceneManager& sceneManager) : Scene(sceneManager)
-{}
-
-void MainScene::OnEnter()
 {
-    Scene::OnEnter();
 
-    AddKeyframe(&m_catRotation, 0.0f, 0.0f);
-    AddKeyframe(&m_catRotation, 1.0f, 1.0f);
-    AddKeyframe(&m_catRotation, 2.0f, -1.0f);
-    AddKeyframe(&m_catRotation, 5.0f, 100.0f);
+    GameObject cat;
+    cat.transform.scale = glm::vec3(0.05f);
+
+    GameObject cube;
+    cube.transform.translation = glm::vec3(-3.0f, 0.0f, -4.5f);
+
+    m_gameObjects.push_back(cat);
+    m_gameObjects.push_back(cube);
+
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 0.0f, 0.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 1.0f, 1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 2.0f, -1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.0f, 10.0f);
+
+    AddKeyframe(&m_gameObjects[0].transform.translation.x, 0.0f, -1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.translation.x, 5.0f, 1.0f);
+
+    AddKeyframe(&m_gameObjects[1].transform.rotation.x, 0.0f, 0.0f);
+    AddKeyframe(&m_gameObjects[1].transform.rotation.x, 5.0f, 3.14159f);
+
+    AddKeyframe(&m_sceneCamera.position.x, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.x, 2.5f, -0.5f);
+    AddKeyframe(&m_sceneCamera.position.x, 5.0f, 1.0f);
+
+    AddKeyframe(&m_sceneCamera.position.y, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.y, 2.5f, 0.5f);
+    AddKeyframe(&m_sceneCamera.position.y, 5.0f, -0.5f);
 
     const char* objPath = "external/Assets/catn0.obj";
     const char* texturePath = "external/Assets/cat_text_m.jpeg";
@@ -31,10 +51,10 @@ void MainScene::OnEnter()
     if (m_loaded) {
         std::cout << "Obj Charge depuis : " << objPath << " (" << m_objModel.vertices.size() << " sommets)" << std::endl;
 
-        // Si la texture n'a pas été chargée automatiquement via le .mtl, on la charge à la main :
-        if (!m_objModel.hasTexture) {
-            if (m_objModel.texture.LoadFromFile(texturePath)) {
-                m_objModel.hasTexture = true;
+        // Si la texture n'a pas été chargée automatiquement via le .mtl, on la charge manuellement :
+        if (!m_objModel.material.hasTexture) {
+            if (m_objModel.material.texture.LoadFromFile(texturePath)) {
+                m_objModel.material.hasTexture = true;
                 std::cout << "Texture chargee manuellement : " << texturePath << std::endl;
             }
             else {
@@ -45,6 +65,7 @@ void MainScene::OnEnter()
     else {
         std::cerr << "Erreur : Impossible de charger " << objPath << std::endl;
     }
+    m_objModel.material.diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 
 
@@ -52,9 +73,21 @@ void MainScene::Update(float deltaTime)
 {
     Scene::Update(deltaTime);
     m_time += deltaTime;
+
+    for (auto& obj : m_gameObjects)
+    {
+        obj.UpdateTransform();
+    }
 }
 
-void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const glm::mat4& viewProjection, const glm::vec3& viewPos, float deltaTime)
+void MainScene::Render(
+    GraphicsPipeline& pipeline,
+    SceneManager& sceneManager,
+    const glm::mat4& viewMatrix,
+    const glm::mat4& viewProjection,
+    const glm::vec3& viewPos,
+    float deltaTime
+)
 {
 
     glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
@@ -130,10 +163,7 @@ void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
 
     // 4. CUBE 3D 1w
     
-    glm::mat4 model1 = glm::mat4(1.0f);
-    model1 = glm::translate(model1, glm::vec3(-3.0f, 0.0f, -4.5f));
-    model1 = glm::rotate(model1, deltaTime, glm::vec3(1.0f, 0.7f, 0.0f));
-    glm::mat4 mvp1 = viewProjection * model1;
+    glm::mat4 mvpCube = viewProjection * m_gameObjects[1].modelMatrix;
 
     Cube cubeFinal1 = {
         baseCube[0], baseCube[1], baseCube[2], baseCube[3],
@@ -143,7 +173,7 @@ void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
         baseCube[4], baseCube[0], baseCube[3], baseCube[7],
         baseCube[1], baseCube[5], baseCube[6], baseCube[2]
     };
-    pipeline.DrawCube(cubeFinal1, mvp1);
+    pipeline.DrawCube(cubeFinal1, mvpCube);
 
     pipeline.RenderScene();
 
@@ -153,40 +183,51 @@ void MainScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
 
     // 3. RENDU DU MODÈLE OBJ CHARGÉ
     if (m_loaded) {
-        // Fragment Shader pour le Chat (Échantillonnage + Lumière)
+        // Fragment Shader pour le Chat (Échantillonnage + Lumière Blinn-Phong via Material)
         glm::vec3 lightDir = glm::normalize(glm::vec3(0.5f, 1.0f, 0.5f));
 
-        pipeline.SetFragmentShader([this, lightDir, viewPos](const BordLigne& pixel)->uint32_t {
-            float rTex = 0.8f, gTex = 0.8f, bTex = 0.8f;
+        pipeline.SetFragmentShader([this, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+            const Material& mat = m_objModel.material;
 
-            if (m_objModel.hasTexture) {
-                uint32_t texColor = m_objModel.texture.Sample(pixel.u, pixel.v);
-                rTex = ((texColor >> 16) & 0xFF) / 255.0f;
-                gTex = ((texColor >> 8) & 0xFF) / 255.0f;
-                bTex = (texColor & 0xFF) / 255.0f;
+            // 1. Couleur diffuse de base (Couleur du matériau x Texture si présente)
+            glm::vec3 baseDiffuse = mat.diffuse;
+
+            if (mat.hasTexture) {
+                uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
+                float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
+                float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
+                float bTex = (texColor & 0xFF) / 255.0f;
+
+                baseDiffuse *= glm::vec3(rTex, gTex, bTex); // On applique la texture
             }
 
-            // Lumière Blinn-Phong
+            // 2. Préparation des vecteurs de lumière
             glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
             glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
             glm::vec3 vV = glm::normalize(viewPos - pixelPos);
             glm::vec3 vH = glm::normalize(lightDir + vV);
 
-            float diff = std::max(0.0f, glm::dot(normal, lightDir));
-            float spec = std::pow(std::max(0.0f, glm::dot(normal, vH)), 32.0f);
-            float lightIntensity = std::min(1.0f, 0.3f + diff + spec * 0.5f);
+            // 3. Calculs des composantes Blinn-Phong
+            glm::vec3 ambient = mat.ambient * baseDiffuse; // Lumière ambiante du matériau
 
-            uint8_t r = static_cast<uint8_t>(std::clamp(rTex * lightIntensity * 255.0f, 0.0f, 255.0f));
-            uint8_t g = static_cast<uint8_t>(std::clamp(gTex * lightIntensity * 255.0f, 0.0f, 255.0f));
-            uint8_t b = static_cast<uint8_t>(std::clamp(bTex * lightIntensity * 255.0f, 0.0f, 255.0f));
+            float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+            glm::vec3 diffuse = baseDiffuse * diffFactor;
+
+            float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
+            glm::vec3 specular = mat.specular * specFactor;
+
+            // 4. Couleur finale cumulée
+            glm::vec3 finalColor = ambient + diffuse + specular;
+
+            // 5. Conversion vers le format 32-bit ARGB
+            uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+            uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+            uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
 
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
             });
 
-        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
-        modelOBJ = glm::rotate(modelOBJ, m_catRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 mvpOBJ = viewProjection * modelOBJ;
+        glm::mat4 mvpOBJ = viewProjection * m_gameObjects[0].modelMatrix;
 
         for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
             auto& src0 = m_objModel.vertices[i + 0];

@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <atomic>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct Vertex
 {
@@ -9,6 +10,7 @@ struct Vertex
     glm::vec2 uv;  
     glm::vec3 normal;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct ScreenVertex
@@ -20,6 +22,7 @@ struct ScreenVertex
     float u, v;
     float nx, ny, nz;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct BordLigne
@@ -31,6 +34,7 @@ struct BordLigne
     float u, v;
     float nx, ny, nz;
     glm::vec3 worldPos;
+    float alpha = 1.0f;
 };
 
 struct Cube 
@@ -45,9 +49,12 @@ struct Cube
 
 
 struct RenderStats {
+    int trianglesSubmitted = 0;
+    int trianglesFrustumCulled = 0;
     int trianglesProcessed = 0;
-    int trianglesRasterized = 0;
+
     std::atomic<int> pixelsProcessed{ 0 };
+
     int threadsUsed = 1;
     float frameTimeMs = 0.0f;
 };
@@ -71,5 +78,47 @@ struct T_OBJVertex
 
 struct DrawCommand {
     Vertex v0, v1, v2;
-    glm::mat4 mvp;
+};
+
+
+struct Box { int x0, y0, x1, y1; };
+
+struct Particle {
+    glm::vec3 position{ 0.0f };
+    glm::vec3 velocity{ 0.0f };
+    glm::vec4 color{ 1.0f };
+    float size = 0.2f;
+    float lifetime = 0.0f;
+    float maxLifetime = 1.0f;
+    bool active = false;
+};
+
+struct Transform
+{
+    glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
+    glm::vec3 rotation{ 0.0f, 0.0f, 0.0f }; // Angles en radians sur X, Y, Z
+    glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
+
+    // Génère et retourne la matrice Model (TRS)
+    glm::mat4 GetModelMatrix() const
+    {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, translation);
+        model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, scale);
+        return model;
+    }
+};
+
+struct GameObject
+{
+    Transform transform;
+    glm::mat4 modelMatrix{ 1.0f };
+
+    void UpdateTransform()
+    {
+        modelMatrix = transform.GetModelMatrix();
+    }
 };
