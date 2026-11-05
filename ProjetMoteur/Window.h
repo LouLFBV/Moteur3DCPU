@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_mixer.h>
 #include <string>
 #include "Camera.h"
 
@@ -30,4 +31,7 @@ private:
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;
     SDL_Texture* m_framebufferTexture = nullptr;
+
+    MIX_Mixer* m_mixer = nullptr;
+    MIX_Track* m_track = nullptr;
 };
