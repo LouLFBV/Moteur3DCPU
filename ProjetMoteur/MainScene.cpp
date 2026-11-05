@@ -7,14 +7,38 @@
 #include <algorithm>
 #include "Camera.h"
 #include "Scene.h"
+#include "Types.h"
 
 MainScene::MainScene(SceneManager& sceneManager) : Scene(sceneManager)
 {
 
-    AddKeyframe(&m_catRotation, 0.0f, 0.0f);
-    AddKeyframe(&m_catRotation, 1.0f, 1.0f);
-    AddKeyframe(&m_catRotation, 2.0f, -1.0f);
-    AddKeyframe(&m_catRotation, 5.0f, 100.0f);
+    GameObject cat;
+    cat.transform.scale = glm::vec3(0.05f);
+
+    GameObject cube;
+    cube.transform.translation = glm::vec3(-3.0f, 0.0f, -4.5f);
+
+    m_gameObjects.push_back(cat);
+    m_gameObjects.push_back(cube);
+
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 0.0f, 0.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 1.0f, 1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 2.0f, -1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.0f, 10.0f);
+
+    AddKeyframe(&m_gameObjects[0].transform.translation.x, 0.0f, -1.0f);
+    AddKeyframe(&m_gameObjects[0].transform.translation.x, 5.0f, 1.0f);
+
+    AddKeyframe(&m_gameObjects[1].transform.rotation.x, 0.0f, 0.0f);
+    AddKeyframe(&m_gameObjects[1].transform.rotation.x, 5.0f, 3.14159f);
+
+    AddKeyframe(&m_sceneCamera.position.x, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.x, 2.5f, -0.5f);
+    AddKeyframe(&m_sceneCamera.position.x, 5.0f, 1.0f);
+
+    AddKeyframe(&m_sceneCamera.position.y, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.y, 2.5f, 0.5f);
+    AddKeyframe(&m_sceneCamera.position.y, 5.0f, -0.5f);
 
     const char* objPath = "external/Assets/catn0.obj";
     const char* texturePath = "external/Assets/cat_text_m.jpeg";
@@ -49,6 +73,11 @@ void MainScene::Update(float deltaTime)
 {
     Scene::Update(deltaTime);
     m_time += deltaTime;
+
+    for (auto& obj : m_gameObjects)
+    {
+        obj.UpdateTransform();
+    }
 }
 
 void MainScene::Render(
@@ -134,10 +163,7 @@ void MainScene::Render(
 
     // 4. CUBE 3D 1w
     
-    glm::mat4 model1 = glm::mat4(1.0f);
-    model1 = glm::translate(model1, glm::vec3(-3.0f, 0.0f, -4.5f));
-    model1 = glm::rotate(model1, deltaTime, glm::vec3(1.0f, 0.7f, 0.0f));
-    glm::mat4 mvp1 = viewProjection * model1;
+    glm::mat4 mvpCube = viewProjection * m_gameObjects[1].modelMatrix;
 
     Cube cubeFinal1 = {
         baseCube[0], baseCube[1], baseCube[2], baseCube[3],
@@ -147,7 +173,7 @@ void MainScene::Render(
         baseCube[4], baseCube[0], baseCube[3], baseCube[7],
         baseCube[1], baseCube[5], baseCube[6], baseCube[2]
     };
-    pipeline.DrawCube(cubeFinal1, mvp1);
+    pipeline.DrawCube(cubeFinal1, mvpCube);
 
     pipeline.RenderScene();
 
@@ -201,10 +227,7 @@ void MainScene::Render(
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
             });
 
-        glm::mat4 modelOBJ = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        modelOBJ = glm::scale(modelOBJ, glm::vec3(0.05f, 0.05f, 0.05f));
-        modelOBJ = glm::rotate(modelOBJ, m_catRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 mvpOBJ = viewProjection * modelOBJ;
+        glm::mat4 mvpOBJ = viewProjection * m_gameObjects[0].modelMatrix;
 
         for (size_t i = 0; i + 2 < m_objModel.vertices.size(); i += 3) {
             auto& src0 = m_objModel.vertices[i + 0];

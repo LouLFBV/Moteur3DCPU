@@ -3,8 +3,6 @@
 #include "Scene.h"
 #include "ObjLoader.h"
 
-
-
 class MainScene : public Scene
 {
 public:
@@ -26,7 +24,4 @@ private:
     T_OBJ m_objModel;
     bool m_loaded = false;
     float m_time = 0.0f;
-    float m_catRotation = 0.0f;
-
-    glm::vec3 m_translation{ 0.0f, 0.0f, 0.0f };
 };
