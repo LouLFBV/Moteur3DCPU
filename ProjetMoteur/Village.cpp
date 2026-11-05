@@ -120,13 +120,6 @@ Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
     m_waterEmitter.SetEmissionEnabled(false);
 }
 
-Village::Village(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(sceneManager)
-{
-    m_gridSize = gridSize;
-    m_cellSize = cellSize;
-}
-
-
 
 
 

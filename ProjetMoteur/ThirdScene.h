@@ -8,7 +8,6 @@ class ThirdScene : public Scene
 {
 public:
     ThirdScene(SceneManager& sceneManager);
-    ThirdScene(SceneManager& sceneManager, int gridSize, float cellSize);
     ~ThirdScene() override = default;
 
     void Update(float deltaTime) override;

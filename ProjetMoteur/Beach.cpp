@@ -9,20 +9,6 @@
 
 Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
 {
-    //m_keys.push_back({ &m_objModel.translation.x, {
-
-    //} });
-}
-
-Beach::Beach(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(sceneManager)
-{
-    m_gridSize = gridSize;
-    m_cellSize = cellSize;
-}
-
-void Beach::OnEnter()
-{
-    Scene::OnEnter();
     const char* objPath = "external/Assets/Village/owl.obj";
     const char* texturePath = "external/Assets/Village/wild_animals_map.png";
 

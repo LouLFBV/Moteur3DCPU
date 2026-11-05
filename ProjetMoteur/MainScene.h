@@ -11,7 +11,6 @@ public:
     MainScene(SceneManager& sceneManager);
     ~MainScene() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime);
     void Render(
         GraphicsPipeline& pipeline,

@@ -9,7 +9,6 @@ class Aqua : public Scene
 {
 public:
     Aqua(SceneManager& sceneManager);
-    Aqua(SceneManager& sceneManager, int gridSize, float cellSize);
     ~Aqua() override = default;
 
     void Update(float deltaTime) override;

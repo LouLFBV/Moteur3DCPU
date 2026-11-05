@@ -9,20 +9,6 @@
 
 ThirdScene::ThirdScene(SceneManager& sceneManager) : Scene(sceneManager)
 {
-    //m_keys.push_back({ &m_objModel.translation.x, {
-
-    //} });
-}
-
-ThirdScene::ThirdScene(SceneManager& sceneManager, int gridSize, float cellSize) :  Scene(sceneManager)
-{
-    m_gridSize = gridSize;
-    m_cellSize = cellSize;
-}
-
-void ThirdScene::OnEnter()
-{
-    Scene::OnEnter();
     const char* objPath = "external/Assets/catn0.obj";
     const char* texturePath = "external/Assets/cat_text_m.jpeg";
 

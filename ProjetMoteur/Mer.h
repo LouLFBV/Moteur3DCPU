@@ -8,7 +8,6 @@ class Mer : public Scene
 {
 public:
     Mer(SceneManager& sceneManager);
-    Mer(SceneManager& sceneManager, int gridSize, float cellSize);
     ~Mer() override = default;
 
     void Update(float deltaTime) override;

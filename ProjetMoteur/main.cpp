@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 15.0f, 20.0f);
     sceneManager.AddScene(std::make_unique<Beach>(sceneManager), 20.0f, 25.0f);
     sceneManager.AddScene(std::make_unique<Village>(sceneManager), 25.0f, 30.0f);
-    sceneManager.AddScene(std::make_unique<End>(sceneManager), 30.0f, 40.0f);
+    sceneManager.AddScene(std::make_unique<End>(sceneManager), 30.0f, 33.0f);
     // FIN INITIALISATION
     
     while (true) {
@@ -132,6 +132,11 @@ int main(int argc, char* argv[])
         pipeline.Clear();
 
         sceneManager.Update(deltaTime, isEditMode);
+
+        if (!sceneManager.m_isRunning) {
+            break;
+        }
+
         sceneManager.Render(pipeline, view, viewProjection, viewPos, time);  
 
         window.UpdateTexture(pipeline.GetPixels(), pipeline.GetPitch());

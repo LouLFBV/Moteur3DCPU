@@ -8,7 +8,6 @@ class Village : public Scene
 {
 public:
     Village(SceneManager& sceneManager);
-    Village(SceneManager& sceneManager, int gridSize, float cellSize);
     ~Village() override = default;
 
     void Update(float deltaTime) override;

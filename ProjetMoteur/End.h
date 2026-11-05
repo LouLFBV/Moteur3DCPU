@@ -8,10 +8,8 @@ class End : public Scene
 {
 public:
     End(SceneManager& sceneManager);
-    End(SceneManager& sceneManager, int gridSize, float cellSize);
     ~End() override = default;
 
-    void OnEnter() override;
     void Update(float deltaTime) override;
     void Render(
         GraphicsPipeline& pipeline,

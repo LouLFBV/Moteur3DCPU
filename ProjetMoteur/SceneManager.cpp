@@ -36,7 +36,7 @@ void SceneManager::SetScene(size_t index)
 
     m_currentIndex = static_cast<int>(index);
 
-    m_listScene[m_currentIndex].scene->OnEnter();
+    //m_listScene[m_currentIndex].scene->OnEnter();
 }
 
 void SceneManager::Update(float deltaTime, bool isEditMode)

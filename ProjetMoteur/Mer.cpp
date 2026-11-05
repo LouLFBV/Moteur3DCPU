@@ -9,20 +9,6 @@
 
 Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
 {
-    //m_keys.push_back({ &m_objModel.translation.x, {
-
-    //} });
-}
-
-Mer::Mer(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(sceneManager)
-{
-    m_gridSize = gridSize;
-    m_cellSize = cellSize;
-}
-
-void Mer::OnEnter()
-{
-    Scene::OnEnter();
     m_sceneCamera = glm::vec3(0.0f, 2.0f, 1.0f);
     const char* objPath = "external/Assets/Village/owl.obj";
     const char* texturePath = "external/Assets/Village/wild_animals_map.png";
@@ -133,7 +119,6 @@ void Mer::OnEnter()
     m_waterEmitter.drag = 0.15f;
 
     m_waterEmitter.SetEmissionEnabled(false);
-
 }
 
 

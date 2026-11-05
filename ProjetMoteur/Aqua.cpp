@@ -9,20 +9,6 @@
 
 Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
 {
-    //m_keys.push_back({ &m_objModel.translation.x, {
-
-    //} });
-}
-
-Aqua::Aqua(SceneManager& sceneManager, int gridSize, float cellSize) : Scene(sceneManager)
-{
-    m_gridSize = gridSize;
-    m_cellSize = cellSize;
-}
-
-void Aqua::OnEnter()
-{
-    Scene::OnEnter();
     const char* objPath = "external/Assets/Aqua/Fish1.obj";
     const char* texturePath = "external/Assets/Village/wild_animals_map.png";
 
@@ -124,7 +110,6 @@ void Aqua::OnEnter()
     m_waterEmitter.drag = 0.15f;
 
     m_waterEmitter.SetEmissionEnabled(false);
-
 }
 
 

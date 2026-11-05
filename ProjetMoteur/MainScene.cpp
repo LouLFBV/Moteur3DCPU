@@ -9,11 +9,7 @@
 #include "Scene.h"
 
 MainScene::MainScene(SceneManager& sceneManager) : Scene(sceneManager)
-{}
-
-void MainScene::OnEnter()
 {
-    Scene::OnEnter();
 
     AddKeyframe(&m_catRotation, 0.0f, 0.0f);
     AddKeyframe(&m_catRotation, 1.0f, 1.0f);
