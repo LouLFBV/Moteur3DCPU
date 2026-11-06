@@ -34,19 +34,6 @@ private:
     ParticleEmitter m_fireEmitter{ 350 };
     ParticleEmitter m_smokeEmitter{ 400 };
 
-    // Effets ponctuels.
-    ParticleEmitter m_explosionEmitter{ 400 };
-    ParticleEmitter m_sparkEmitter{ 250 };
-    ParticleEmitter m_teleportEmitter{ 300 };
-    ParticleEmitter m_waterEmitter{ 300 };
-
-    // Effet magique continu.
-    ParticleEmitter m_magicEmitter{ 400 };
-
-    // Timers de démonstration.
-    float m_explosionTimer = 0.0f;
-    float m_teleportTimer = 0.0f;
-    float m_waterTimer = 0.0f;
 
     bool m_particlesFrozen = false;
     bool m_textPrinted = false;

@@ -27,8 +27,8 @@ End::End(SceneManager& sceneManager) : Scene(sceneManager)
 
     CatTransform catConfigs[3] = {
         { glm::vec3(-0.55f, -0.3f, -7.0f), 0.05f }, // Chat 0 : Bleu (très proche)
-        { glm::vec3(0.00f, -0.3f, -7.0f), 0.05f }, // Chat 1 : Blanc (centre)
-        { glm::vec3(0.55f, -0.3f, -7.0f), 0.05f }  // Chat 2 : Rouge (très proche)
+        { glm::vec3(0.00f, -0.3f, -7.0f), 0.05f },  // Chat 1 : Blanc (centre)
+        { glm::vec3(0.55f, -0.3f, -7.0f), 0.05f }   // Chat 2 : Rouge (très proche)
     };
 
     const char* objPath = "external/Assets/catn0.obj";
@@ -51,6 +51,19 @@ End::End(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[i].transform.translation.z, 0.0f, -7.0f);
         AddKeyframe(&m_gameObjects[i].transform.translation.z, 5.0f, 0.2f);
     }
+
+    // 4. CONFIGURATION DE L'ÉMETTEUR DE PARTICULES (EXPLOSION BURST RING)
+    m_magicEmitter.position = glm::vec3(0.0f, -0.3f, -3.0f);
+    m_magicEmitter.spawnRate = 0.0f; // Émission continue désactivée (déclenchée par burst)
+    m_magicEmitter.gravity = glm::vec3(0.0f, -0.5f, 0.0f);
+    m_magicEmitter.colorStart = glm::vec4(1.0f, 0.85f, 0.2f, 1.0f); // Or / Jaune brillant
+    m_magicEmitter.colorEnd = glm::vec4(1.0f, 0.1f, 0.4f, 0.0f);   // Fondu Magenta
+    m_magicEmitter.lifeTimeMin = 1.0f;
+    m_magicEmitter.lifeTimeMax = 2.2f;
+    m_magicEmitter.sizeStart = 0.12f;
+    m_magicEmitter.sizeEnd = 0.015f;
+    m_magicEmitter.drag = 0.25f;
+    m_magicEmitter.SetEmissionEnabled(true);
 }
 
 // =====================================================
@@ -63,6 +76,15 @@ void End::Update(float deltaTime)
 
     if (!m_particlesFrozen) {
         m_hudAnimationTime += deltaTime;
+
+        // Mise à jour de l'émetteur et déclenchement périodique de l'explosion en anneau (Burst Ring)
+        m_magicEmitter.Update(deltaTime);
+        m_waterTimer += deltaTime;
+
+        if (m_waterTimer >= 3.0f) {
+            m_magicEmitter.BurstRing(120, 2.5f, 5.0f);
+            m_waterTimer = 0.0f;
+        }
     }
 
     // ROTATION CONTINUELLE À 360° SANS S'ARRÊTER
@@ -101,8 +123,6 @@ void End::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
     // -----------------------------------------------------
     // PASSE 2 : RENDU DES GAMEOBJECTS 3D AVEC VERTEX SHADER DE DÉFORMATION
     // -----------------------------------------------------
-
-    // Dynamic Vertex Shader (Déformation en vague selon la hauteur et le temps)
     pipeline.SetVertexShader([this](const Vertex& vertex, const glm::mat4& mvp) {
         Vertex transformed = vertex;
 
@@ -182,7 +202,37 @@ void End::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
         });
 
     // -----------------------------------------------------
-    // PASSE 3 : TEXTE 2D (HUD)
+    // PASSE 3 : RENDU DES PARTICULES (EXPLOSION BURST RING)
+    // -----------------------------------------------------
+    pipeline.SetFragmentShader([](const BordLigne& pixel) -> uint32_t {
+        float dx = (pixel.u - 0.5f) * 2.0f;
+        float dy = (pixel.v - 0.5f) * 2.0f;
+        float radius = std::sqrt(dx * dx + dy * dy);
+
+        float t = std::clamp((radius - 0.35f) / 0.65f, 0.0f, 1.0f);
+        float smooth = t * t * (3.0f - 2.0f * t);
+        float edgeAlpha = 1.0f - smooth;
+        float finalAlpha = pixel.alpha * edgeAlpha;
+
+        uint8_t a = static_cast<uint8_t>(std::clamp(finalAlpha * 255.0f, 0.0f, 255.0f));
+        uint8_t r = static_cast<uint8_t>(std::clamp(pixel.r * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t g = static_cast<uint8_t>(std::clamp(pixel.g * 255.0f + 0.5f, 0.0f, 255.0f));
+        uint8_t b = static_cast<uint8_t>(std::clamp(pixel.b * 255.0f + 0.5f, 0.0f, 255.0f));
+
+        return (a << 24) | (r << 16) | (g << 8) | b;
+        });
+
+    pipeline.SetAlphaBlendingEnabled(true);
+    pipeline.SetDepthWriteEnabled(false);
+
+    m_magicEmitter.Render(pipeline, viewMatrix, viewProjection);
+    pipeline.RenderScene();
+
+    pipeline.SetDepthWriteEnabled(true);
+    pipeline.SetAlphaBlendingEnabled(false);
+
+    // -----------------------------------------------------
+    // PASSE 4 : TEXTE 2D (HUD)
     // -----------------------------------------------------
     constexpr float fadeInDuration = 0.8f, holdDuration = 8.4f, fadeOutDuration = 0.8f, pauseDuration = 1.0f;
     constexpr float cycleDuration = fadeInDuration + holdDuration + fadeOutDuration + pauseDuration;
@@ -213,7 +263,7 @@ void End::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
     uint32_t alphaValue = static_cast<uint32_t>(std::round(alpha * 255.0f));
     uint32_t textColor = (alphaValue << 24) | 0x0000FFFF;
 
-    pipeline.DrawText2D(static_cast<int>(textX), 55, "par Regis & Lou", m_fontTexture, textColor);
+    pipeline.DrawText2D(static_cast<int>(textX) - 5, 35, "by MaitrePanda447\n & Lawx-sama", m_fontTexture, textColor);
     pipeline.RenderScene();
 }
 

@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
     // INITIALISATION
     SceneManager sceneManager;
 
-    Window window(sceneManager.GetWidth(), sceneManager.GetHeight(), 800, 500, "Moteur 3D CPU - Titre");
+    Window window(sceneManager.GetWidth(), sceneManager.GetHeight(), 800, 500, "Démo - World Adventure");
     if (!window.Init()) return 1;
 
     GraphicsPipeline pipeline(sceneManager.GetWidth(), sceneManager.GetHeight());
@@ -43,10 +43,6 @@ int main(int argc, char* argv[])
     float lastTimeEditMode = 0.0f;
     float timeInEditMode = 0.0f;
 
-
-    //sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
-    //sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
-    //sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 12.0f);
     sceneManager.AddScene(std::make_unique<Intro>(sceneManager), 0.0f , 3.0f);
     sceneManager.AddScene(std::make_unique<Aqua>(sceneManager), 3.0f, 13.0f);
     sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 13.0f, 23.0f);

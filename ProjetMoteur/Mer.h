@@ -47,6 +47,7 @@ private:
     float m_explosionTimer = 0.0f;
     float m_teleportTimer = 0.0f;
     float m_waterTimer = 0.0f;
+    int m_burstCount = 0;
 
     bool m_particlesFrozen = false;
 };

@@ -25,7 +25,7 @@ LastScene::LastScene(SceneManager& sceneManager) : Scene(sceneManager)
 
     // 2. FEU DE CAMP (Index 1)
     GameObject campfire;
-    campfire.transform.translation = glm::vec3(0.0f, -1.35f, -3.8f);
+    campfire.transform.translation = glm::vec3(0.0f, -1.15f, -3.8f);
     campfire.transform.scale = glm::vec3(1.0f);
     campfire.transform.rotation = glm::vec3(0.0f);
     if (LoadGameObject(campfire, "external/Assets/Village/campfire_pr.obj", nullptr, villageDir)) {
@@ -76,9 +76,9 @@ LastScene::LastScene(SceneManager& sceneManager) : Scene(sceneManager)
     };
 
     AnimalTransform animals[3] = {
-        { "external/Assets/Village/bear.obj", glm::vec3(3.0f, -1.45f, -4.8f), 1.0f, -65.0f },
-        { "external/Assets/Village/wolf.obj", glm::vec3(-2.2f, -1.68f, -3.6f), 0.0012f,  30.0f },
-        { "external/Assets/Village/wolf.obj", glm::vec3(1.4f, -1.45f, -7.2f), 0.0012f, 150.0f }
+        { "external/Assets/Village/bear.obj", glm::vec3(3.0f, -1.07f, -4.8f), 1.0f, -65.0f },
+        { "external/Assets/Village/wolf.obj", glm::vec3(-2.2f, -1.65f, -3.6f), 0.0012f,  30.0f },
+        { "external/Assets/Village/wolf.obj", glm::vec3(1.4f, -1.f, -7.2f), 0.0012f, 150.0f }
     };
 
     for (int i = 0; i < 3; ++i) {
@@ -165,17 +165,6 @@ LastScene::LastScene(SceneManager& sceneManager) : Scene(sceneManager)
     m_smokeEmitter.turbulence = 0.3f;
     m_smokeEmitter.SetEmissionEnabled(true);
 
-    // 10. PARTICULES D'EAU
-    m_waterEmitter.position = glm::vec3(-3.0f, -1.1f, -8.0f);
-    m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
-    m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
-    m_waterEmitter.colorEnd = glm::vec4(0.05f, 0.45f, 1.0f, 0.0f);
-    m_waterEmitter.lifeTimeMin = 0.6f;
-    m_waterEmitter.lifeTimeMax = 1.3f;
-    m_waterEmitter.sizeStart = 0.075f;
-    m_waterEmitter.sizeEnd = 0.012f;
-    m_waterEmitter.drag = 0.15f;
-    m_waterEmitter.SetEmissionEnabled(false);
 }
 
 // =====================================================
@@ -199,14 +188,7 @@ void LastScene::Update(float deltaTime)
         m_fireEmitter.Update(deltaTime);
         m_smokeEmitter.Update(deltaTime);
 
-        m_waterEmitter.Update(deltaTime);
-        m_waterTimer += deltaTime;
 
-        if (m_waterTimer >= 6.0f)
-        {
-            m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
-            m_waterTimer = 0.0f;
-        }
     }
 }
 
@@ -500,7 +482,6 @@ void LastScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
 
     m_fireEmitter.Render(pipeline, effectiveView, effectiveViewProj);
     m_smokeEmitter.Render(pipeline, effectiveView, effectiveViewProj);
-    m_waterEmitter.Render(pipeline, effectiveView, effectiveViewProj);
 
     pipeline.RenderScene();
 

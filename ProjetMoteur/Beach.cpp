@@ -13,6 +13,7 @@
 Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
 {
     m_gameObjects.clear();
+    m_gameObjects.reserve(10);
 
     // -----------------------------------------------------
     // REHAUSSEMENT ET ANIMATION DE LA CAMÉRA
@@ -21,16 +22,43 @@ Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
     m_sceneCamera.pitch = -12.0f;    // Regard légèrement incliné vers le bas
 
     AddKeyframe(&m_sceneCamera.position.y, 0.0f, 3.5f);
-    AddKeyframe(&m_sceneCamera.position.y, 10.0f, 3.5f);
+    AddKeyframe(&m_sceneCamera.position.y, 11.0f, 3.5f);
 
     AddKeyframe(&m_sceneCamera.position.z, 0.0f, 5.0f);
-    AddKeyframe(&m_sceneCamera.position.z, 10.0f, -20.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 11.0f, -20.0f);
 
     // 1. CHOUETTE (index 0 : Attachée à la caméra / POV)
     GameObject owl;
     owl.transform.scale = glm::vec3(0.001f);
     if (LoadGameObject(owl, "external/Assets/Village/owl.obj", "external/Assets/Village/wild_animals_map.png", "external/Assets")) {
         m_gameObjects.push_back(owl);
+    }
+
+    // Keyframes CHOUETTE
+    if (!m_gameObjects.empty()) {
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 11.0f, 0.0f, true);
     }
 
     // 2. PLACEMENT DE 5 GRANDS PALMIERS (index 1 à 5 - Shader Cyan/Violet)
@@ -41,11 +69,11 @@ Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
     };
 
     PalmTransform palms[5] = {
-        { glm::vec3(2.5f, -0.2f,  -4.0f),  15.0f, 1.15f },
-        { glm::vec3(-3.0f,  0.3f,  -7.0f), -45.0f, 0.85f },
-        { glm::vec3(4.0f, -0.5f, -11.0f), 110.0f, 1.30f },
-        { glm::vec3(-2.2f,  0.1f, -14.5f),  60.0f, 0.95f },
-        { glm::vec3(3.2f, -0.1f, -18.0f), -80.0f, 1.25f }
+    { glm::vec3(2.5f, -0.7f,  -4.0f),  15.0f, 1.15f },
+    { glm::vec3(-3.0f, -0.2f,  -7.0f), -45.0f, 0.85f },
+    { glm::vec3(4.0f, -1.0f, -11.0f), 110.0f, 1.30f },
+    { glm::vec3(-2.2f, -0.4f, -14.5f),  60.0f, 0.95f },
+    { glm::vec3(3.2f, -0.6f, -18.0f), -80.0f, 1.25f }
     };
 
     for (int i = 0; i < 5; ++i) {
@@ -61,10 +89,10 @@ Beach::Beach(SceneManager& sceneManager) : Scene(sceneManager)
 
     // 3. PLACEMENT DE 4 PALMIERS À COCOS (index 6 à 9 - Shader Sunset/Gold)
     PalmTransform coconutPalms[4] = {
-        { glm::vec3(-4.5f, -0.1f,  -5.5f), 130.0f, 1.10f },
-        { glm::vec3(4.8f, -0.3f,  -8.5f), -30.0f, 1.35f },
-        { glm::vec3(-3.8f,  0.2f, -12.5f),  85.0f, 0.90f },
-        { glm::vec3(1.5f, -0.4f, -16.0f), -115.0f, 1.20f }
+    { glm::vec3(-4.5f, -0.6f,  -5.5f), 130.0f, 1.10f },
+    { glm::vec3(4.8f, -0.8f,  -8.5f), -30.0f, 1.35f },
+    { glm::vec3(-3.8f, -0.3f, -12.5f),  85.0f, 0.90f },
+    { glm::vec3(1.5f, -0.9f, -16.0f), -115.0f, 1.20f }
     };
 
     for (int i = 0; i < 4; ++i) {
@@ -166,14 +194,22 @@ void Beach::Update(float deltaTime)
     Scene::Update(deltaTime);
     m_time += deltaTime;
 
-    if (!m_particlesFrozen) {
-        m_hudAnimationTime += deltaTime;
+    // Mise à jour de la chouette uniquement hors Edit Mode
+    if (!m_isEditMode && !m_gameObjects.empty())
+    {
+        m_gameObjects[0].UpdateTransform();
+        m_gameObjects[0].hasLastModelMatrix = false;
+    }
 
+    if (!m_particlesFrozen)
+    {
+        m_hudAnimationTime += deltaTime;
         m_fireEmitter.position = glm::vec3(0.0f, 1.0f, -10.0f);
         m_waterEmitter.Update(deltaTime);
         m_waterTimer += deltaTime;
 
-        if (m_waterTimer >= 6.0f) {
+        if (m_waterTimer >= 6.0f)
+        {
             m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
             m_waterTimer = 0.0f;
         }
@@ -213,6 +249,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     for (size_t i = 0; i < m_gameObjects.size(); ++i) {
         if (!m_gameObjects[i].loaded) continue;
 
+
         if (i == 0) {
             // --- Index 0 : Chouette (Attachée à la caméra avec Blinn-Phong standard) ---
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
@@ -248,7 +285,16 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
 
             if (!m_isEditMode || !m_gameObjects[0].hasLastModelMatrix) {
                 glm::mat4 cameraWorld = glm::inverse(viewMatrix);
-                glm::mat4 cameraOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.80f, -1.0f));
+                glm::vec3 animOffset = glm::vec3(
+                    0.0f,
+                    -0.80f + m_gameObjects[0].transform.translation.y,
+                    -1.0f
+                );
+
+                glm::mat4 cameraOffset = glm::translate(
+                    glm::mat4(1.0f),
+                    animOffset
+                );
                 glm::mat4 modelScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.001f));
                 glm::mat4 modelRotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 glm::mat4 modelRotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(25.0f), glm::vec3(0.0f, 0.0f, 1.0f));

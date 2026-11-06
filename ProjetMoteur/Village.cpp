@@ -13,6 +13,7 @@
 Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
 {
     m_gameObjects.clear();
+    m_gameObjects.reserve(10);
 
     const char* villageDir = "external/Assets/Village";
 
@@ -21,11 +22,38 @@ Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
     owl.transform.scale = glm::vec3(0.001f);
     if (LoadGameObject(owl, "external/Assets/Village/owl.obj", "external/Assets/Village/wild_animals_map.png", villageDir)) {
         m_gameObjects.push_back(owl);
+
+    }
+    // Keyframes CHOUETTE
+    if (!m_gameObjects.empty()) {
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 11.0f, 0.0f, true);
     }
 
     // 2. FEU DE CAMP (Index 1)
     GameObject campfire;
-    campfire.transform.translation = glm::vec3(0.0f, -1.1f, -3.8f);
+    campfire.transform.translation = glm::vec3(0.0f, -1.15f, -3.8f);
     campfire.transform.scale = glm::vec3(1.0f);
     campfire.transform.rotation = glm::vec3(0.0f);
     if (LoadGameObject(campfire, "external/Assets/Village/campfire_pr.obj", nullptr, villageDir)) {
@@ -76,9 +104,9 @@ Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
     };
 
     AnimalTransform animals[3] = {
-        { "external/Assets/Village/bear.obj", glm::vec3(3.0f, -1.05f, -4.8f), 1.0f, -65.0f },
-        { "external/Assets/Village/wolf.obj", glm::vec3(-2.2f, -1.68f, -3.6f), 0.0012f,  30.0f },
-        { "external/Assets/Village/wolf.obj", glm::vec3(1.4f, -1.45f, -7.2f), 0.0012f, 150.0f }
+        { "external/Assets/Village/bear.obj", glm::vec3(3.0f, -1.07f, -4.8f), 1.0f, -65.0f },
+        { "external/Assets/Village/wolf.obj", glm::vec3(-2.2f, -1.65f, -3.6f), 0.0012f,  30.0f },
+        { "external/Assets/Village/wolf.obj", glm::vec3(1.4f, -1.4f, -7.2f), 0.0012f, 150.0f }
     };
 
     for (int i = 0; i < 3; ++i) {
@@ -99,7 +127,7 @@ Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
 
         m_gameObjects[i].transform.translation.z = startZ;
         AddKeyframe(&m_gameObjects[i].transform.translation.z, 0.0f, startZ);
-        AddKeyframe(&m_gameObjects[i].transform.translation.z, 8.0f, endZ);
+        AddKeyframe(&m_gameObjects[i].transform.translation.z, 11.0f, endZ);
     }
 
     // 7. GÉNÉRATION DU TERRAIN (HERBE VERTE)
@@ -173,17 +201,6 @@ Village::Village(SceneManager& sceneManager) : Scene(sceneManager)
     m_smokeEmitter.turbulence = 0.3f;
     m_smokeEmitter.SetEmissionEnabled(true);
 
-    // 10. PARTICULES D'EAU
-    m_waterEmitter.position = glm::vec3(-3.0f, -1.1f, -8.0f);
-    m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
-    m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
-    m_waterEmitter.colorEnd = glm::vec4(0.05f, 0.45f, 1.0f, 0.0f);
-    m_waterEmitter.lifeTimeMin = 0.6f;
-    m_waterEmitter.lifeTimeMax = 1.3f;
-    m_waterEmitter.sizeStart = 0.075f;
-    m_waterEmitter.sizeEnd = 0.012f;
-    m_waterEmitter.drag = 0.15f;
-    m_waterEmitter.SetEmissionEnabled(false);
 }
 
 // =====================================================
@@ -193,6 +210,12 @@ void Village::Update(float deltaTime)
 {
     Scene::Update(deltaTime);
     m_time += deltaTime;
+
+    if (!m_isEditMode && !m_gameObjects.empty())
+    {
+        m_gameObjects[0].UpdateTransform();
+        m_gameObjects[0].hasLastModelMatrix = false;
+    }
 
     if (!m_particlesFrozen)
     {
@@ -207,14 +230,6 @@ void Village::Update(float deltaTime)
         m_fireEmitter.Update(deltaTime);
         m_smokeEmitter.Update(deltaTime);
 
-        m_waterEmitter.Update(deltaTime);
-        m_waterTimer += deltaTime;
-
-        if (m_waterTimer >= 6.0f)
-        {
-            m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
-            m_waterTimer = 0.0f;
-        }
     }
 }
 
@@ -285,14 +300,40 @@ void Village::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, con
                 });
 
             if (!m_isEditMode || !m_gameObjects[0].hasLastModelMatrix) {
-                glm::mat4 cameraWorld = glm::inverse(viewMatrix);
-                // Positionne la chouette plus bas (-0.90f) pour remonter la caméra au-dessus d'elle
-                glm::mat4 cameraOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.90f, -1.0f));
-                glm::mat4 modelScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.001f));
-                glm::mat4 modelRotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                glm::mat4 modelRotationX = glm::rotate(glm::mat4(1.0f), glm::radians(35.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-                m_gameObjects[0].lastModelMatrix = cameraWorld * cameraOffset * modelRotationY * modelRotationX * modelScale;
+                glm::mat4 cameraWorld = glm::inverse(viewMatrix);
+
+                glm::vec3 animOffset = glm::vec3(
+                    0.0f,
+                    -0.80f + m_gameObjects[0].transform.translation.y,
+                    -1.0f
+                );
+
+                glm::mat4 cameraOffset = glm::translate(
+                    glm::mat4(1.0f),
+                    animOffset
+                );
+
+                glm::mat4 modelScale = glm::scale(
+                    glm::mat4(1.0f),
+                    glm::vec3(0.001f)
+                );
+
+                glm::mat4 modelRotationY = glm::rotate(
+                    glm::mat4(1.0f),
+                    glm::radians(-90.0f),
+                    glm::vec3(0.0f, 1.0f, 0.0f)
+                );
+
+                glm::mat4 modelRotationZ = glm::rotate(
+                    glm::mat4(1.0f),
+                    glm::radians(25.0f),
+                    glm::vec3(0.0f, 0.0f, 1.0f)
+                );
+
+                m_gameObjects[0].lastModelMatrix =
+                    cameraWorld * cameraOffset * modelRotationY * modelRotationZ * modelScale;
+
                 m_gameObjects[0].hasLastModelMatrix = true;
             }
 
@@ -533,7 +574,6 @@ void Village::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, con
 
     m_fireEmitter.Render(pipeline, viewMatrix, viewProjection);
     m_smokeEmitter.Render(pipeline, viewMatrix, viewProjection);
-    m_waterEmitter.Render(pipeline, viewMatrix, viewProjection);
 
     pipeline.RenderScene();
 

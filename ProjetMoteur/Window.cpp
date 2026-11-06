@@ -25,7 +25,8 @@ bool Window::Init()
         return false;
     } 
 
-    m_window = SDL_CreateWindow(m_title.c_str(), m_windowWidth, m_windowHeight, 0);
+    // 1. Autoriser le redimensionnement de la fenêtre avec SDL_WINDOW_RESIZABLE
+    m_window = SDL_CreateWindow(m_title.c_str(), m_windowWidth, m_windowHeight, SDL_WINDOW_RESIZABLE);
     if (!m_window) {
         std::cerr << "Erreur SDL_CreateWindow : " << SDL_GetError() << std::endl;
         return false;
@@ -37,6 +38,8 @@ bool Window::Init()
         return false;
     }
 
+    SDL_SetRenderLogicalPresentation(m_renderer, m_renderWidth, m_renderHeight, SDL_LOGICAL_PRESENTATION_STRETCH);
+
     m_framebufferTexture = SDL_CreateTexture(
         m_renderer,
         SDL_PIXELFORMAT_ARGB8888,
@@ -44,7 +47,6 @@ bool Window::Init()
         m_renderWidth,
         m_renderHeight
     );
-
 
 
 

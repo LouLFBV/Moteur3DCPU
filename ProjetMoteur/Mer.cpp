@@ -14,8 +14,10 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
 {
     m_sceneCamera = glm::vec3(0.0f, 2.0f, 1.0f);
     m_gameObjects.clear();
-
     m_gameObjects.reserve(3);
+
+    m_waterTimer = 0.0f;
+    m_burstCount = 0;
 
     // 1. CHOUETTE / POV (index 0 - Attachée à la caméra)
     GameObject owl;
@@ -26,7 +28,7 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
 
     // Keyframes Caméra
     AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
-    AddKeyframe(&m_sceneCamera.position.z, 6.0f, -20.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 11.0f, -20.0f);
 
     // Keyframes CHOUETTE
     if (!m_gameObjects.empty()) {
@@ -43,9 +45,19 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.0f, 0.0f, true);
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.5f, 0.05f, true);
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 7.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 8.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 9.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 10.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 11.0f, 0.0f, true);
     }
 
-    // 1. BALEINE
+    // 2. BALEINE
     GameObject whale;
     whale.transform.scale = glm::vec3(0.5f);
     whale.transform.translation = glm::vec3(-8.0f, -1.0f, -30.0f);
@@ -55,7 +67,7 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
         m_gameObjects.push_back(whale);
     }
 
-    // 1. DOPHIN
+    // 3. DAUPHIN
     GameObject dolphin;
     dolphin.transform.scale = glm::vec3(0.5f);
     dolphin.transform.translation = glm::vec3(2.0f, -5.0f, -20.0f);
@@ -64,7 +76,6 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
     if (LoadGameObject(dolphin, "external/Assets/Mer/Dolphin.obj", nullptr, "external/Assets/Mer")) {
         m_gameObjects.push_back(dolphin);
 
-        // Petite animation de traversée / haut-bas si souhaité
         AddKeyframe(&m_gameObjects[2].transform.translation.x, 0.0f, -6.0f, true);
         AddKeyframe(&m_gameObjects[2].transform.translation.x, 5.0f, 6.0f, true);
 
@@ -73,7 +84,7 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[2].transform.translation.y, 5.0f, -5.0f, true);
     }
 
-    // 2. GÉNÉRATION DE LA GRILLE DE LA MER (EAU BLEUE)
+    // 4. GRILLE DE LA MER
     m_terrainVertices.clear();
     float halfSize = (m_gridSize * m_cellSize) * 0.5f;
 
@@ -87,7 +98,6 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
             float u0 = (float)x / m_gridSize, v0 = (float)z / m_gridSize;
             float u1 = (float)(x + 1) / m_gridSize, v1 = (float)(z + 1) / m_gridSize;
 
-            // Couleur bleue de base pour l'eau
             float r = 0.1f, g = 0.4f, b = 0.8f;
 
             Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
@@ -105,24 +115,23 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
         }
     }
 
-    // 3. POLICE HUD
+    // 5. POLICE HUD
     if (!m_fontTexture.LoadFromFile("external/Assets/boxy_bold_font_5.png")) {
         std::cerr << "[Erreur] Font non trouvee !\n";
     }
 
-    // 4. EMETTEUR DE PARTICULES D'EAU
-    m_waterEmitter.position = glm::vec3(-3.0f, -0.5f, -8.0f);
-    m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
+    // 6. ÉMETTEUR DE PARTICULES D'EAU
+    m_waterEmitter.gravity = glm::vec3(0.0f, -4.0f, 0.0f);
     m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
     m_waterEmitter.colorEnd = glm::vec4(0.05f, 0.45f, 1.0f, 0.0f);
-    m_waterEmitter.lifeTimeMin = 0.6f;
-    m_waterEmitter.lifeTimeMax = 1.3f;
-    m_waterEmitter.sizeStart = 0.075f;
-    m_waterEmitter.sizeEnd = 0.012f;
-    m_waterEmitter.drag = 0.15f;
+    m_waterEmitter.lifeTimeMin = 1.0f;
+    m_waterEmitter.lifeTimeMax = 2.5f;
+    m_waterEmitter.sizeStart = 0.16f;
+    m_waterEmitter.sizeEnd = 0.03f;
+    m_waterEmitter.drag = 0.10f;
     m_waterEmitter.SetEmissionEnabled(false);
 
-    // 5. EMETTEUR DE PARTICULES DE MAGIE
+    // 7. ÉMETTEUR DE PARTICULES DE MAGIE
     m_magicEmitter.position = glm::vec3(0.0f, -10.0f, -10.0f);
     m_magicEmitter.spawnRate = 100.0f;
     m_magicEmitter.velocityMin = glm::vec3(-0.4f, -0.2f, -0.4f);
@@ -151,14 +160,8 @@ void Mer::Update(float deltaTime)
     m_sceneCamera.ProcessMouseMovement(0.0f, 0.0f);
 
     if (m_gameObjects.size() >= 3) {
-        // Chouette (index 0)
         m_gameObjects[0].UpdateTransform();
-        m_gameObjects[0].hasLastModelMatrix = false;
-
-        // Baleine (index 1)
         m_gameObjects[1].UpdateTransform();
-
-        // Dauphin (index 2)
         m_gameObjects[2].UpdateTransform();
         m_gameObjects[2].hasLastModelMatrix = false;
     }
@@ -172,10 +175,19 @@ void Mer::Update(float deltaTime)
         m_magicEmitter.Update(deltaTime);
         m_waterTimer += deltaTime;
 
-        if (m_waterTimer >= 6.0f)
+        // 1ère explosion : à 1.5s, décalée vers la GAUCHE (-3.0f sur X)
+        if (m_burstCount == 0 && m_waterTimer >= 1.55f)
         {
-            m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
-            m_waterTimer = 0.0f;
+            m_waterEmitter.position = m_sceneCamera.position + glm::vec3(-1.5f, -1.3f, -6.0f);
+            m_waterEmitter.BurstUpward(1200, 3.5f, 8.0f);
+            m_burstCount = 1;
+        }
+        // 2ème explosion : à 3.5s, décalée vers la DROITE (+3.0f sur X)
+        else if (m_burstCount == 1 && m_waterTimer >= 3.45f)
+        {
+            m_waterEmitter.position = m_sceneCamera.position + glm::vec3(2.0f, -1.3f, -6.0f);
+            m_waterEmitter.BurstUpward(1200, 3.5f, 8.0f);
+            m_burstCount = 2; // Ne redéclenche plus d'explosion ensuite
         }
     }
 }
@@ -218,14 +230,13 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
                 float wave = std::sin(pixel.x * 0.05f + pixel.z * 15.0f + deltaTime);
                 float intensity = (wave * 0.5f) + 0.5f;
 
-                uint8_t r = static_cast<uint8_t>(intensity * 255.0f);          //Rose
-                uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 100.0f);  //Cyan
-                uint8_t b = 255;                                               //Bleu
+                uint8_t r = static_cast<uint8_t>(intensity * 255.0f);
+                uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 100.0f);
+                uint8_t b = 255;
 
                 return (0xFF << 24) | (r << 16) | (g << 8) | b;
                 });
         }
-
         else {
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
                 const Material& mat = m_gameObjects[i].objModel.material;
@@ -401,7 +412,7 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
     // -----------------------------------------------------
     // PASSE 5 : TEXTE 2D ANIMÉ (HUD)
     // -----------------------------------------------------
-    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 1.0f;
+    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 10.0f;
     constexpr float cycleDuration = fadeInDuration + holdDuration + fadeOutDuration + pauseDuration;
 
     float animationTime = std::fmod(m_hudAnimationTime, cycleDuration);

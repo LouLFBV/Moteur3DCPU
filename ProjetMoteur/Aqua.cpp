@@ -76,7 +76,7 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
 
     // Keyframes Caméra
     AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
-    AddKeyframe(&m_sceneCamera.position.z, 6.0f, -20.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 11.0f, -20.0f);
 
     AddKeyframe(&m_sceneCamera.yaw, 0.0f, -90.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 1.0f, -70.0f, true);
@@ -85,6 +85,11 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
     AddKeyframe(&m_sceneCamera.yaw, 4.0f, -90.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 5.0f, -70.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 6.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 7.0f, -70.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 8.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 9.0f, -70.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 10.0f, -90.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 11.0f, -70.0f, true);
 
     // Keyframes Poisson (Nage)
     if (!m_gameObjects.empty()) {
@@ -101,6 +106,16 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.0f, glm::radians(190.0f), true);
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.5f, glm::radians(170.0f), true);
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 6.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 6.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 7.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 7.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 8.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 8.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 9.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 9.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 10.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 10.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 11.0f, glm::radians(190.0f), true);
     }
 
     // 2. GÉNÉRATION DE LA GRILLE DE L'OCÉAN (SURFACE / PLAFOND)
@@ -140,33 +155,21 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
         std::cerr << "[Erreur] Font non trouvee !\n";
     }
 
-    // 4. ÉMETTEUR EAU
-    m_waterEmitter.position = glm::vec3(-3.0f, -0.5f, -8.0f);
-    m_waterEmitter.gravity = glm::vec3(0.0f, -5.0f, 0.0f);
-    m_waterEmitter.colorStart = glm::vec4(0.45f, 0.85f, 1.0f, 0.95f);
-    m_waterEmitter.colorEnd = glm::vec4(0.05f, 0.45f, 1.0f, 0.0f);
-    m_waterEmitter.lifeTimeMin = 0.6f;
-    m_waterEmitter.lifeTimeMax = 1.3f;
-    m_waterEmitter.sizeStart = 0.075f;
-    m_waterEmitter.sizeEnd = 0.012f;
-    m_waterEmitter.drag = 0.15f;
-    m_waterEmitter.SetEmissionEnabled(false);
-
-    // 5. ÉMETTEUR MAGIE
-    m_magicEmitter.position = glm::vec3(0.0f, 0.0f, -20.0f);
-    m_magicEmitter.spawnRate = 100.0f;
-    m_magicEmitter.velocityMin = glm::vec3(-0.4f, -0.2f, -0.4f);
-    m_magicEmitter.velocityMax = glm::vec3(0.4f, 0.5f, 0.4f);
+    // 4. ÉMETTEUR PARTICULES AMBIANTES (HAUTE DENSITÉ SOUS-MARINE CONTINUE)
+    m_magicEmitter.position = glm::vec3(0.0f, 0.0f, -10.0f);
+    m_magicEmitter.spawnRate = 1500.0f;
+    m_magicEmitter.velocityMin = glm::vec3(-0.8f, -0.4f, -0.8f);
+    m_magicEmitter.velocityMax = glm::vec3(0.8f, 0.8f, 0.8f);
     m_magicEmitter.gravity = glm::vec3(0.0f);
-    m_magicEmitter.colorStart = glm::vec4(0.1f, 0.8f, 1.0f, 0.9f);
-    m_magicEmitter.colorEnd = glm::vec4(0.7f, 0.1f, 1.0f, 0.0f);
-    m_magicEmitter.lifeTimeMin = 1.5f;
-    m_magicEmitter.lifeTimeMax = 3.0f;
-    m_magicEmitter.sizeStart = 0.10f;
-    m_magicEmitter.sizeEnd = 0.025f;
-    m_magicEmitter.spawnRadius = 20.0f;
-    m_magicEmitter.swirlStrength = 5.5f;
-    m_magicEmitter.turbulence = 0.8f;
+    m_magicEmitter.colorStart = glm::vec4(0.2f, 0.9f, 1.0f, 0.95f);
+    m_magicEmitter.colorEnd = glm::vec4(0.6f, 0.2f, 1.0f, 0.0f);
+    m_magicEmitter.lifeTimeMin = 2.0f;
+    m_magicEmitter.lifeTimeMax = 4.5f;
+    m_magicEmitter.sizeStart = 0.18f;
+    m_magicEmitter.sizeEnd = 0.04f;
+    m_magicEmitter.spawnRadius = 12.0f;
+    m_magicEmitter.swirlStrength = 6.0f;
+    m_magicEmitter.turbulence = 1.2f;
     m_magicEmitter.SetEmissionEnabled(true);
 }
 
@@ -188,17 +191,10 @@ void Aqua::Update(float deltaTime)
     if (!m_particlesFrozen)
     {
         m_hudAnimationTime += deltaTime;
-        m_fireEmitter.position = glm::vec3(0.0f, 1.0f, -10.0f);
 
+        // Déplacement dynamique de l'émetteur ambiant avec la caméra
+        m_magicEmitter.position = m_sceneCamera.position + glm::vec3(0.0f, 0.0f, -8.0f);
         m_magicEmitter.Update(deltaTime);
-        m_waterEmitter.Update(deltaTime);
-        m_waterTimer += deltaTime;
-
-        if (m_waterTimer >= 6.0f)
-        {
-            m_waterEmitter.BurstUpward(90, 2.0f, 5.0f);
-            m_waterTimer = 0.0f;
-        }
     }
 }
 
@@ -352,7 +348,7 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
         });
 
     // -----------------------------------------------------
-    // PASSE 4 : PARTICULES (MAGIE + EAU)
+    // PASSE 4 : RENDU DES PARTICULES AMBIANTES
     // -----------------------------------------------------
     pipeline.SetFragmentShader([](const BordLigne& pixel) -> uint32_t {
         float dx = (pixel.u - 0.5f) * 2.0f;
@@ -376,7 +372,6 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
     pipeline.SetDepthWriteEnabled(false);
 
     m_magicEmitter.Render(pipeline, viewMatrix, viewProjection);
-    m_waterEmitter.Render(pipeline, viewMatrix, viewProjection);
     pipeline.RenderScene();
 
     pipeline.SetDepthWriteEnabled(true);
@@ -385,7 +380,7 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
     // -----------------------------------------------------
     // PASSE 5 : TEXTE 2D ANIMÉ (HUD)
     // -----------------------------------------------------
-    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 1.0f;
+    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 10.0f;
     constexpr float cycleDuration = fadeInDuration + holdDuration + fadeOutDuration + pauseDuration;
 
     float animationTime = std::fmod(m_hudAnimationTime, cycleDuration);
