@@ -26,7 +26,7 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
 
     // Keyframes Caméra
     AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
-    AddKeyframe(&m_sceneCamera.position.z, 5.0f, -20.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 6.0f, -20.0f);
 
     // Keyframes CHOUETTE
     if (!m_gameObjects.empty()) {
@@ -41,6 +41,8 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.0f, 0.0f, true);
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.5f, 0.05f, true);
         AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.0f, 0.0f, true);
     }
 
     // 1. BALEINE
