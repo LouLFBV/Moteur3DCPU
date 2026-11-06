@@ -26,9 +26,57 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
         m_gameObjects.push_back(fish);
     }
 
+    // 2. RAY MANTA
+    int nbMantas = 4;
+
+    m_gameObjects.reserve(1 + nbMantas);
+
+    std::vector<glm::vec3> positionsDepart = {
+        glm::vec3(-7.0f, -0.8f,  -14.0f),
+        glm::vec3(-10.0f, -1.8f, -22.0f),
+        glm::vec3(-5.0f, -0.4f, -28.0f),
+        glm::vec3(-8.5f, -2.2f,  -18.0f)
+    };
+
+    for (int i = 0; i < nbMantas; ++i)
+    {
+        GameObject manta;
+        manta.transform.scale = glm::vec3(0.28f + 0.04f * i);
+        manta.transform.translation = positionsDepart[i];
+
+        // Orientations différentes
+        float rotationY = glm::radians(10.0f + (i * 12.0f));
+        manta.transform.rotation = glm::vec3(0.0f, rotationY, 0.0f);
+
+        if (LoadGameObject(manta, "external/Assets/Aqua/Manta_ray.obj", nullptr, "external/Assets/Aqua"))
+        {
+            m_gameObjects.push_back(manta);
+
+            size_t idx = m_gameObjects.size() - 1;
+
+            // Keyframes Manta (Nage)
+            float xStart = positionsDepart[i].x;
+            float xEnd = xStart + 18.0f;
+
+            AddKeyframe(&m_gameObjects[idx].transform.translation.x, 0.0f, xStart, true);
+            AddKeyframe(&m_gameObjects[idx].transform.translation.x, 6.0f, xEnd, true);
+
+            // Keyframes Manta (Ondulation)
+            float yBase = positionsDepart[i].y;
+            float amplitude = 0.35f;
+            float offset = i * 0.3f;
+
+            AddKeyframe(&m_gameObjects[idx].transform.translation.y, 0.0f, yBase, true);
+            AddKeyframe(&m_gameObjects[idx].transform.translation.y, 1.25f + offset, yBase + amplitude, true);
+            AddKeyframe(&m_gameObjects[idx].transform.translation.y, 2.5f, yBase, true);
+            AddKeyframe(&m_gameObjects[idx].transform.translation.y, 3.75f + offset, yBase - amplitude, true);
+            AddKeyframe(&m_gameObjects[idx].transform.translation.y, 6.0f, yBase, true);
+        }
+    }
+
     // Keyframes Caméra
     AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
-    AddKeyframe(&m_sceneCamera.position.z, 5.0f, -20.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 6.0f, -20.0f);
 
     AddKeyframe(&m_sceneCamera.yaw, 0.0f, -90.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 1.0f, -70.0f, true);
@@ -36,6 +84,7 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
     AddKeyframe(&m_sceneCamera.yaw, 3.0f, -70.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 4.0f, -90.0f, true);
     AddKeyframe(&m_sceneCamera.yaw, 5.0f, -70.0f, true);
+    AddKeyframe(&m_sceneCamera.yaw, 6.0f, -90.0f, true);
 
     // Keyframes Poisson (Nage)
     if (!m_gameObjects.empty()) {
@@ -50,6 +99,8 @@ Aqua::Aqua(SceneManager& sceneManager) : Scene(sceneManager)
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 4.0f, glm::radians(190.0f), true);
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 4.5f, glm::radians(170.0f), true);
         AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.0f, glm::radians(190.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 5.5f, glm::radians(170.0f), true);
+        AddKeyframe(&m_gameObjects[0].transform.rotation.y, 6.0f, glm::radians(190.0f), true);
     }
 
     // 2. GÉNÉRATION DE LA GRILLE DE L'OCÉAN (SURFACE / PLAFOND)
@@ -131,6 +182,7 @@ void Aqua::Update(float deltaTime)
 
     if (!m_gameObjects.empty()) {
         m_gameObjects[0].UpdateTransform();
+        m_gameObjects[1].UpdateTransform();
     }
 
     if (!m_particlesFrozen)

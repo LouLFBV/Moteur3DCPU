@@ -15,11 +15,62 @@ Mer::Mer(SceneManager& sceneManager) : Scene(sceneManager)
     m_sceneCamera = glm::vec3(0.0f, 2.0f, 1.0f);
     m_gameObjects.clear();
 
+    m_gameObjects.reserve(3);
+
     // 1. CHOUETTE / POV (index 0 - Attachée à la caméra)
     GameObject owl;
     owl.transform.scale = glm::vec3(0.001f);
     if (LoadGameObject(owl, "external/Assets/Village/owl.obj", "external/Assets/Village/wild_animals_map.png", "external/Assets")) {
         m_gameObjects.push_back(owl);
+    }
+
+    // Keyframes Caméra
+    AddKeyframe(&m_sceneCamera.position.z, 0.0f, 0.0f);
+    AddKeyframe(&m_sceneCamera.position.z, 6.0f, -20.0f);
+
+    // Keyframes CHOUETTE
+    if (!m_gameObjects.empty()) {
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 0.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 1.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 2.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 3.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 4.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.0f, 0.0f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 5.5f, 0.05f, true);
+        AddKeyframe(&m_gameObjects[0].transform.translation.y, 6.0f, 0.0f, true);
+    }
+
+    // 1. BALEINE
+    GameObject whale;
+    whale.transform.scale = glm::vec3(0.5f);
+    whale.transform.translation = glm::vec3(-8.0f, -1.0f, -30.0f);
+    whale.transform.rotation = glm::vec3(0.0f, glm::radians(-30.0f), 0.0f);
+
+    if (LoadGameObject(whale, "external/Assets/Mer/Whale.obj", nullptr, "external/Assets/Mer")) {
+        m_gameObjects.push_back(whale);
+    }
+
+    // 1. DOPHIN
+    GameObject dolphin;
+    dolphin.transform.scale = glm::vec3(0.5f);
+    dolphin.transform.translation = glm::vec3(2.0f, -5.0f, -20.0f);
+    dolphin.transform.rotation = glm::vec3(0.0f, glm::radians(70.0f), 0.0f);
+
+    if (LoadGameObject(dolphin, "external/Assets/Mer/Dolphin.obj", nullptr, "external/Assets/Mer")) {
+        m_gameObjects.push_back(dolphin);
+
+        // Petite animation de traversée / haut-bas si souhaité
+        AddKeyframe(&m_gameObjects[2].transform.translation.x, 0.0f, -6.0f, true);
+        AddKeyframe(&m_gameObjects[2].transform.translation.x, 5.0f, 6.0f, true);
+
+        AddKeyframe(&m_gameObjects[2].transform.translation.y, 0.0f, -5.0f, true);
+        AddKeyframe(&m_gameObjects[2].transform.translation.y, 2.5f, 0.8f, true);
+        AddKeyframe(&m_gameObjects[2].transform.translation.y, 5.0f, -5.0f, true);
     }
 
     // 2. GÉNÉRATION DE LA GRILLE DE LA MER (EAU BLEUE)
@@ -97,6 +148,21 @@ void Mer::Update(float deltaTime)
     Scene::Update(deltaTime);
     m_time += deltaTime;
 
+    m_sceneCamera.ProcessMouseMovement(0.0f, 0.0f);
+
+    if (m_gameObjects.size() >= 3) {
+        // Chouette (index 0)
+        m_gameObjects[0].UpdateTransform();
+        m_gameObjects[0].hasLastModelMatrix = false;
+
+        // Baleine (index 1)
+        m_gameObjects[1].UpdateTransform();
+
+        // Dauphin (index 2)
+        m_gameObjects[2].UpdateTransform();
+        m_gameObjects[2].hasLastModelMatrix = false;
+    }
+
     if (!m_particlesFrozen)
     {
         m_hudAnimationTime += deltaTime;
@@ -147,42 +213,60 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
     for (size_t i = 0; i < m_gameObjects.size(); ++i) {
         if (!m_gameObjects[i].loaded) continue;
 
-        pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-            const Material& mat = m_gameObjects[i].objModel.material;
-            glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
+        if (i == m_gameObjects.size() - 1 && m_gameObjects.size() > 1) {
+            pipeline.SetFragmentShader([deltaTime](const BordLigne& pixel) {
+                float wave = std::sin(pixel.x * 0.05f + pixel.z * 15.0f + deltaTime);
+                float intensity = (wave * 0.5f) + 0.5f;
 
-            if (mat.hasTexture) {
-                uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
-                float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
-                float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
-                float bTex = (texColor & 0xFF) / 255.0f;
-                baseDiffuse *= glm::vec3(rTex, gTex, bTex);
-            }
+                uint8_t r = static_cast<uint8_t>(intensity * 255.0f);          //Rose
+                uint8_t g = static_cast<uint8_t>((1.0f - intensity) * 100.0f);  //Cyan
+                uint8_t b = 255;                                               //Bleu
 
-            glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
-            glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
-            glm::vec3 vV = glm::normalize(viewPos - pixelPos);
-            glm::vec3 vH = glm::normalize(lightDir + vV);
+                return (0xFF << 24) | (r << 16) | (g << 8) | b;
+                });
+        }
 
-            glm::vec3 ambient = mat.ambient * baseDiffuse;
-            float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
-            glm::vec3 diffuse = baseDiffuse * diffFactor;
-            float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
-            glm::vec3 specular = mat.specular * specFactor;
+        else {
+            pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
+                const Material& mat = m_gameObjects[i].objModel.material;
+                glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
 
-            glm::vec3 finalColor = ambient + diffuse + specular;
-            uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
-            uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
-            uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
+                if (mat.hasTexture) {
+                    uint32_t texColor = mat.texture.Sample(pixel.u, pixel.v);
+                    float rTex = ((texColor >> 16) & 0xFF) / 255.0f;
+                    float gTex = ((texColor >> 8) & 0xFF) / 255.0f;
+                    float bTex = (texColor & 0xFF) / 255.0f;
+                    baseDiffuse *= glm::vec3(rTex, gTex, bTex);
+                }
 
-            return (0xFF << 24) | (r << 16) | (g << 8) | b;
-            });
+                glm::vec3 normal = glm::normalize(glm::vec3(pixel.nx, pixel.ny, pixel.nz));
+                glm::vec3 pixelPos = glm::vec3(pixel.worldPos.x, pixel.worldPos.y, pixel.worldPos.z);
+                glm::vec3 vV = glm::normalize(viewPos - pixelPos);
+                glm::vec3 vH = glm::normalize(lightDir + vV);
+
+                glm::vec3 ambient = mat.ambient * baseDiffuse;
+                float diffFactor = std::max(0.0f, glm::dot(normal, lightDir));
+                glm::vec3 diffuse = baseDiffuse * diffFactor;
+                float specFactor = std::pow(std::max(0.0f, glm::dot(normal, vH)), mat.shininess);
+                glm::vec3 specular = mat.specular * specFactor;
+
+                glm::vec3 finalColor = ambient + diffuse + specular;
+                uint8_t r = static_cast<uint8_t>(std::clamp(finalColor.r * 255.0f + 0.5f, 0.0f, 255.0f));
+                uint8_t g = static_cast<uint8_t>(std::clamp(finalColor.g * 255.0f + 0.5f, 0.0f, 255.0f));
+                uint8_t b = static_cast<uint8_t>(std::clamp(finalColor.b * 255.0f + 0.5f, 0.0f, 255.0f));
+
+                return (0xFF << 24) | (r << 16) | (g << 8) | b;
+                });
+        }
 
         glm::mat4 modelMat;
         if (i == 0) {
             if (!m_isEditMode || !m_gameObjects[0].hasLastModelMatrix) {
                 glm::mat4 cameraWorld = glm::inverse(viewMatrix);
-                glm::mat4 cameraOffset = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -0.80f, -1.0f));
+
+                glm::vec3 animOffset = glm::vec3(0.0f, -0.80f + m_gameObjects[0].transform.translation.y, -1.0f);
+                glm::mat4 cameraOffset = glm::translate(glm::mat4(1.0f), animOffset);
+
                 glm::mat4 modelScale = glm::scale(glm::mat4(1.0f), glm::vec3(0.001f));
                 glm::mat4 modelRotationY = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 glm::mat4 modelRotationX = glm::rotate(glm::mat4(1.0f), glm::radians(25.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -198,7 +282,24 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
         }
 
         glm::mat4 mvpObj = viewProjection * modelMat;
-        pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
+
+        if (!m_gameObjects[i].gpuVertices.empty()) {
+            pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
+        }
+        else {
+            for (size_t v = 0; v + 2 < m_gameObjects[i].objModel.vertices.size(); v += 3) {
+                auto& src0 = m_gameObjects[i].objModel.vertices[v + 0];
+                auto& src1 = m_gameObjects[i].objModel.vertices[v + 1];
+                auto& src2 = m_gameObjects[i].objModel.vertices[v + 2];
+
+                Vertex v0 = { src0.position, src0.r, src0.g, src0.b,{ src0.tx, src0.ty },{ src0.nx, src0.ny, src0.nz } };
+                Vertex v1 = { src1.position, src1.r, src1.g, src1.b,{ src1.tx, src1.ty },{ src1.nx, src1.ny, src1.nz } };
+                Vertex v2 = { src2.position, src2.r, src2.g, src2.b,{ src2.tx, src2.ty },{ src2.nx, src2.ny, src2.nz } };
+
+                pipeline.DrawTriangle(v0, v1, v2, mvpObj);
+            }
+        }
+
         pipeline.RenderScene();
     }
 
