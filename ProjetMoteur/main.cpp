@@ -17,6 +17,7 @@
 #include "Beach.h"
 #include "End.h"
 #include "Intro.h"
+#include "LastScene.h"
 #include "Camera.h"
 
 int main(int argc, char* argv[])
@@ -43,15 +44,16 @@ int main(int argc, char* argv[])
     float timeInEditMode = 0.0f;
 
 
-    sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
-    sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
-    sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 12.0f);
-    sceneManager.AddScene(std::make_unique<Intro>(sceneManager), 12.0f, 15.0f);
-    sceneManager.AddScene(std::make_unique<Aqua>(sceneManager), 10.0f, 15.0f);
-    sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 15.0f, 20.0f);
-    sceneManager.AddScene(std::make_unique<Beach>(sceneManager), 20.0f, 25.0f);
-    sceneManager.AddScene(std::make_unique<Village>(sceneManager), 25.0f, 30.0f);
-    sceneManager.AddScene(std::make_unique<End>(sceneManager), 30.0f, 33.0f);
+    //sceneManager.AddScene(std::make_unique<MainScene>(sceneManager), 0.0f, 5.0f);
+    //sceneManager.AddScene(std::make_unique<EmptyScene>(sceneManager), 5.0f, 10.0f);
+    //sceneManager.AddScene(std::make_unique<ThirdScene>(sceneManager), 10.0f, 12.0f);
+    sceneManager.AddScene(std::make_unique<Intro>(sceneManager), 0.0f , 3.0f);
+    sceneManager.AddScene(std::make_unique<Aqua>(sceneManager), 3.0f, 13.0f);
+    sceneManager.AddScene(std::make_unique<Mer>(sceneManager), 13.0f, 23.0f);
+    sceneManager.AddScene(std::make_unique<Beach>(sceneManager), 23.0f, 33.0f);
+    sceneManager.AddScene(std::make_unique<Village>(sceneManager), 33.0f, 43.0f);
+    sceneManager.AddScene(std::make_unique<LastScene>(sceneManager), 43.0f, 50.0f);
+    sceneManager.AddScene(std::make_unique<End>(sceneManager), 50.0f, 60.0f);
     // FIN INITIALISATION
     
     while (true) {
@@ -100,6 +102,10 @@ int main(int argc, char* argv[])
         if (auto* village = dynamic_cast<Village*>(sceneManager.GetCurrentScene()))
         {
             village->SetEditMode(isEditMode);
+        }
+        if (auto* lastScene = dynamic_cast<LastScene*>(sceneManager.GetCurrentScene()))
+        {
+            lastScene->SetEditMode(isEditMode);
         }
         Camera* activeCamera = nullptr;
 

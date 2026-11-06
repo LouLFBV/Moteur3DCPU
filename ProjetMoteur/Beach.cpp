@@ -450,7 +450,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
     // -----------------------------------------------------
     // PASSE 6 : TEXTE 2D (HUD)
     // -----------------------------------------------------
-    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 1.0f;
+    constexpr float fadeInDuration = 0.8f, holdDuration = 1.4f, fadeOutDuration = 0.8f, pauseDuration = 10.0f;
     constexpr float cycleDuration = fadeInDuration + holdDuration + fadeOutDuration + pauseDuration;
 
     float animationTime = std::fmod(m_hudAnimationTime, cycleDuration);

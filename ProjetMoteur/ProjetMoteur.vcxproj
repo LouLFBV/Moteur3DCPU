@@ -153,6 +153,7 @@
     <ClCompile Include="FragmentProcessor.cpp" />
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="Intro.cpp" />
+    <ClCompile Include="LastScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainScene.cpp" />
     <ClCompile Include="MathUtils.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="Intro.h" />
+    <ClInclude Include="LastScene.h" />
     <ClInclude Include="MainScene.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialPresets.h" />
