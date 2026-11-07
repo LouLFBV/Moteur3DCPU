@@ -92,18 +92,12 @@ struct Particle {
     bool active = false;
 };
 
-
-
-#include "ObjLoader.h"
-
-
 struct Transform
 {
     glm::vec3 translation{ 0.0f, 0.0f, 0.0f };
-    glm::vec3 rotation{ 0.0f, 0.0f, 0.0f }; // Angles en radians sur X, Y, Z
+    glm::vec3 rotation{ 0.0f, 0.0f, 0.0f }; 
     glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
 
-    // Génère et retourne la matrice Model (TRS)
     glm::mat4 GetModelMatrix() const
     {
         glm::mat4 model = glm::mat4(1.0f);

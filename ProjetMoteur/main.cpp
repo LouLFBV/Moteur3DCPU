@@ -20,6 +20,39 @@
 #include "LastScene.h"
 #include "Camera.h"
 
+
+void ApplyEditMode(Scene* scene, bool isEditMode)
+{
+    if (!scene)
+        return;
+
+    if (auto* thirdScene = dynamic_cast<ThirdScene*>(scene))
+    {
+        thirdScene->SetParticlesFrozen(isEditMode);
+    }
+    else if (auto* aqua = dynamic_cast<Aqua*>(scene))
+    {
+        aqua->SetEditMode(isEditMode);
+    }
+    else if (auto* mer = dynamic_cast<Mer*>(scene))
+    {
+        mer->SetEditMode(isEditMode);
+    }
+    else if (auto* beach = dynamic_cast<Beach*>(scene))
+    {
+        beach->SetEditMode(isEditMode);
+    }
+    else if (auto* village = dynamic_cast<Village*>(scene))
+    {
+        village->SetEditMode(isEditMode);
+    }
+    else if (auto* lastScene = dynamic_cast<LastScene*>(scene))
+    {
+        lastScene->SetEditMode(isEditMode);
+    }
+}
+
+
 int main(int argc, char* argv[])
 {
     // INITIALISATION
@@ -52,113 +85,132 @@ int main(int argc, char* argv[])
     sceneManager.AddScene(std::make_unique<End>(sceneManager), 50.0f, 60.0f);
     // FIN INITIALISATION
     
-    while (true) {
-        // Calcul du deltaTime en secondes
+
+    while (true)
+    {
+
         Uint64 startPerf = SDL_GetPerformanceCounter();
+
         Uint32 currentTicks = SDL_GetTicks();
         float deltaTime = (currentTicks - lastFrameTicks) * 0.001f;
+
         lastFrameTicks = currentTicks;
+
+        // GESTION DES ÉVÉNEMENTS/INPUTS
+
+        if (!window.PollEvents(isPerspective, editCamera, deltaTime, sceneManager))
+            return 0;
 
         bool isEditMode = window.IsInEditMode();
 
+        // Gestion du temps écoulé hors du mode Edit
         if (isEditMode)
         {
-            timeInEditMode = SDL_GetTicks() - lastTimeEditMode;
+            timeInEditMode = currentTicks - lastTimeEditMode;
         }
         else
         {
-            lastTimeEditMode = SDL_GetTicks() - timeInEditMode;
+            lastTimeEditMode = currentTicks - timeInEditMode;
         }
 
+        float time = lastTimeEditMode * 0.001f;
+
+        // SCÈNE ACTIVE
+        Scene* currentScene = sceneManager.GetCurrentScene();
+
+        if (!currentScene)
+            break;
+
+        ApplyEditMode(currentScene, isEditMode);
 
 
-        // On passe la caméra et deltaTime à PollEventsm
-        if (!window.PollEvents(isPerspective, editCamera, deltaTime, sceneManager)) return 0;
-
-
-
-        if (auto* currentScene = dynamic_cast<ThirdScene*>(
-            sceneManager.GetCurrentScene()))
-        {
-            currentScene->SetParticlesFrozen(isEditMode);
-        }
-
-        if (auto* aqua = dynamic_cast<Aqua*>(sceneManager.GetCurrentScene()))
-        {
-            aqua->SetEditMode(isEditMode);
-        }
-        if (auto* mer = dynamic_cast<Mer*>(sceneManager.GetCurrentScene()))
-        {
-            mer->SetEditMode(isEditMode);
-        }
-        if (auto* beach = dynamic_cast<Beach*>(sceneManager.GetCurrentScene()))
-        {
-            beach->SetEditMode(isEditMode);
-        }
-        if (auto* village = dynamic_cast<Village*>(sceneManager.GetCurrentScene()))
-        {
-            village->SetEditMode(isEditMode);
-        }
-        if (auto* lastScene = dynamic_cast<LastScene*>(sceneManager.GetCurrentScene()))
-        {
-            lastScene->SetEditMode(isEditMode);
-        }
+        // CAMÉRA ACTIVE
         Camera* activeCamera = nullptr;
 
-        if (isEditMode) {
-            activeCamera = &editCamera; // En mode Edit, on prend la freecam globale
+        if (isEditMode)
+        {
+            activeCamera = &editCamera;
         }
-        else if (sceneManager.GetCurrentScene()) {
-            activeCamera = &sceneManager.GetCurrentScene()->GetCamera(); // En jeu, on prend la caméra de la scène
+        else
+        {
+            activeCamera = &currentScene->GetCamera();
         }
 
+        if (!activeCamera)
+            break;
 
+        // MATRICES DE PROJECTION ET DE VUE
         glm::mat4 projection;
-        if (isPerspective) {
-            projection = glm::perspective(glm::radians(60.0f), aspect, zNear, zFar);
+
+        if (isPerspective)
+        {
+            projection = glm::perspective(
+                glm::radians(60.0f),
+                aspect,
+                zNear,
+                zFar
+            );
         }
-        else {
-            float taille = 2.0f;
-            projection = glm::ortho(-taille * aspect, taille * aspect, -taille, taille, zNear, zFar);
+        else
+        {
+            constexpr float orthoSize = 2.0f;
+
+            projection = glm::ortho(
+                -orthoSize * aspect,
+                orthoSize * aspect,
+                -orthoSize,
+                orthoSize,
+                zNear,
+                zFar
+            );
         }
 
-
-        // 3. Calcul des matrices à partir de la caméra active
         glm::mat4 view = activeCamera->GetViewMatrix();
         glm::mat4 viewProjection = projection * view;
         glm::vec3 viewPos = activeCamera->position;
 
-
-        float time = lastTimeEditMode * 0.001f;
-
-
+        // UPDATE
         pipeline.ResetStats();
         pipeline.Clear();
 
         sceneManager.Update(deltaTime, isEditMode);
 
-        if (!sceneManager.m_isRunning) {
+        if (!sceneManager.m_isRunning)
             break;
-        }
 
-        sceneManager.Render(pipeline, view, viewProjection, viewPos, time);  
+        // RENDER
+        sceneManager.Render(
+            pipeline,
+            view,
+            viewProjection,
+            viewPos,
+            time
+        );
 
-        window.UpdateTexture(pipeline.GetPixels(), pipeline.GetPitch());
+        // AFFICHAGE
+        window.UpdateTexture(
+            pipeline.GetPixels(),
+            pipeline.GetPitch()
+        );
+
         window.Render();
 
-
-        // Statistiques de performance
+        // STATISTIQUES DE PERFORMANCE
         Uint64 endPerf = SDL_GetPerformanceCounter();
-        float frameTimeMs = (endPerf - startPerf) / (float)SDL_GetPerformanceFrequency() * 1000.0f;
+
+        float frameTimeMs =
+            (endPerf - startPerf) /
+            static_cast<float>(SDL_GetPerformanceFrequency()) * 1000.0f;
+
         const RenderStats& stats = pipeline.GetStats();
 
         static Uint32 lastLogTime = 0;
         static int frameCount = 0;
-        Uint32 currentTime = SDL_GetTicks();
+
         frameCount++;
 
-        if (currentTime - lastLogTime >= 1000) {
-
+        if (currentTicks - lastLogTime >= 1000)
+        {
             printf(
                 "FPS: %d | CPU: %.2f ms | "
                 "Soumis: %d | Frustum rejetes: %d | "
@@ -167,18 +219,17 @@ int main(int argc, char* argv[])
 
                 frameCount,
                 frameTimeMs,
-
                 stats.trianglesSubmitted,
                 stats.trianglesFrustumCulled,
-                stats.trianglesSubmitted -  stats.trianglesFrustumCulled,
-
+                stats.trianglesSubmitted - stats.trianglesFrustumCulled,
                 stats.pixelsProcessed.load(),
                 stats.threadsUsed
             );
 
-            lastLogTime = currentTime;
+            lastLogTime = currentTicks;
             frameCount = 0;
         }
     }
+
     return 0;
 }
