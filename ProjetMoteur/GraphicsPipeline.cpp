@@ -1,6 +1,6 @@
 #include "GraphicsPipeline.h"
 #include "Multithreading.h"
-#include "VertexProcessor.h"
+#include <algorithm>
 
 GraphicsPipeline::GraphicsPipeline(int width, int height)
     : m_rasterizer(width, height)
@@ -27,33 +27,24 @@ void GraphicsPipeline::SetFragmentShader(FragmentShader newFragmentShader)
     m_fragmentProcessor.SetFragmentShader(newFragmentShader);
 }
 
-void GraphicsPipeline::DrawTriangle(
-    const Vertex& v0,
-    const Vertex& v1,
-    const Vertex& v2,
-    const glm::mat4& mvp)
+void GraphicsPipeline::DrawTriangle(const Vertex& v0, const Vertex& v1, const Vertex& v2, const glm::mat4& mvp)
 {
     RenderStats& stats = m_rasterizer.GetStats();
 
-    // 1. Triangle soumis au pipeline.
     stats.trianglesSubmitted++;
 
-    // 2. Transformation des sommets (une seule fois).
     Vertex tv0 = m_vertexProcessor.TransformVertex(v0, mvp);
     Vertex tv1 = m_vertexProcessor.TransformVertex(v1, mvp);
     Vertex tv2 = m_vertexProcessor.TransformVertex(v2, mvp);
 
-    // 3. Frustum Culling.
     if (!m_vertexProcessor.IsTriangleVisibleClipSpace(tv0, tv1, tv2))
     {
         stats.trianglesFrustumCulled++;
         return;
     }
 
-    // 4. Triangle conservé.
     stats.trianglesProcessed++;
 
-    // 5. Stockage des sommets déjà transformés.
     m_drawCommands.push_back({ tv0, tv1, tv2 });
 }
 
@@ -138,11 +129,11 @@ void GraphicsPipeline::SetDepthTestEnabled(bool enabled)
 void GraphicsPipeline::RenderScene()
 {
     m_rasterizer.GetStats().threadsUsed = Multithreading::GetInstance().GetNumThreads();
-    m_rasterizer.GetStats().trianglesProcessed = m_drawCommands.size();
 
     int height = m_rasterizer.GetHeight();
 
     m_clippedTriangles.clear();
+    m_clippedTriangles.reserve(m_drawCommands.size());
 
     for (const auto& cmd : m_drawCommands) {
         auto clippedTriangles = m_vertexProcessor.ProcessTransformedTriangle(
@@ -159,7 +150,7 @@ void GraphicsPipeline::RenderScene()
 
     int numJobs = Multithreading::GetInstance().GetNumJobs();
 
-    Multithreading::GetInstance().DispatchTasks(numJobs, height, [this](int taskId, int minY, int maxY) {
+    Multithreading::GetInstance().DispatchTasks(numJobs, height, [this](int, int minY, int maxY) {
 
         auto pixelShaderCallback = [this](const BordLigne& pixel) {
             return m_fragmentProcessor.ProcessFragment(pixel);
@@ -178,12 +169,7 @@ void GraphicsPipeline::RenderScene()
     m_drawCommands.clear();
 }
 
-void GraphicsPipeline::DrawText2D(
-    int screenX,
-    int screenY,
-    const std::string& text,
-    const Texture& fontAtlas,
-    uint32_t color)
+void GraphicsPipeline::DrawText2D(int screenX, int screenY, const std::string& text, const Texture& fontAtlas, uint32_t color)
 {
     int cursorX = screenX;
     int cursorY = screenY;
@@ -194,27 +180,22 @@ void GraphicsPipeline::DrawText2D(
     constexpr int lineHeight = 22;
 
     // Vérification de la texture.
-    if (fontAtlas.GetWidth() < 250 ||
-        fontAtlas.GetHeight() < 163)
+    if (fontAtlas.GetWidth() < 250 || fontAtlas.GetHeight() < 163) {
         return;
+    }
 
-    for (unsigned char c : text)
-    {
-        // Gestion des retours à la ligne.
-        if (c == '\n')
-        {
+    for (unsigned char c : text) {
+        if (c == '\n') {
             cursorX = screenX;
             cursorY += lineHeight;
             continue;
         }
 
-        // Gestion des retours chariot Windows.
-        if (c == '\r')
+        if (c == '\r') {
             continue;
+        }
 
-        // Gestion des espaces.
-        if (c == ' ')
-        {
+        if (c == ' ') {
             cursorX += spaceAdvance;
             continue;
         }
@@ -253,14 +234,7 @@ void GraphicsPipeline::DrawText2D(
 }
 
 
-bool GraphicsPipeline::GetGlyphRect(
-    char c,
-    int atlasWidth,
-    int atlasHeight,
-    int& outX,
-    int& outY,
-    int& outW,
-    int& outH)
+bool GraphicsPipeline::GetGlyphRect(char c, int atlasWidth, int atlasHeight, int& outX, int& outY, int& outW, int& outH)
 {
     struct Glyph
     {
@@ -330,24 +304,21 @@ bool GraphicsPipeline::GetGlyphRect(
     int rowY = 0;
     int rowHeight = 0;
 
-    if (ascii >= 33 && ascii <= 47)
-    {
+    if (ascii >= 33 && ascii <= 47) {
         glyphs = row0;
         count = 15;
         index = ascii - 33;
         rowY = 0;
         rowHeight = 16;
     }
-    else if (ascii >= 48 && ascii <= 57)
-    {
+    else if (ascii >= 48 && ascii <= 57) {
         glyphs = row1;
         count = 10;
         index = ascii - 48;
         rowY = 20;
         rowHeight = 16;
     }
-    else if (ascii >= 58 && ascii <= 64)
-    {
+    else if (ascii >= 58 && ascii <= 64) {
         glyphs = row2;
         count = 7;
         index = ascii - 58;
@@ -362,92 +333,89 @@ bool GraphicsPipeline::GetGlyphRect(
         rowY = 60;
         rowHeight = 16;
     }
-    else if (ascii >= 78 && ascii <= 90)
-    {
+    else if (ascii >= 78 && ascii <= 90) {
         glyphs = row4;
         count = 13;
         index = ascii - 78;
         rowY = 80;
         rowHeight = 16;
     }
-    else if (ascii >= 91 && ascii <= 96)
-    {
+    else if (ascii >= 91 && ascii <= 96) {
         glyphs = row5;
         count = 10;
         index = ascii - 91;
         rowY = 100;
         rowHeight = 16;
     }
-    else if (ascii >= 123 && ascii <= 126)
-    {
+    else if (ascii >= 123 && ascii <= 126) {
         glyphs = row5;
         count = 10;
         index = 6 + (ascii - 123);
         rowY = 100;
         rowHeight = 16;
     }
-    else if (ascii >= 97 && ascii <= 110)
-    {
+    else if (ascii >= 97 && ascii <= 110) {
         glyphs = row6;
         count = 14;
         index = ascii - 97;
         rowY = 126;
         rowHeight = 17;
     }
-    else if (ascii >= 111 && ascii <= 122)
-    {
+    else if (ascii >= 111 && ascii <= 122) {
         glyphs = row7;
         count = 12;
         index = ascii - 111;
         rowY = 146;
         rowHeight = 17;
     }
-    else
-    {
+    else {
         return false;
     }
 
-    if (index < 0 || index >= count)
+    if (index < 0 || index >= count) {
         return false;
+    }
 
     outX = glyphs[index].x;
     outY = rowY;
     outW = glyphs[index].advance;
     outH = rowHeight;
 
-    // Vérification des limites de l'atlas.
-    return outX >= 0 &&
-        outY >= 0 &&
-        outX + outW <= atlasWidth &&
-        outY + outH <= atlasHeight;
+    return outX >= 0 && outY >= 0 && outX + outW <= atlasWidth && outY + outH <= atlasHeight;
 }
 
 void GraphicsPipeline::DrawFadeOverlay(float alpha, const glm::vec3& color)
 {
-    if (alpha <= 0.0f) return;
+    if (alpha <= 0.0f) {
+        return;
+    }
 
     uint32_t aInt = static_cast<uint32_t>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f);
-    if (aInt == 0) return;
+    if (aInt == 0) {
+        return;
+    }
 
     uint32_t targetR = static_cast<uint32_t>(std::clamp(color.r, 0.0f, 1.0f) * 255.0f);
     uint32_t targetG = static_cast<uint32_t>(std::clamp(color.g, 0.0f, 1.0f) * 255.0f);
     uint32_t targetB = static_cast<uint32_t>(std::clamp(color.b, 0.0f, 1.0f) * 255.0f);
 
-    // Récupération directe du pointeur de pixels de ton Rastériseur
     uint32_t* pixels = static_cast<uint32_t*>(const_cast<void*>(m_rasterizer.GetPixels()));
     int totalPixels = m_rasterizer.GetWidth() * m_rasterizer.GetHeight();
 
     for (int i = 0; i < totalPixels; ++i) {
         uint32_t currentPixel = pixels[i];
 
-        uint32_t r = (currentPixel >> 16) & 0xFF;
-        uint32_t g = (currentPixel >> 8) & 0xFF;
-        uint32_t b = currentPixel & 0xFF;
+        int r = (currentPixel >> 16) & 0xFF;
+        int g = (currentPixel >> 8) & 0xFF;
+        int b = currentPixel & 0xFF;
 
-        r = r + (((targetR - r) * aInt) >> 8);
-        g = g + (((targetG - g) * aInt) >> 8);
-        b = b + (((targetB - b) * aInt) >> 8);
+        r += (static_cast<int>(targetR) - r) * static_cast<int>(aInt) / 255;
+        g += (static_cast<int>(targetG) - g) * static_cast<int>(aInt) / 255;
+        b += (static_cast<int>(targetB) - b) * static_cast<int>(aInt) / 255;
 
-        pixels[i] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        pixels[i] = 0xFF000000u |
+            (static_cast<uint32_t>(r) << 16) |
+            (static_cast<uint32_t>(g) << 8) |
+            static_cast<uint32_t>(b);
     }
 }

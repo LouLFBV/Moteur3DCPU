@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 
 // =====================================================
@@ -253,7 +252,7 @@ void Beach::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const
         if (i == 0) {
             // --- Index 0 : Chouette (Attachée à la caméra avec Blinn-Phong standard) ---
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
 
                 if (mat.hasTexture) {

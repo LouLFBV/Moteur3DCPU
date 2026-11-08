@@ -1,32 +1,49 @@
 #pragma once
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_mixer.h>
+
 #include <string>
+
 #include "Camera.h"
 
 class SceneManager;
 
-class Window {
+class Window
+{
 public:
-    Window(int renderWidth, int renderHeight, int windowWidth, int windowHeight, const std::string& title);
-    ~Window(); 
+    Window(
+        int renderWidth,
+        int renderHeight,
+        int windowWidth,
+        int windowHeight,
+        const std::string& title
+    );
+
+    ~Window();
 
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
     bool Init();
+
     void UpdateTexture(const void* pixels, int pitch);
     void Render();
+
     bool PollEvents(bool& outIsPerspective, Camera& camera, float deltaTime, SceneManager& sceneManager);
-    bool IsInEditMode()const;
+
+    bool IsInEditMode() const;
 
 private:
     int m_renderWidth;
     int m_renderHeight;
     int m_windowWidth;
     int m_windowHeight;
+
     std::string m_title;
-    bool m_editMode;
+
+    bool m_editMode = false;
+    bool m_sdlInitialized = false;
+    bool m_mixerInitialized = false;
 
     SDL_Window* m_window = nullptr;
     SDL_Renderer* m_renderer = nullptr;

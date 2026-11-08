@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 
 // =====================================================
@@ -239,7 +238,7 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
         }
         else {
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
 
                 if (mat.hasTexture) {
@@ -298,10 +297,10 @@ void Mer::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
             pipeline.DrawMesh(m_gameObjects[i].gpuVertices, mvpObj);
         }
         else {
-            for (size_t v = 0; v + 2 < m_gameObjects[i].objModel.vertices.size(); v += 3) {
-                auto& src0 = m_gameObjects[i].objModel.vertices[v + 0];
-                auto& src1 = m_gameObjects[i].objModel.vertices[v + 1];
-                auto& src2 = m_gameObjects[i].objModel.vertices[v + 2];
+            for (size_t v = 0; v + 2 < m_gameObjects[i].objModel.GetVertices().size(); v += 3) {
+                auto& src0 = m_gameObjects[i].objModel.GetVertices()[v + 0];
+                auto& src1 = m_gameObjects[i].objModel.GetVertices()[v + 1];
+                auto& src2 = m_gameObjects[i].objModel.GetVertices()[v + 2];
 
                 Vertex v0 = { src0.position, src0.r, src0.g, src0.b,{ src0.tx, src0.ty },{ src0.nx, src0.ny, src0.nz } };
                 Vertex v1 = { src1.position, src1.r, src1.g, src1.b,{ src1.tx, src1.ty },{ src1.nx, src1.ny, src1.nz } };

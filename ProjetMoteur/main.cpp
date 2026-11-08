@@ -8,9 +8,6 @@
 #include "Window.h"
 #include "GraphicsPipeline.h"
 #include "SceneManager.h"
-#include "MainScene.h"
-#include "EmptyScene.h"
-#include "ThirdScene.h"
 #include "Village.h"
 #include "Aqua.h"
 #include "Mer.h"
@@ -21,33 +18,25 @@
 #include "Camera.h"
 
 
-void ApplyEditMode(Scene* scene, bool isEditMode)
+static void ApplyEditMode(Scene* scene, bool isEditMode)
 {
-    if (!scene)
+    if (!scene) {
         return;
-
-    if (auto* thirdScene = dynamic_cast<ThirdScene*>(scene))
-    {
-        thirdScene->SetParticlesFrozen(isEditMode);
     }
-    else if (auto* aqua = dynamic_cast<Aqua*>(scene))
-    {
+
+     if (auto* aqua = dynamic_cast<Aqua*>(scene)) {
         aqua->SetEditMode(isEditMode);
     }
-    else if (auto* mer = dynamic_cast<Mer*>(scene))
-    {
+    else if (auto* mer = dynamic_cast<Mer*>(scene)) {
         mer->SetEditMode(isEditMode);
     }
-    else if (auto* beach = dynamic_cast<Beach*>(scene))
-    {
+    else if (auto* beach = dynamic_cast<Beach*>(scene)) {
         beach->SetEditMode(isEditMode);
     }
-    else if (auto* village = dynamic_cast<Village*>(scene))
-    {
+    else if (auto* village = dynamic_cast<Village*>(scene)) {
         village->SetEditMode(isEditMode);
     }
-    else if (auto* lastScene = dynamic_cast<LastScene*>(scene))
-    {
+    else if (auto* lastScene = dynamic_cast<LastScene*>(scene)) {
         lastScene->SetEditMode(isEditMode);
     }
 }
@@ -83,7 +72,6 @@ int main(int argc, char* argv[])
     sceneManager.AddScene(std::make_unique<Village>(sceneManager), 33.0f, 43.0f);
     sceneManager.AddScene(std::make_unique<LastScene>(sceneManager), 43.0f, 50.0f);
     sceneManager.AddScene(std::make_unique<End>(sceneManager), 50.0f, 60.0f);
-    // FIN INITIALISATION
     
 
     while (true)

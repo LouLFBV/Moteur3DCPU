@@ -1,6 +1,4 @@
 #pragma once
-
-#include "Types.h"
 #include "ObjLoader.h"
 #include <vector>
 

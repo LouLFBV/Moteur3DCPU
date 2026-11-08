@@ -1,8 +1,7 @@
 #include "SceneManager.h"
 #include "GraphicsPipeline.h"
-#include "Scene.h"
 #include <algorithm>
-#include <iostream>
+#include <utility>
 
 SceneManager::SceneManager()
 {
@@ -11,23 +10,29 @@ SceneManager::SceneManager()
 
 void SceneManager::AddScene(std::unique_ptr<Scene> scene, float t_start, float t_end)
 {
-    m_listScene.push_back({ std::move(scene), t_start, t_end });
+    m_listScene.push_back({
+        std::move(scene),
+        t_start,
+        t_end
+        });
 
-    if (m_currentIndex == -1) {
+    // La première scène ajoutée devient la scène active.
+    if (m_currentIndex == -1)
+    {
         SetScene(0);
     }
 }
 
-void SceneManager::NextScene(bool isEditMode )
+void SceneManager::NextScene(bool isEditMode)
 {
-    std::cout << "NextScene\n";
-    if (m_listScene.empty()) return;
+    if (m_listScene.empty()) {
+        return;
+    }
 
-    // Calcul de l'index suivant avec boucle automatique grâce au modulo %
-    size_t nextIndex = m_currentIndex + 1;
+    const std::size_t nextIndex = static_cast<std::size_t>(m_currentIndex + 1);
 
-    if (nextIndex >= m_listScene.size())
-    {
+    // Arrêt du moteur lorsqu'il n'y a plus de scène.
+    if (nextIndex >= m_listScene.size()) {
         m_isRunning = false;
         return;
     }
@@ -35,14 +40,15 @@ void SceneManager::NextScene(bool isEditMode )
     SetScene(nextIndex, isEditMode);
 }
 
-void SceneManager::SetScene(size_t index, bool isEditMode)
+void SceneManager::SetScene(std::size_t index, bool isEditMode)
 {
-    std::cout << "SetScene\n";
-    if (index >= m_listScene.size()) return;
+    if (index >= m_listScene.size()) {
+        return;
+    }
 
-    // Première scène : activation immédiate.
-    if (m_currentIndex == -1 || isEditMode)
-    {
+    // En mode édition, le changement de scène est immédiat.
+    // La première scène est également activée immédiatement.
+    if (m_currentIndex == -1 || isEditMode) {
         ActivateScene(index);
 
         m_fadeAlpha = 1.0f;
@@ -52,130 +58,123 @@ void SceneManager::SetScene(size_t index, bool isEditMode)
         return;
     }
 
-    // Évite de relancer une transition vers la scène actuelle.
-    if (static_cast<int>(index) == m_currentIndex) return;
+    if (static_cast<std::size_t>(m_currentIndex) == index) {
+        return;
+    }
 
-    // On mémorise la scène à charger.
+    // Mémorisation de la prochaine scène.
     m_pendingSceneIndex = static_cast<int>(index);
 
-    // On commence le Fade Out.
+    // Démarrage du Fade Out.
     m_fadeTimer = 0.0f;
     m_fadeAlpha = 0.0f;
     m_fadeState = FadeState::FadeOut;
 }
 
-void SceneManager::ActivateScene(size_t index)
+void SceneManager::ActivateScene(std::size_t index)
 {
-    if (index >= m_listScene.size()) return;
+    if (index >= m_listScene.size()) {
+        return;
+    }
 
-    // Quitter l'ancienne scène.
-    if (m_currentIndex >= 0 &&
-        m_currentIndex < static_cast<int>(m_listScene.size()))
-    {
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
         m_listScene[m_currentIndex].scene->OnExit();
     }
 
     m_currentIndex = static_cast<int>(index);
-
 }
 
 void SceneManager::UpdateFade(float deltaTime)
 {
-    if (m_fadeState == FadeState::None)
+    if (m_fadeState == FadeState::None) {
         return;
+    }
 
     m_fadeTimer += deltaTime;
 
-    float progress = std::clamp(
+    const float progress = std::clamp(
         m_fadeTimer / m_fadeDuration,
         0.0f,
         1.0f
     );
 
-    // Interpolation douce.
-    float eased = progress * progress * (3.0f - 2.0f * progress);
+    const float eased = progress * progress * (3.0f - 2.0f * progress);
 
-    if (m_fadeState == FadeState::FadeOut)
-    {
-        m_fadeAlpha = eased;
-
-        // Écran complètement opaque.
-        if (progress >= 1.0f)
+    switch (m_fadeState) {
+        case FadeState::FadeOut:
         {
-            if (m_pendingSceneIndex >= 0)
-            {
-                ActivateScene(static_cast<size_t>(m_pendingSceneIndex));
-                m_pendingSceneIndex = -1;
+            m_fadeAlpha = eased;
+
+            if (progress >= 1.0f) {
+                if (m_pendingSceneIndex >= 0) {
+                    ActivateScene( static_cast<std::size_t>(m_pendingSceneIndex));
+                    m_pendingSceneIndex = -1;
+                }
+
+                m_fadeTimer = 0.0f;
+                m_fadeState = FadeState::FadeIn;
             }
-
-            m_fadeTimer = 0.0f;
-            m_fadeState = FadeState::FadeIn;
+            break;
         }
-    }
-    else if (m_fadeState == FadeState::FadeIn)
-    {
-        m_fadeAlpha = 1.0f - eased;
 
-        if (progress >= 1.0f)
+        case FadeState::FadeIn:
         {
-            m_fadeAlpha = 0.0f;
-            m_fadeState = FadeState::None;
+            m_fadeAlpha = 1.0f - eased;
+
+            if (progress >= 1.0f) {
+                m_fadeAlpha = 0.0f;
+                m_fadeState = FadeState::None;
+            }
+            break;
         }
-    }
+
+        case FadeState::None:
+            break;
+        }
 }
 
 void SceneManager::RenderFade(GraphicsPipeline& pipeline) const
 {
-    if (m_fadeAlpha <= 0.0f)
+    if (m_fadeAlpha <= 0.0f) {
         return;
+    }
 
-    // Application directe du fondu sur l'image calculée
+    // Application du fondu sur l'image calculée.
     pipeline.DrawFadeOverlay(m_fadeAlpha, m_fadeColor);
 }
 
 void SceneManager::Update(float deltaTime, bool isEditMode)
 {
-    float effectiveDeltaTime = isEditMode ? 0.0f : deltaTime;
+    const float effectiveDeltaTime = isEditMode ? 0.0f : deltaTime;
 
-    if (!isEditMode)
-    {
+    if (!isEditMode) {
         m_globalTime += deltaTime;
     }
 
-    // Animation du fondu.
     UpdateFade(deltaTime);
 
-    if (m_currentIndex >= 0 &&
-        m_currentIndex < static_cast<int>(m_listScene.size()))
-    {
-        clip& currentClip = m_listScene[m_currentIndex];
+    if (m_currentIndex < 0 || m_currentIndex >= static_cast<int>(m_listScene.size())) {
+        return;
+    }
 
-        currentClip.scene->Update(effectiveDeltaTime);
+    SceneEntry& currentScene = m_listScene[m_currentIndex];
 
-        // Pas de nouveau changement de scène pendant une transition.
-        if (!isEditMode && m_fadeState == FadeState::None)
-        {
-            float duration = currentClip.t_end - currentClip.t_start;
+    currentScene.scene->Update(effectiveDeltaTime);
 
-            if (duration > 0.0f &&
-                currentClip.scene->GetSceneTime() >= duration)
-            {
-                NextScene(isEditMode);
-            }
-        }
+    if (isEditMode || m_fadeState != FadeState::None) {
+        return;
+    }
+
+    const float duration = currentScene.t_end - currentScene.t_start;
+
+    if (duration > 0.0f && currentScene.scene->GetSceneTime() >= duration) {
+        NextScene(isEditMode);
     }
 }
 
-void SceneManager::Render(
-    GraphicsPipeline& pipeline,
-    const glm::mat4& viewMatrix,
-    const glm::mat4& viewProjection,
-    const glm::vec3& viewPos,
-    float time)
+void SceneManager::Render( GraphicsPipeline& pipeline, const glm::mat4& viewMatrix, const glm::mat4& viewProjection, const glm::vec3& viewPos, float time)
 {
-    if (m_currentIndex >= 0 &&
-        m_currentIndex < static_cast<int>(m_listScene.size()))
-    {
+    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
         m_listScene[m_currentIndex].scene->Render(
             pipeline,
             *this,
@@ -186,16 +185,17 @@ void SceneManager::Render(
         );
     }
 
-    // Toujours dessiner le fondu en dernier.
+    // Le fondu est toujours dessiné en dernier.
     RenderFade(pipeline);
 }
 
 Scene* SceneManager::GetCurrentScene()
 {
-    if (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_listScene.size())) {
-        return m_listScene[m_currentIndex].scene.get();
+    if (m_currentIndex < 0 || m_currentIndex >= static_cast<int>(m_listScene.size())) {
+        return nullptr;
     }
-    return nullptr;
+
+    return m_listScene[m_currentIndex].scene.get();
 }
 
 int SceneManager::GetWidth() const

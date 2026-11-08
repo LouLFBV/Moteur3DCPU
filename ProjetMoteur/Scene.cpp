@@ -105,18 +105,18 @@ void Scene::GenerateTerrain(int size, float cellSize) {
 bool Scene::LoadGameObject(GameObject& go, const char* objPath, const char* texturePath, const char* mtlDir)
 {
     Get_TOBJ(objPath, go.objModel, mtlDir);
-    go.loaded = !go.objModel.vertices.empty();
+    go.loaded = !go.objModel.GetVertices().empty();
 
     if (!go.loaded) {
         std::cerr << "[Erreur] Impossible de charger le modele OBJ : " << objPath << std::endl;
         return false;
     }
 
-    std::cout << "[Info] OBJ Charge : " << objPath << " (" << go.objModel.vertices.size() << " sommets)" << std::endl;
+    std::cout << "[Info] OBJ Charge : " << objPath << " (" << go.objModel.GetVertices().size() << " sommets)" << std::endl;
 
-    if (texturePath && !go.objModel.material.hasTexture) {
-        if (go.objModel.material.texture.LoadFromFile(texturePath)) {
-            go.objModel.material.hasTexture = true;
+    if (texturePath && !go.objModel.GetMaterial().hasTexture) {
+        if (go.objModel.GetMaterial().texture.LoadFromFile(texturePath)) {
+            go.objModel.GetMaterial().hasTexture = true;
             std::cout << "[Info] Texture chargee : " << texturePath << std::endl;
         }
         else {
@@ -124,11 +124,11 @@ bool Scene::LoadGameObject(GameObject& go, const char* objPath, const char* text
         }
     }
 
-    go.objModel.material.diffuse = glm::vec3(1.0f);
+    go.objModel.GetMaterial().diffuse = glm::vec3(1.0f);
 
     go.gpuVertices.clear();
-    go.gpuVertices.reserve(go.objModel.vertices.size());
-    for (const auto& src : go.objModel.vertices) {
+    go.gpuVertices.reserve(go.objModel.GetVertices().size());
+    for (const auto& src : go.objModel.GetVertices()) {
         go.gpuVertices.push_back({
             src.position, src.r, src.g, src.b,
             {src.tx, src.ty}, {src.nx, src.ny, src.nz}

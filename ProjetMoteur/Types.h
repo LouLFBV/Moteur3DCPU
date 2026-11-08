@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <atomic>
 #include <glm/gtc/matrix_transform.hpp>
+
 struct Vertex
 {
     glm::vec4 position;
@@ -79,8 +80,9 @@ struct DrawCommand {
     Vertex v0, v1, v2;
 };
 
-
-struct Box { int x0, y0, x1, y1; };
+struct Box {
+    int x0, y0, x1, y1; 
+};
 
 struct Particle {
     glm::vec3 position{ 0.0f };

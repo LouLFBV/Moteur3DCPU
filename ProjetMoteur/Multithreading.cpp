@@ -1,4 +1,6 @@
 #include "Multithreading.h"
+#include <algorithm>
+#include <utility>
 
 Multithreading& Multithreading::GetInstance()
 {
@@ -8,13 +10,17 @@ Multithreading& Multithreading::GetInstance()
 
 Multithreading::Multithreading()
 {
-    unsigned int cores = std::thread::hardware_concurrency();
-    int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
+    const unsigned int cores = std::thread::hardware_concurrency();
+
+    const int numThreads = (cores == 0) ? 4 : static_cast<int>(cores);
+
+    m_numJobs = numThreads * 2;
 
     for (int i = 0; i < numThreads; ++i) {
-        m_workers.emplace_back([this] { WorkerThreadLoop(); });
+        m_workers.emplace_back([this]() {
+            WorkerThreadLoop();
+            });
     }
-    M_NUM_JOBS = numThreads * 2;
 }
 
 Multithreading::~Multithreading()
@@ -23,57 +29,75 @@ Multithreading::~Multithreading()
         std::lock_guard<std::mutex> lock(m_queueMutex);
         m_stopThreads = true;
     }
+
     m_condition.notify_all();
 
     for (std::thread& worker : m_workers) {
-        worker.join();
+        if (worker.joinable()) {
+            worker.join();
+        }
     }
 }
 
 void Multithreading::Submit(Job job, bool urgent)
 {
+    if (!job) {
+        return;
+    }
+
     {
         std::lock_guard<std::mutex> lock(m_queueMutex);
+
+        if (m_stopThreads) {
+            return;
+        }
         if (urgent) {
-            m_taskQueue.push_front(std::move(job)); // Passe devant
+            m_taskQueue.push_front(std::move(job));
         }
         else {
-            m_taskQueue.push_back(std::move(job));  // A la suite
+            m_taskQueue.push_back(std::move(job));
         }
-        m_pendingTasks++; // Un job de plus en vol
+        ++m_pendingTasks;
     }
-    m_condition.notify_one(); // Réveille un worker
+    m_condition.notify_one();
 }
 
 void Multithreading::WaitAll()
 {
-    std::unique_lock<std::mutex> lock(m_waitMutex);
-    m_waitCondition.wait(lock, [this] {
-        return m_pendingTasks.load() == 0; // On attend que la file soit totalement vide
-        });
+    {
+        std::unique_lock<std::mutex> lock(m_waitMutex);
+
+        m_waitCondition.wait(lock, [this]() {
+            return m_pendingTasks.load() == 0;
+            });
+    }
+
+    std::exception_ptr exception;
+
+    {
+        std::lock_guard<std::mutex> lock(m_exceptionMutex);
+
+        exception = m_taskException;
+        m_taskException = nullptr;
+    }
+
+    if (exception) {
+        std::rethrow_exception(exception);
+    }
 }
 
-void Multithreading::DispatchTasks(
-    int numTasks,
-    int height,
-    std::function<void(int taskId, int minY, int maxY)> workerTask)
+void Multithreading::DispatchTasks(int numTasks, int height, std::function<void(int taskId, int minY, int maxY)> workerTask)
 {
-    if (height <= 0 || numTasks <= 0 || !workerTask)
+    if (height <= 0 || numTasks <= 0 || !workerTask) {
         return;
+    }
 
-    // On ne crée jamais plus de tâches que de lignes disponibles.
     numTasks = std::min(numTasks, height);
 
     for (int i = 0; i < numTasks; ++i) {
+        const int minY = static_cast<int>((static_cast<long long>(i) * height) / numTasks);
 
-        // Répartition équilibrée de toutes les lignes.
-        int minY = static_cast<int>(
-            (static_cast<long long>(i) * height) / numTasks
-            );
-
-        int maxY = static_cast<int>(
-            (static_cast<long long>(i + 1) * height) / numTasks
-            );
+        const int maxY = static_cast<int>((static_cast<long long>(i + 1) * height) / numTasks);
 
         Submit([i, minY, maxY, workerTask]() {
             workerTask(i, minY, maxY);
@@ -88,18 +112,18 @@ int Multithreading::GetNumThreads() const
 
 int Multithreading::GetNumJobs() const
 {
-    return M_NUM_JOBS;
+    return m_numJobs;
 }
 
 void Multithreading::WorkerThreadLoop()
 {
-    for (;;) {
+    while (true) {
         Job task;
 
-        // 1. On cherche une tâche
         {
             std::unique_lock<std::mutex> lock(m_queueMutex);
-            m_condition.wait(lock, [this] {
+
+            m_condition.wait(lock, [this]() {
                 return m_stopThreads || !m_taskQueue.empty();
                 });
 
@@ -110,14 +134,21 @@ void Multithreading::WorkerThreadLoop()
             m_taskQueue.pop_front();
         }
 
-        // 2. On exécute
-        task();
+        try {
+            task();
+        }
+        catch (...) {
+            std::lock_guard<std::mutex> lock(m_exceptionMutex);
 
-        // 3. On décrémente et on signale si on a tout fini
+            if (!m_taskException)
+                m_taskException = std::current_exception();
+        }
+
         {
             std::lock_guard<std::mutex> lock(m_waitMutex);
-            m_pendingTasks--;
+            --m_pendingTasks;
         }
-        m_waitCondition.notify_all(); // notify_all est plus sûr ici pour réveiller WaitAll()
+
+        m_waitCondition.notify_all();
     }
 }

@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 
 // =====================================================
@@ -269,7 +268,7 @@ void Village::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, con
         if (i == 0) {
             // Index 0 : Chouette POV (Caméra surélevée par rapport à la chouette)
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse;
 
                 if (mat.hasTexture) {
@@ -388,7 +387,7 @@ void Village::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, con
                 });
 
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse;
 
                 float rRainbow = 0.5f + 0.5f * std::sin(m_time * 3.0f + pixel.worldPos.x * 2.0f);
@@ -441,7 +440,7 @@ void Village::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, con
         else {
             // Index > 2 : Arbres, Ours, Loups
             pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse;
 
                 if (mat.hasTexture) {

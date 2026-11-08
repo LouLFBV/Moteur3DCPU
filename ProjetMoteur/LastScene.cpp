@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 
 // =====================================================
@@ -299,7 +298,7 @@ void LastScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
                 });
 
             pipeline.SetFragmentShader([this, i, lightDir, effectiveViewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse;
 
                 float rRainbow = 0.5f + 0.5f * std::sin(m_time * 3.0f + pixel.worldPos.x * 2.0f);
@@ -352,7 +351,7 @@ void LastScene::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, c
         else {
             // Index > 2 : Arbres, Ours, Loups
             pipeline.SetFragmentShader([this, i, lightDir, effectiveViewPos](const BordLigne& pixel) -> uint32_t {
-                const Material& mat = m_gameObjects[i].objModel.material;
+                const Material& mat = m_gameObjects[i].objModel.GetMaterial();
                 glm::vec3 baseDiffuse = mat.diffuse;
 
                 if (mat.hasTexture) {

@@ -1,14 +1,12 @@
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Aqua.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Aqua.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Beach.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Beach.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Camera.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Camera.obj
-C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\EmptyScene.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\EmptyScene.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\End.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\End.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\FragmentProcessor.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\FragmentProcessor.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\GraphicsPipeline.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\GraphicsPipeline.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Intro.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Intro.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\LastScene.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\LastScene.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\main.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\main.obj
-C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\MainScene.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\MainScene.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\MathUtils.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\MathUtils.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Mer.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Mer.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Multithreading.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Multithreading.obj
@@ -18,7 +16,6 @@ C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Rasterizer.cpp;C:\Cou
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Scene.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Scene.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\SceneManager.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\SceneManager.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Texture.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Texture.obj
-C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ThirdScene.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\ThirdScene.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\VertexProcessor.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\VertexProcessor.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Village.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Village.obj
 C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\Window.cpp;C:\CoursGTech\B3\Moteur3DCPUCours\Moteur3DCPU\ProjetMoteur\ProjetMoteur\x64\Release\Window.obj

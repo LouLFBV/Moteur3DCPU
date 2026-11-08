@@ -148,14 +148,12 @@
     <ClCompile Include="Aqua.cpp" />
     <ClCompile Include="Beach.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="EmptyScene.cpp" />
     <ClCompile Include="End.cpp" />
     <ClCompile Include="FragmentProcessor.cpp" />
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="Intro.cpp" />
     <ClCompile Include="LastScene.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainScene.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="Mer.cpp" />
     <ClCompile Include="Multithreading.cpp" />
@@ -165,7 +163,6 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="ThirdScene.cpp" />
     <ClCompile Include="VertexProcessor.cpp" />
     <ClCompile Include="Village.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -175,16 +172,13 @@
     <ClInclude Include="Aqua.h" />
     <ClInclude Include="Beach.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="EmptyScene.h" />
     <ClInclude Include="End.h" />
     <ClInclude Include="FragmentProcessor.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="Intro.h" />
     <ClInclude Include="LastScene.h" />
-    <ClInclude Include="MainScene.h" />
     <ClInclude Include="Material.h" />
-    <ClInclude Include="MaterialPresets.h" />
     <ClInclude Include="MathUtils.h" />
     <ClInclude Include="Mer.h" />
     <ClInclude Include="Multithreading.h" />
@@ -194,7 +188,6 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Texture.h" />
-    <ClInclude Include="ThirdScene.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="VertexProcessor.h" />
     <ClInclude Include="Village.h" />

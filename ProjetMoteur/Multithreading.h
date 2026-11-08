@@ -1,16 +1,17 @@
 #pragma once
 #include <thread>
 #include <vector>
-#include <deque> 
+#include <deque>
 #include <functional>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <algorithm>
+#include <exception>
 
-using Job = std::function<void()>; 
+using Job = std::function<void()>;
 
-class Multithreading {
+class Multithreading
+{
 public:
     static Multithreading& GetInstance();
 
@@ -29,17 +30,23 @@ private:
 
     void WorkerThreadLoop();
 
-    int M_NUM_JOBS;
+    int m_numJobs = 0;
+
     std::vector<std::thread> m_workers;
     std::deque<Job> m_taskQueue;
 
     std::mutex m_queueMutex;
     std::condition_variable m_condition;
+
     bool m_stopThreads = false;
 
     std::atomic<int> m_pendingTasks{ 0 };
+
     std::mutex m_waitMutex;
     std::condition_variable m_waitCondition;
+
+    std::exception_ptr m_taskException;
+    std::mutex m_exceptionMutex;
 
     Multithreading(const Multithreading&) = delete;
     Multithreading& operator=(const Multithreading&) = delete;

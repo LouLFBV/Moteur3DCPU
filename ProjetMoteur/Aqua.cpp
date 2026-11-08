@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 #include "ObjLoader.h"
 #include "Types.h"
@@ -232,7 +231,7 @@ void Aqua::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const 
         if (!m_gameObjects[i].loaded) continue;
 
         pipeline.SetFragmentShader([this, i, lightDir, viewPos](const BordLigne& pixel) -> uint32_t {
-            const Material& mat = m_gameObjects[i].objModel.material;
+            const Material& mat = m_gameObjects[i].objModel.GetMaterial();
             glm::vec3 baseDiffuse = mat.diffuse * glm::vec3(pixel.r, pixel.g, pixel.b);
 
             if (mat.hasTexture) {

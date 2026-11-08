@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "MaterialPresets.h"
 #include "SceneManager.h"
 
 // =====================================================
@@ -153,7 +152,7 @@ void End::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
         glm::vec3 catColor = (i < 3) ? catColors[i] : glm::vec3(1.0f);
 
         pipeline.SetFragmentShader([this, i, lightDir, viewPos, catColor](const BordLigne& pixel) -> uint32_t {
-            const Material& mat = m_gameObjects[i].objModel.material;
+            const Material& mat = m_gameObjects[i].objModel.GetMaterial();
 
             glm::vec3 baseDiffuse = mat.diffuse * catColor * glm::vec3(pixel.r, pixel.g, pixel.b);
 
