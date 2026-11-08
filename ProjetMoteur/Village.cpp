@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include "SceneManager.h"
+#include "MathUtils.h"
 
 // =====================================================
 // CONSTRUCTEUR

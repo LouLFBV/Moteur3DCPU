@@ -8,7 +8,6 @@ class FragmentProcessor {
 public:
     void SetFragmentShader(PixelShader shader);
 
-    // Exécute le shader de fragment et gère le blending si besoin
     uint32_t ProcessFragment(const BordLigne& pixel) const;
 
 private:

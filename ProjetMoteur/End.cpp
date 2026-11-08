@@ -71,7 +71,6 @@ End::End(SceneManager& sceneManager) : Scene(sceneManager)
 void End::Update(float deltaTime)
 {
     Scene::Update(deltaTime);
-    m_time += deltaTime;
 
     if (!m_particlesFrozen) {
         m_hudAnimationTime += deltaTime;
@@ -88,7 +87,7 @@ void End::Update(float deltaTime)
 
     // ROTATION CONTINUELLE À 360° SANS S'ARRÊTER
     for (size_t i = 0; i < m_gameObjects.size(); ++i) {
-        m_gameObjects[i].transform.rotation.y = m_time * 6.0f;
+        m_gameObjects[i].transform.rotation.y = m_sceneTime * 6.0f;
     }
 }
 
@@ -126,8 +125,8 @@ void End::Render(GraphicsPipeline& pipeline, SceneManager& sceneManager, const g
         Vertex transformed = vertex;
 
         // Calcul de la déformation élastique / souple
-        float waveX = std::sin(vertex.position.y * 12.0f + m_time * 6.0f) * 0.08f;
-        float waveZ = std::cos(vertex.position.y * 10.0f + m_time * 5.0f) * 0.04f;
+        float waveX = std::sin(vertex.position.y * 12.0f + m_sceneTime * 6.0f) * 0.08f;
+        float waveZ = std::cos(vertex.position.y * 10.0f + m_sceneTime * 5.0f) * 0.04f;
 
         transformed.position.x += waveX;
         transformed.position.z += waveZ;
@@ -270,15 +269,4 @@ void End::OnExit()
 {
     m_gameObjects.clear();
     std::cout << "Scene Fin quittee\n";
-}
-
-void End::SetParticlesFrozen(bool frozen)
-{
-    m_particlesFrozen = frozen;
-}
-
-void End::SetEditMode(bool editMode)
-{
-    m_isEditMode = editMode;
-    SetParticlesFrozen(editMode);
 }

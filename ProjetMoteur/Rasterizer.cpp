@@ -2,16 +2,30 @@
 #include "MathUtils.h"
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
+#include <limits>
 
-Rasterizer::Rasterizer(int width, int height)
-    : m_width(width), m_height(height)
+Rasterizer::Rasterizer(int width, int height) : m_width(width), m_height(height)
 {
-    m_framebuffer.resize(width * height, 0xFF000000);
-    m_zbuffer.resize(width * height, 1.0f);
-}
+    if (width <= 0 || height <= 0) {
+        throw std::invalid_argument(
+            "Rasterizer dimensions must be positive."
+        );
+    }
 
-Rasterizer::~Rasterizer()
-{}
+    const std::size_t pixelCount = static_cast<std::size_t>(width) * static_cast<std::size_t>(height);
+
+    // Les index utilisés dans le rasterizer sont des int.
+    if (pixelCount > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+    {
+        throw std::length_error(
+            "Rasterizer dimensions are too large."
+        );
+    }
+
+    m_framebuffer.assign(pixelCount, 0xFF000000u);
+    m_zbuffer.assign(pixelCount, 1.0f);
+}
 
 void Rasterizer::ResetStats()
 {
@@ -25,9 +39,19 @@ void Rasterizer::ResetStats()
     m_stats.threadsUsed = 0;
 }
 
+RenderStats& Rasterizer::GetStats()
+{
+    return m_stats;
+}
+
 const RenderStats& Rasterizer::GetStats() const
 {
     return m_stats;
+}
+
+void Rasterizer::SetAlphaBlendingEnabled(bool enabled)
+{
+    m_alphaBlendingEnabled = enabled;
 }
 
 void Rasterizer::SetDepthTestEnabled(bool enabled)
@@ -35,20 +59,34 @@ void Rasterizer::SetDepthTestEnabled(bool enabled)
     m_depthTestEnabled = enabled;
 }
 
-RenderStats& Rasterizer::GetStats()
+void Rasterizer::SetDepthWriteEnabled(bool enabled)
 {
-    return m_stats;
+    m_depthWriteEnabled = enabled;
 }
 
 void Rasterizer::Clear()
 {
-    std::fill(m_framebuffer.begin(), m_framebuffer.end(), 0xFF000000);
-    std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
+    std::fill(
+        m_framebuffer.begin(),
+        m_framebuffer.end(),
+        0xFF000000u
+    );
+
+    ClearZBuffer();
 }
 
 void Rasterizer::ClearZBuffer()
 {
-    std::fill(m_zbuffer.begin(), m_zbuffer.end(), 1.0f);
+    std::fill(
+        m_zbuffer.begin(),
+        m_zbuffer.end(),
+        1.0f
+    );
+}
+
+uint32_t* Rasterizer::GetPixels()
+{
+    return m_framebuffer.data();
 }
 
 const void* Rasterizer::GetPixels() const
@@ -58,12 +96,7 @@ const void* Rasterizer::GetPixels() const
 
 int Rasterizer::GetPitch() const
 {
-    return m_width * sizeof(uint32_t);
-}
-
-int Rasterizer::GetHeight() const
-{
-    return m_height;
+    return m_width * static_cast<int>(sizeof(uint32_t));
 }
 
 int Rasterizer::GetWidth() const
@@ -71,205 +104,308 @@ int Rasterizer::GetWidth() const
     return m_width;
 }
 
+int Rasterizer::GetHeight() const
+{
+    return m_height;
+}
+
 bool Rasterizer::WritePixelColor(int index, uint32_t color)
 {
-    if (!m_alphaBlendingEnabled)
-    {
+    // Pas de blending : remplacement direct de la couleur.
+    if (!m_alphaBlendingEnabled) {
         m_framebuffer[index] = color;
         return true;
     }
 
-    uint8_t srcA = (color >> 24) & 0xFF;
+    const uint8_t sourceAlpha = (color >> 24) & 0xFF;
 
-    if (srcA == 0)
+    // Pixel entièrement transparent.
+    if (sourceAlpha == 0) {
         return false;
+    }
 
-    if (srcA == 255)
-    {
+    // Pixel entièrement opaque.
+    if (sourceAlpha == 255) {
         m_framebuffer[index] = color;
         return true;
     }
 
-    uint8_t srcR = (color >> 16) & 0xFF;
-    uint8_t srcG = (color >> 8) & 0xFF;
-    uint8_t srcB = color & 0xFF;
+    const uint8_t sourceRed = (color >> 16) & 0xFF;
+    const uint8_t sourceGreen = (color >> 8) & 0xFF;
+    const uint8_t sourceBlue = color & 0xFF;
 
-    uint32_t destination = m_framebuffer[index];
+    const uint32_t destinationColor = m_framebuffer[index];
 
-    uint8_t dstR = (destination >> 16) & 0xFF;
-    uint8_t dstG = (destination >> 8) & 0xFF;
-    uint8_t dstB = destination & 0xFF;
+    const uint8_t destinationRed = (destinationColor >> 16) & 0xFF;
+    const uint8_t destinationGreen = (destinationColor >> 8) & 0xFF;
+    const uint8_t destinationBlue = destinationColor & 0xFF;
 
-    float alpha = srcA / 255.0f;
-    float inverseAlpha = 1.0f - alpha;
+    const float alpha = sourceAlpha / 255.0f;
+    const float inverseAlpha = 1.0f - alpha;
 
-    uint8_t finalR = static_cast<uint8_t>(
-        srcR * alpha + dstR * inverseAlpha + 0.5f
+    const uint8_t finalRed = static_cast<uint8_t>(
+        sourceRed * alpha +
+        destinationRed * inverseAlpha +
+        0.5f
         );
 
-    uint8_t finalG = static_cast<uint8_t>(
-        srcG * alpha + dstG * inverseAlpha + 0.5f
+    const uint8_t finalGreen = static_cast<uint8_t>(
+        sourceGreen * alpha +
+        destinationGreen * inverseAlpha +
+        0.5f
         );
 
-    uint8_t finalB = static_cast<uint8_t>(
-        srcB * alpha + dstB * inverseAlpha + 0.5f
+    const uint8_t finalBlue = static_cast<uint8_t>(
+        sourceBlue * alpha +
+        destinationBlue * inverseAlpha +
+        0.5f
         );
 
     m_framebuffer[index] =
         (0xFFu << 24) |
-        (static_cast<uint32_t>(finalR) << 16) |
-        (static_cast<uint32_t>(finalG) << 8) |
-        finalB;
+        (static_cast<uint32_t>(finalRed) << 16) |
+        (static_cast<uint32_t>(finalGreen) << 8) |
+        static_cast<uint32_t>(finalBlue);
 
     return true;
 }
 
 ScreenVertex Rasterizer::ToScreen(const Vertex& vertex)
 {
-    float inverseW = 1.0f / vertex.position.w;
-    float xndc = vertex.position.x * inverseW;
-    float yndc = vertex.position.y * inverseW;
-    float zndc = vertex.position.z * inverseW;
+    constexpr float epsilon = 0.000001f;
 
-    return {
-        int(std::lround((xndc + 1) / 2 * m_width)),
-        int(std::lround((1 - yndc) / 2 * m_height)),
-        zndc, vertex.r, vertex.g, vertex.b,
+    // Évite une division par zéro.
+    if (std::abs(vertex.position.w) < epsilon) {
+        return {};
+    }
+
+    const float inverseW = 1.0f / vertex.position.w;
+
+    const float xNdc = vertex.position.x * inverseW;
+    const float yNdc = vertex.position.y * inverseW;
+    const float zNdc = vertex.position.z * inverseW;
+
+    return
+    {
+        static_cast<int>(
+            std::lround((xNdc + 1.0f) * 0.5f * m_width)
+        ),
+
+        static_cast<int>(
+            std::lround((1.0f - yNdc) * 0.5f * m_height)
+        ),
+
+        zNdc,
+
+        vertex.r,
+        vertex.g,
+        vertex.b,
+
         inverseW,
-        vertex.uv.x, vertex.uv.y,
-        vertex.normal.x, vertex.normal.y, vertex.normal.z,
+
+        vertex.uv.x,
+        vertex.uv.y,
+
+        vertex.normal.x,
+        vertex.normal.y,
+        vertex.normal.z,
+
         {
             vertex.worldPos.x,
             vertex.worldPos.y,
             vertex.worldPos.z
         },
+
         vertex.alpha
     };
 }
 
-bool Rasterizer::Barycentric(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c, const glm::vec2& p, float l[3])
-{
-    float area = EdgeFunction(a, b, c);
-    if (std::abs(area) < 0.00001f) return false; 
-
-    l[0] = EdgeFunction(b, c, p) / area;
-    l[1] = EdgeFunction(c, a, p) / area;
-    l[2] = EdgeFunction(a, b, p) / area;
-    return true;
-}
-
 void Rasterizer::Plot(int x, int y, float z, uint32_t color)
 {
-    m_stats.pixelsProcessed++;
+    m_stats.pixelsProcessed.fetch_add(
+        1,
+        std::memory_order_relaxed
+    );
 
-    if (x >= 0 && x < m_width && y >= 0 && y < m_height)
-    {
-        int i = x + y * m_width;
-        if (z >= m_zbuffer[i]) return;
-        m_zbuffer[i] = z;
+    if (x < 0 || x >= m_width || y < 0 || y >= m_height) {
+        return;
+    }
 
-        m_framebuffer[i] = color;
+    const int index = x + y * m_width;
+
+    // Test de profondeur.
+    if (m_depthTestEnabled && z >= m_zbuffer[index]) {
+        return;
+    }
+
+    const bool pixelWritten = WritePixelColor(index, color);
+
+    // Les pixels transparents ne modifient pas le Z-buffer.
+    if (pixelWritten && m_depthWriteEnabled) {
+        m_zbuffer[index] = z;
     }
 }
 
 void Rasterizer::SortByY(ScreenVertex& screenVertex1, ScreenVertex& screenVertex2, ScreenVertex& screenVertex3)
 {
-    if (screenVertex1.y > screenVertex2.y) std::swap(screenVertex1, screenVertex2);
-    if (screenVertex2.y > screenVertex3.y) std::swap(screenVertex2, screenVertex3);
-    if (screenVertex1.y > screenVertex2.y) std::swap(screenVertex1, screenVertex2);
+    if (screenVertex1.y > screenVertex2.y) {
+        std::swap(screenVertex1, screenVertex2);
+    }
+
+    if (screenVertex2.y > screenVertex3.y) {
+        std::swap(screenVertex2, screenVertex3);
+    }
+
+    if (screenVertex1.y > screenVertex2.y) {
+        std::swap(screenVertex1, screenVertex2);
+    }
 }
 
 bool Rasterizer::MiddleIsRight(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, const ScreenVertex& screenVertex3)
 {
-    long cross = long(screenVertex3.x - screenVertex1.x) * (screenVertex2.y - screenVertex1.y) - long(screenVertex3.y - screenVertex1.y) * (screenVertex2.x - screenVertex1.x);
+    const long cross = static_cast<long>(screenVertex3.x - screenVertex1.x) * (screenVertex2.y - screenVertex1.y) - static_cast<long>(screenVertex3.y - screenVertex1.y) * (screenVertex2.x - screenVertex1.x);
+
     return cross < 0;
 }
 
 void Rasterizer::WalkEdge(const ScreenVertex& screenVertex1, const ScreenVertex& screenVertex2, BordLigne* out) const
 {
-    int distanceX = std::abs(screenVertex2.x - screenVertex1.x);
-    int distanceY = screenVertex2.y - screenVertex1.y;
-    if (distanceY == 0) return;
+    const int distanceX = std::abs(screenVertex2.x - screenVertex1.x);
 
-    int sensX = (screenVertex2.x > screenVertex1.x) ? 1 : -1;
-    int err = distanceY / 2;
+    const int distanceY = screenVertex2.y - screenVertex1.y;
+
+    if (distanceY == 0) {
+        return;
+    }
+
+    const int directionX = (screenVertex2.x > screenVertex1.x) ? 1 : -1;
+
+    int error = distanceY / 2;
     int x = screenVertex1.x;
 
     for (int y = screenVertex1.y; y < screenVertex2.y; ++y) {
-        float t = float(y - screenVertex1.y) / distanceY;
+        const float t = static_cast<float>(y - screenVertex1.y) / distanceY;
+
         if (y >= 0 && y < m_height) {
-            out[y] = {
+            out[y] =
+            {
                 x,
+
                 Lerp(screenVertex1.z, screenVertex2.z, t),
-                Lerp(screenVertex1.r, screenVertex2.r, t), Lerp(screenVertex1.g, screenVertex2.g, t), Lerp(screenVertex1.b, screenVertex2.b, t),
+
+                Lerp(screenVertex1.r, screenVertex2.r, t),
+                Lerp(screenVertex1.g, screenVertex2.g, t),
+                Lerp(screenVertex1.b, screenVertex2.b, t),
+
                 Lerp(screenVertex1.invW, screenVertex2.invW, t),
-                Lerp(screenVertex1.u, screenVertex2.u, t), Lerp(screenVertex1.v, screenVertex2.v, t),
-                Lerp(screenVertex1.nx, screenVertex2.nx, t), Lerp(screenVertex1.ny, screenVertex2.ny, t), Lerp(screenVertex1.nz, screenVertex2.nz, t),
+
+                Lerp(screenVertex1.u, screenVertex2.u, t),
+                Lerp(screenVertex1.v, screenVertex2.v, t),
+
+                Lerp(screenVertex1.nx, screenVertex2.nx, t),
+                Lerp(screenVertex1.ny, screenVertex2.ny, t),
+                Lerp(screenVertex1.nz, screenVertex2.nz, t),
+
                 {
-                    Lerp(screenVertex1.worldPos.x, screenVertex2.worldPos.x, t),
-                    Lerp(screenVertex1.worldPos.y, screenVertex2.worldPos.y, t),
-                    Lerp(screenVertex1.worldPos.z, screenVertex2.worldPos.z, t)
+                    Lerp(
+                        screenVertex1.worldPos.x,
+                        screenVertex2.worldPos.x,
+                        t
+                    ),
+
+                    Lerp(
+                        screenVertex1.worldPos.y,
+                        screenVertex2.worldPos.y,
+                        t
+                    ),
+
+                    Lerp(
+                        screenVertex1.worldPos.z,
+                        screenVertex2.worldPos.z,
+                        t
+                    )
                 },
+
                 Lerp(screenVertex1.alpha, screenVertex2.alpha, t)
             };
         }
-        for (err += distanceX; err > distanceY; err -= distanceY)
-            x += sensX;
+
+        for (error += distanceX; error > distanceY; error -= distanceY){
+            x += directionX;
+        }
     }
 }
 
 void Rasterizer::FillRows(int y0, int y1, const BordLigne* left, const BordLigne* right, int tileMinY, int tileMaxY, const PixelShaderCallback& pixelShader)
 {
-    int startY = std::max({ y0, 0, tileMinY });
-    int endY = std::min({ y1, m_height, tileMaxY });
+    const int startY = std::max({
+        y0,
+        0,
+        tileMinY
+        });
 
-    for (int y = startY; y < endY; ++y)
-    {
-        FillRowFast(y, left[y], right[y], pixelShader);
+    const int endY = std::min({
+        y1,
+        m_height,
+        tileMaxY
+        });
+
+    for (int y = startY; y < endY; ++y) {
+        FillRowFast(
+            y,
+            left[y],
+            right[y],
+            pixelShader
+        );
     }
 }
 
-void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& right, const PixelShaderCallback& pixelShader)
+void Rasterizer::FillRowFast( int y, const BordLigne& left, const BordLigne& right, const PixelShaderCallback& pixelShader)
 {
-    int width = std::max(right.x - left.x, 1);
+    const int width = std::max(right.x - left.x, 1);
+    const float inverseWidth = 1.0f / width;
 
-    float invWidth = 1.0f / width;
+    const float deltaZ = (right.z - left.z) * inverseWidth;
 
-    float deltaZ = (right.z - left.z) * invWidth;
-    float deltaR = (right.r - left.r) * invWidth;
-    float deltaG = (right.g - left.g) * invWidth;
-    float deltaB = (right.b - left.b) * invWidth;
+    const float deltaR = (right.r - left.r) * inverseWidth;
+    const float deltaG = (right.g - left.g) * inverseWidth;
+    const float deltaB = (right.b - left.b) * inverseWidth;
 
-    float deltaU = (right.u - left.u) * invWidth;
-    float deltaV = (right.v - left.v) * invWidth;
-    float deltaNx = (right.nx - left.nx) * invWidth;
-    float deltaNy = (right.ny - left.ny) * invWidth;
-    float deltaNz = (right.nz - left.nz) * invWidth;
+    const float deltaU = (right.u - left.u) * inverseWidth;
+    const float deltaV = (right.v - left.v) * inverseWidth;
 
-    float deltaWorldX = (right.worldPos.x - left.worldPos.x) * invWidth;
-    float deltaWorldY = (right.worldPos.y - left.worldPos.y) * invWidth;
-    float deltaWorldZ = (right.worldPos.z - left.worldPos.z) * invWidth;
+    const float deltaNx = (right.nx - left.nx) * inverseWidth;
+    const float deltaNy = (right.ny - left.ny) * inverseWidth;
+    const float deltaNz = (right.nz - left.nz) * inverseWidth;
 
-    float deltaAlpha = (right.alpha - left.alpha) * invWidth;
+    const float deltaWorldX = (right.worldPos.x - left.worldPos.x) * inverseWidth;
+
+    const float deltaWorldY = (right.worldPos.y - left.worldPos.y) * inverseWidth;
+
+    const float deltaWorldZ = (right.worldPos.z - left.worldPos.z) * inverseWidth;
+
+    const float deltaAlpha =  (right.alpha - left.alpha) * inverseWidth;
 
     BordLigne current = left;
 
-    for (int x = left.x; x < right.x; x++) {
-        if (x >= 0 && x < m_width)
-        {
+    for (int x = left.x; x < right.x; ++x) {
+        if (x >= 0 && x < m_width) {
             current.x = x;
 
-            uint32_t finalColor = pixelShader ? pixelShader(current) : 0xFFFFFFFF;
+            const uint32_t finalColor = pixelShader ? pixelShader(current) : 0xFFFFFFFFu;
+
             Plot(x, y, current.z, finalColor);
         }
 
         current.z += deltaZ;
+
         current.r += deltaR;
         current.g += deltaG;
         current.b += deltaB;
 
         current.u += deltaU;
         current.v += deltaV;
+
         current.nx += deltaNx;
         current.ny += deltaNy;
         current.nz += deltaNz;
@@ -282,211 +418,365 @@ void Rasterizer::FillRowFast(int y, const BordLigne& left, const BordLigne& righ
     }
 }
 
-Box Rasterizer::BoundingBox(
-    const Vertex& a,
-    const Vertex& b,
-    const Vertex& c,
-    int width,
-    int height)
+float Rasterizer::Mix3(float value0, float value1, float value2, const float weights[3])
 {
-    constexpr float epsilon = 0.0000001f;
-
-    if (std::abs(a.position.w) < epsilon ||
-        std::abs(b.position.w) < epsilon ||
-        std::abs(c.position.w) < epsilon)
-    {
-        return { 0, 0, -1, -1 };
-    }
-
-    auto ToScreenPosition = [width, height](const Vertex& vertex)
-        {
-            float invW = 1.0f / vertex.position.w;
-
-            return glm::vec2(
-                (vertex.position.x * invW + 1.0f) * 0.5f * width,
-                (1.0f - vertex.position.y * invW) * 0.5f * height
-            );
-        };
-
-    glm::vec2 A = ToScreenPosition(a);
-    glm::vec2 B = ToScreenPosition(b);
-    glm::vec2 C = ToScreenPosition(c);
-
-    int minX = std::max(
-        0,
-        static_cast<int>(std::floor(std::min({ A.x, B.x, C.x })))
-    );
-
-    int minY = std::max(
-        0,
-        static_cast<int>(std::floor(std::min({ A.y, B.y, C.y })))
-    );
-
-    int maxX = std::min(
-        width - 1,
-        static_cast<int>(std::ceil(std::max({ A.x, B.x, C.x })))
-    );
-
-    int maxY = std::min(
-        height - 1,
-        static_cast<int>(std::ceil(std::max({ A.y, B.y, C.y })))
-    );
-
-    return { minX, minY, maxX, maxY };
+    return weights[0] * value0 +  weights[1] * value1 + weights[2] * value2;
 }
 
-float Rasterizer::Mix3(float a, float b, float c, const float l[3])
+float Rasterizer::EdgeFunction(const glm::vec2& pointA, const glm::vec2& pointB, const glm::vec2& pointC)
 {
-    return l[0] * a + l[1] * b + l[2] * c;
+    return (pointC.x - pointA.x) * (pointB.y - pointA.y) - (pointC.y - pointA.y) * (pointB.x - pointA.x);
 }
 
-float Rasterizer::EdgeFunction(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
-{
-    return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
-}
-
-void Rasterizer::RasterizeTriangle(const Vertex& vertex1, const Vertex& vertex2, const Vertex& vertex3,
-    int tileMinY, int tileMaxY,
+void Rasterizer::RasterizeTriangle(
+    const Vertex& vertex0,
+    const Vertex& vertex1,
+    const Vertex& vertex2,
+    int tileMinY,
+    int tileMaxY,
     const PixelShaderCallback& pixelShader,
     std::vector<BordLigne>& longSide,
-    std::vector<BordLigne>& shortSide)
+    std::vector<BordLigne>& shortSide
+)
 {
+    ScreenVertex screenVertex1 = ToScreen(vertex0);
+    ScreenVertex screenVertex2 = ToScreen(vertex1);
+    ScreenVertex screenVertex3 = ToScreen(vertex2);
 
-    ScreenVertex sv1 = ToScreen(vertex1);
-    ScreenVertex sv2 = ToScreen(vertex2);
-    ScreenVertex sv3 = ToScreen(vertex3);
+    SortByY(
+        screenVertex1,
+        screenVertex2,
+        screenVertex3
+    );
 
-    SortByY(sv1, sv2, sv3);
+    WalkEdge(
+        screenVertex1,
+        screenVertex3,
+        longSide.data()
+    );
 
-    WalkEdge(sv1, sv3, longSide.data());
-    WalkEdge(sv1, sv2, shortSide.data());
-    WalkEdge(sv2, sv3, shortSide.data());
+    WalkEdge(
+        screenVertex1,
+        screenVertex2,
+        shortSide.data()
+    );
 
-    bool right = MiddleIsRight(sv1, sv2, sv3);
-    FillRows(sv1.y, sv3.y, right ? longSide.data() : shortSide.data(), right ? shortSide.data() : longSide.data(), tileMinY, tileMaxY, pixelShader);
+    WalkEdge(
+        screenVertex2,
+        screenVertex3,
+        shortSide.data()
+    );
+
+    const bool middleIsRight = MiddleIsRight(
+        screenVertex1,
+        screenVertex2,
+        screenVertex3
+    );
+
+    FillRows(
+        screenVertex1.y,
+        screenVertex3.y,
+        middleIsRight ? longSide.data() : shortSide.data(),
+        middleIsRight ? shortSide.data() : longSide.data(),
+        tileMinY,
+        tileMaxY,
+        pixelShader
+    );
 }
 
-
-void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const Vertex& v2, int minY, int maxY, const PixelShaderCallback& pixelShaderCallback)
+void Rasterizer::RasterizeTriangleBox(
+    const Vertex& vertex0,
+    const Vertex& vertex1,
+    const Vertex& vertex2,
+    int minY,
+    int maxY,
+    const PixelShaderCallback& pixelShaderCallback
+)
 {
-    //m_stats.trianglesRasterized++;
+    constexpr float epsilon = 0.000001f;
 
-    float invW0 = 1.0f / v0.position.w;
-    float invW1 = 1.0f / v1.position.w;
-    float invW2 = 1.0f / v2.position.w;
 
-    glm::vec2 A((v0.position.x * invW0 + 1.0f) * 0.5f * m_width, (1.0f - v0.position.y * invW0) * 0.5f * m_height);
-    glm::vec2 B((v1.position.x * invW1 + 1.0f) * 0.5f * m_width, (1.0f - v1.position.y * invW1) * 0.5f * m_height);
-    glm::vec2 C((v2.position.x * invW2 + 1.0f) * 0.5f * m_width, (1.0f - v2.position.y * invW2) * 0.5f * m_height);
+    if (std::abs(vertex0.position.w) < epsilon ||
+        std::abs(vertex1.position.w) < epsilon ||
+        std::abs(vertex2.position.w) < epsilon) {
+        return;
+    }
 
-    float area = EdgeFunction(A, B, C);
+    const float inverseW0 = 1.0f / vertex0.position.w;
+    const float inverseW1 = 1.0f / vertex1.position.w;
+    const float inverseW2 = 1.0f / vertex2.position.w;
 
-    // 1. BACKFACE CULLING : Ignore les faces cachées. Élimine instantanément le Z-Fighting du cube !
-    // ⚠️ ATTENTION : Si ton modèle devient invisible, change <= en >= (selon l'ordre de tes sommets OBJ)
-    if (std::abs(area) <= 0.00001f) return;
 
-    int minX_box = std::max(0, static_cast<int>(std::floor(std::min({ A.x, B.x, C.x }))));
-    int maxX_box = std::min(m_width - 1, static_cast<int>(std::ceil(std::max({ A.x, B.x, C.x }))));
-    int minY_box = std::max(0, static_cast<int>(std::floor(std::min({ A.y, B.y, C.y }))));
-    int maxY_box = std::min(m_height - 1, static_cast<int>(std::ceil(std::max({ A.y, B.y, C.y }))));
+    const glm::vec2 pointA(
+        (vertex0.position.x * inverseW0 + 1.0f) * 0.5f * m_width,
+        (1.0f - vertex0.position.y * inverseW0) * 0.5f * m_height
+    );
 
-    if (maxY_box < minY || minY_box >= maxY) return;
+    const glm::vec2 pointB(
+        (vertex1.position.x * inverseW1 + 1.0f) * 0.5f * m_width,
+        (1.0f - vertex1.position.y * inverseW1) * 0.5f * m_height
+    );
 
-    int startY = std::max(minY_box, minY);
-    int endY = std::min(maxY_box, maxY - 1);
+    const glm::vec2 pointC(
+        (vertex2.position.x * inverseW2 + 1.0f) * 0.5f * m_width,
+        (1.0f - vertex2.position.y * inverseW2) * 0.5f * m_height
+    );
 
-    // 2. TIE-BREAKING RULE (Règle Top-Left) : Détermine à qui appartient un pixel sur une bordure parfaite
-    auto isTopLeft = [](const glm::vec2& p1, const glm::vec2& p2) {
-        float dx = p2.x - p1.x;
-        float dy = p2.y - p1.y;
-        return (dy < 0.0f) || (dy == 0.0f && dx > 0.0f);
+    const float area = EdgeFunction(
+        pointA,
+        pointB,
+        pointC
+    );
+
+    // Ignore les triangles dégénérés.
+    if (std::abs(area) <= 0.00001f)    {
+        return;
+    }
+
+    const int minX = std::max(
+        0,
+        static_cast<int>(
+            std::floor(std::min({
+                pointA.x,
+                pointB.x,
+                pointC.x
+                }))
+            )
+    );
+
+    const int maxX = std::min(
+        m_width - 1,
+        static_cast<int>(
+            std::ceil(std::max({
+                pointA.x,
+                pointB.x,
+                pointC.x
+                }))
+            )
+    );
+
+    const int minYBox = std::max(
+        0,
+        static_cast<int>(
+            std::floor(std::min({
+                pointA.y,
+                pointB.y,
+                pointC.y
+                }))
+            )
+    );
+
+    const int maxYBox = std::min(
+        m_height - 1,
+        static_cast<int>(
+            std::ceil(std::max({
+                pointA.y,
+                pointB.y,
+                pointC.y
+                }))
+            )
+    );
+
+    // Aucun pixel dans la zone de rendu.
+    if (minX > maxX ||
+        minYBox > maxYBox ||
+        maxYBox < minY ||
+        minYBox >= maxY) {
+        return;
+    }
+
+    const int startY = std::max(minYBox, minY);
+    const int endY = std::min(maxYBox, maxY - 1);
+
+    const auto isTopLeft = [](const glm::vec2& point1, const glm::vec2& point2) {
+            const float deltaX = point2.x - point1.x;
+            const float deltaY = point2.y - point1.y;
+
+            return (deltaY < 0.0f) || (deltaY == 0.0f && deltaX > 0.0f);
         };
-    bool bias0 = isTopLeft(B, C);
-    bool bias1 = isTopLeft(C, A);
-    bool bias2 = isTopLeft(A, B);
 
-    // Pré-calcul du Z (qui n'a pas besoin de correction de perspective)
-    float z0 = v0.position.z * invW0, z1 = v1.position.z * invW1, z2 = v2.position.z * invW2;
+    const bool bias0 = isTopLeft(pointB, pointC);
+    const bool bias1 = isTopLeft(pointC, pointA);
+    const bool bias2 = isTopLeft(pointA, pointB);
 
-    for (int y = startY; y <= endY; y++) {
-        for (int x = minX_box; x <= maxX_box; x++) {
-            glm::vec2 p(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f);
+    const float z0 = vertex0.position.z * inverseW0;
+    const float z1 = vertex1.position.z * inverseW1;
+    const float z2 = vertex2.position.z * inverseW2;
 
-            // On utilise EdgeFunction au lieu des divisions pour tester l'inclusion parfaite
-            float w0 = EdgeFunction(B, C, p);
-            float w1 = EdgeFunction(C, A, p);
-            float w2 = EdgeFunction(A, B, p);
+    for (int y = startY; y <= endY; ++y) {
+        for (int x = minX; x <= maxX; ++x) {
+            const glm::vec2 pixelPosition(static_cast<float>(x) + 0.5f, static_cast<float>(y) + 0.5f);
 
-            // Application stricte de la règle (bouche 100% des trous)
-            if (w0 < 0 || (w0 == 0.0f && !bias0)) continue;
-            if (w1 < 0 || (w1 == 0.0f && !bias1)) continue;
-            if (w2 < 0 || (w2 == 0.0f && !bias2)) continue;
-
-            m_stats.pixelsProcessed.fetch_add(
-                1,
-                std::memory_order_relaxed
+            const float edge0 = EdgeFunction(
+                pointB,
+                pointC,
+                pixelPosition
             );
 
-            // Normalisation pour l'interpolation
-            float l[3] = { w0 / area, w1 / area, w2 / area };
-            float z = Mix3(z0, z1, z2, l);
-            int index = y * m_width + x;
+            const float edge1 = EdgeFunction(
+                pointC,
+                pointA,
+                pixelPosition
+            );
 
-            if (!m_depthTestEnabled || z < m_zbuffer[index]) {
+            const float edge2 = EdgeFunction(
+                pointA,
+                pointB,
+                pixelPosition
+            );
 
-                // 3. CORRECTION DE PERSPECTIVE : Répare les textures et couleurs déformées
-                float invW_pixel = Mix3(invW0, invW1, invW2, l);
-                float w = 1.0f / invW_pixel;
+            if (edge0 < 0.0f || (edge0 == 0.0f && !bias0)) {
+                continue;
+            }
 
-                BordLigne pixel{};
+            if (edge1 < 0.0f || (edge1 == 0.0f && !bias1)) {
+                continue;
+            }
 
-                // Coordonnées du pixel sur l'écran
-                pixel.x = x;
+            if (edge2 < 0.0f || (edge2 == 0.0f && !bias2)) {
+                continue;
+            }
 
-                // Profondeur
-                pixel.z = z;
+            m_stats.pixelsProcessed.fetch_add(1, std::memory_order_relaxed);
 
-                // Inverse de W
-                pixel.invW = invW_pixel;
+            const float weights[3] =
+            {
+                edge0 / area,
+                edge1 / area,
+                edge2 / area
+            };
 
-                // Application du ratio W sur les UVs
-                pixel.u = Mix3(v0.uv.x * invW0, v1.uv.x * invW1, v2.uv.x * invW2, l) * w;
-                pixel.v = Mix3(v0.uv.y * invW0, v1.uv.y * invW1, v2.uv.y * invW2, l) * w;
+            const float z = Mix3(
+                z0,
+                z1,
+                z2,
+                weights
+            );
 
-                // Application du ratio W sur les Couleurs
-                pixel.r = Mix3(v0.r * invW0, v1.r * invW1, v2.r * invW2, l) * w;
-                pixel.g = Mix3(v0.g * invW0, v1.g * invW1, v2.g * invW2, l) * w;
-                pixel.b = Mix3(v0.b * invW0, v1.b * invW1, v2.b * invW2, l) * w;
+            const int index = y * m_width + x;
 
-                // Application du ratio W sur les Normales et Positions
-                pixel.nx = Mix3(v0.normal.x * invW0, v1.normal.x * invW1, v2.normal.x * invW2, l) * w;
-                pixel.ny = Mix3(v0.normal.y * invW0, v1.normal.y * invW1, v2.normal.y * invW2, l) * w;
-                pixel.nz = Mix3(v0.normal.z * invW0, v1.normal.z * invW1, v2.normal.z * invW2, l) * w;
+            if (m_depthTestEnabled && z >= m_zbuffer[index]) {
+                continue;
+            }
 
-                pixel.worldPos.x = Mix3(v0.worldPos.x * invW0, v1.worldPos.x * invW1, v2.worldPos.x * invW2, l) * w;
-                pixel.worldPos.y = Mix3(v0.worldPos.y * invW0, v1.worldPos.y * invW1, v2.worldPos.y * invW2, l) * w;
-                pixel.worldPos.z = Mix3(v0.worldPos.z * invW0, v1.worldPos.z * invW1, v2.worldPos.z * invW2, l) * w;
+            const float inverseWPixel = Mix3(
+                inverseW0,
+                inverseW1,
+                inverseW2,
+                weights
+            );
 
-                // Interpolation de l'alpha.
-                pixel.alpha = Mix3(
-                    v0.alpha * invW0,
-                    v1.alpha * invW1,
-                    v2.alpha * invW2,
-                    l
-                ) * w;
+            if (std::abs(inverseWPixel) < epsilon) {
+                continue;
+            }
 
-                // Calcul de la couleur finale du fragment.
-                uint32_t finalColor = pixelShaderCallback(pixel);
+            const float w = 1.0f / inverseWPixel;
 
-                // Mélange de la couleur avec le framebuffer.
-                bool pixelWritten = WritePixelColor(index, finalColor);
+            BordLigne pixel{};
 
-                // Les fragments transparents ne modifient pas le Z-Buffer
-                // si l'écriture de profondeur est désactivée.
-                if (pixelWritten && m_depthWriteEnabled)
-                {
-                    m_zbuffer[index] = z;
-                }
+            pixel.x = x;
+            pixel.z = z;
+            pixel.invW = inverseWPixel;
+
+            pixel.u = Mix3(
+                vertex0.uv.x * inverseW0,
+                vertex1.uv.x * inverseW1,
+                vertex2.uv.x * inverseW2,
+                weights
+            ) * w;
+
+            pixel.v = Mix3(
+                vertex0.uv.y * inverseW0,
+                vertex1.uv.y * inverseW1,
+                vertex2.uv.y * inverseW2,
+                weights
+            ) * w;
+
+            pixel.r = Mix3(
+                vertex0.r * inverseW0,
+                vertex1.r * inverseW1,
+                vertex2.r * inverseW2,
+                weights
+            ) * w;
+
+            pixel.g = Mix3(
+                vertex0.g * inverseW0,
+                vertex1.g * inverseW1,
+                vertex2.g * inverseW2,
+                weights
+            ) * w;
+
+            pixel.b = Mix3(
+                vertex0.b * inverseW0,
+                vertex1.b * inverseW1,
+                vertex2.b * inverseW2,
+                weights
+            ) * w;
+
+            pixel.nx = Mix3(
+                vertex0.normal.x * inverseW0,
+                vertex1.normal.x * inverseW1,
+                vertex2.normal.x * inverseW2,
+                weights
+            ) * w;
+
+            pixel.ny = Mix3(
+                vertex0.normal.y * inverseW0,
+                vertex1.normal.y * inverseW1,
+                vertex2.normal.y * inverseW2,
+                weights
+            ) * w;
+
+            pixel.nz = Mix3(
+                vertex0.normal.z * inverseW0,
+                vertex1.normal.z * inverseW1,
+                vertex2.normal.z * inverseW2,
+                weights
+            ) * w;
+
+            pixel.worldPos.x = Mix3(
+                vertex0.worldPos.x * inverseW0,
+                vertex1.worldPos.x * inverseW1,
+                vertex2.worldPos.x * inverseW2,
+                weights
+            ) * w;
+
+            pixel.worldPos.y = Mix3(
+                vertex0.worldPos.y * inverseW0,
+                vertex1.worldPos.y * inverseW1,
+                vertex2.worldPos.y * inverseW2,
+                weights
+            ) * w;
+
+            pixel.worldPos.z = Mix3(
+                vertex0.worldPos.z * inverseW0,
+                vertex1.worldPos.z * inverseW1,
+                vertex2.worldPos.z * inverseW2,
+                weights
+            ) * w;
+
+            pixel.alpha = Mix3(
+                vertex0.alpha * inverseW0,
+                vertex1.alpha * inverseW1,
+                vertex2.alpha * inverseW2,
+                weights
+            ) * w;
+
+            const uint32_t finalColor =
+                pixelShaderCallback
+                ? pixelShaderCallback(pixel)
+                : 0xFFFFFFFFu;
+
+            const bool pixelWritten = WritePixelColor(
+                index,
+                finalColor
+            );
+
+            // Les fragments transparents ne modifient pas
+            // le Z-buffer lorsqu'ils ne sont pas écrits.
+            if (pixelWritten && m_depthWriteEnabled)
+            {
+                m_zbuffer[index] = z;
             }
         }
     }
@@ -494,89 +784,100 @@ void Rasterizer::RasterizeTriangleBox(const Vertex& v0, const Vertex& v1, const 
 
 
 void Rasterizer::DrawSubImage2D(
-    int screenX, int screenY,
-    int width, int height,
+    int screenX,
+    int screenY,
+    int width,
+    int height,
     const Texture& texture,
-    int srcX, int srcY,
-    uint32_t textColor)
+    int srcX,
+    int srcY,
+    uint32_t textColor
+)
 {
-    int texW = texture.GetWidth();
-    int texH = texture.GetHeight();
+    const int textureWidth = texture.GetWidth();
+    const int textureHeight = texture.GetHeight();
 
-    uint8_t textA = (textColor >> 24) & 0xFF;
-    uint8_t textR = (textColor >> 16) & 0xFF;
-    uint8_t textG = (textColor >> 8) & 0xFF;
-    uint8_t textB = textColor & 0xFF;
+    const uint8_t textAlpha = (textColor >> 24) & 0xFF;
+    const uint8_t textRed = (textColor >> 16) & 0xFF;
+    const uint8_t textGreen = (textColor >> 8) & 0xFF;
+    const uint8_t textBlue = textColor & 0xFF;
 
-    float textAlpha = textA / 255.0f;
+    const float textAlphaNormalized = textAlpha / 255.0f;
 
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            int destX = screenX + x;
-            int destY = screenY + y;
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+            const int destinationX = screenX + x;
+            const int destinationY = screenY + y;
 
-            if (destX < 0 || destX >= m_width ||
-                destY < 0 || destY >= m_height)
+            // Vérification des coordonnées écran.
+            if (destinationX < 0 || destinationX >= m_width || destinationY < 0 || destinationY >= m_height) {
                 continue;
+            }
 
-            int texX = srcX + x;
-            int texY = srcY + y;
+            const int textureX = srcX + x;
+            const int textureY = srcY + y;
 
-            if (texX < 0 || texX >= texW ||
-                texY < 0 || texY >= texH)
+            // Vérification des coordonnées texture.
+            if (textureX < 0 || textureX >= textureWidth || textureY < 0 || textureY >= textureHeight) {
                 continue;
+            }
 
-            uint32_t srcColor = texture.GetPixel(texX, texY);
+            const uint32_t sourceColor = texture.GetPixel(textureX, textureY);
 
-            uint8_t a = (srcColor >> 24) & 0xFF;
-            uint8_t r = (srcColor >> 16) & 0xFF;
-            uint8_t g = (srcColor >> 8) & 0xFF;
-            uint8_t b = srcColor & 0xFF;
+            const uint8_t sourceAlpha = (sourceColor >> 24) & 0xFF;
+            const uint8_t sourceRed = (sourceColor >> 16) & 0xFF;
+            const uint8_t sourceGreen = (sourceColor >> 8) & 0xFF;
+            const uint8_t sourceBlue = sourceColor & 0xFF;
 
             // Blanc = caractère, transparent = arrière-plan.
-            float luminance = (r + g + b) / (3.0f * 255.0f);
-            float coverage = luminance * (a / 255.0f);
-            float alpha = coverage * textAlpha;
+            const float luminance = (sourceRed + sourceGreen + sourceBlue) / (3.0f * 255.0f);
 
-            if (alpha <= 0.001f)
+            const float coverage = luminance * (sourceAlpha / 255.0f);
+
+            const float alpha = coverage * textAlphaNormalized;
+
+            if (alpha <= 0.001f) {
                 continue;
+            }
 
-            int index = destY * m_width + destX;
+            const int index = destinationY * m_width + destinationX;
 
-            uint32_t dstColor = m_framebuffer[index];
+            const uint32_t destinationColor = m_framebuffer[index];
 
-            uint8_t dstR = (dstColor >> 16) & 0xFF;
-            uint8_t dstG = (dstColor >> 8) & 0xFF;
-            uint8_t dstB = dstColor & 0xFF;
+            const uint8_t destinationRed = (destinationColor >> 16) & 0xFF;
 
-            auto Blend = [alpha](uint8_t src, uint8_t dst)
-                {
+            const uint8_t destinationGreen = (destinationColor >> 8) & 0xFF;
+
+            const uint8_t destinationBlue = destinationColor & 0xFF;
+
+            const auto blendChannel = [alpha](uint8_t source, uint8_t destination) {
                     return static_cast<uint8_t>(
-                        src * alpha + dst * (1.0f - alpha) + 0.5f
+                        source * alpha +
+                        destination * (1.0f - alpha) +
+                        0.5f
                         );
                 };
 
-            uint8_t finalR = Blend(textR, dstR);
-            uint8_t finalG = Blend(textG, dstG);
-            uint8_t finalB = Blend(textB, dstB);
+            const uint8_t finalRed = blendChannel(
+                textRed,
+                destinationRed
+            );
+
+            const uint8_t finalGreen = blendChannel(
+                textGreen,
+                destinationGreen
+            );
+
+            const uint8_t finalBlue = blendChannel(
+                textBlue,
+                destinationBlue
+            );
 
             m_framebuffer[index] =
                 (0xFFu << 24) |
-                (finalR << 16) |
-                (finalG << 8) |
-                finalB;
+                (static_cast<uint32_t>(finalRed) << 16) |
+                (static_cast<uint32_t>(finalGreen) << 8) |
+                static_cast<uint32_t>(finalBlue);
         }
     }
-}
-
-void Rasterizer::SetAlphaBlendingEnabled(bool enabled)
-{
-    m_alphaBlendingEnabled = enabled;
-}
-
-void Rasterizer::SetDepthWriteEnabled(bool enabled)
-{
-    m_depthWriteEnabled = enabled;
 }

@@ -1,140 +1,299 @@
 #include "Scene.h"
 #include "SceneManager.h"
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <limits>
+#include <glm/gtc/constants.hpp>
+
 
 Scene::Scene(SceneManager& sceneManager)
 {
     m_sceneCamera = glm::vec3(0.0f, 0.0f, 1.0f);
-    bool isPerspective = true;
-    float aspect = (float)sceneManager.GetWidth() / (float)sceneManager.GetHeight();
-    float zNear = 0.1f;
-    float zFar = 100.0f;
+
     m_sceneTime = 0.0f;
+
+    // Le SceneManager est conservé dans le constructeur
+    // pour respecter l'interface actuelle de Scene.
+    (void)sceneManager;
 }
 
-void Scene::AddKeyframe(float* target, float t, float v, bool smoothing)
+
+void Scene::AddKeyframe(float* target, float time, float value, bool smoothing)
 {
-    keys[target].push_back({ t, v, smoothing });
-    std::sort(keys[target].begin(), keys[target].end(), [](const Key& a, const Key& b) {
-        return a.t < b.t;
-        });
+    if (target == nullptr) {
+        return;
+    }
+
+    if (!std::isfinite(time) || !std::isfinite(value)) {
+        return;
+    }
+
+    std::vector<Key>& keyframes = keys[target];
+
+    auto keyframePosition = std::lower_bound(keyframes.begin(), keyframes.end(), time, [](const Key& keyframe, float targetTime)
+        {
+            return keyframe.t < targetTime;
+        }
+    );
+
+    if (keyframePosition != keyframes.end() && keyframePosition->t == time) {
+        keyframePosition->v = value;
+        keyframePosition->smoothing = smoothing;
+        return;
+    }
+
+    // Les keyframes restent triées chronologiquement.
+    keyframes.insert(keyframePosition, { time, value, smoothing });
 }
+
+float Scene::GetSceneTime() const
+{
+    return m_sceneTime;
+}
+
 
 void Scene::Update(float deltaTime)
 {
+    if (!std::isfinite(deltaTime)) {
+        return;
+    }
+
     m_sceneTime += deltaTime;
 
-    for (const auto& [ptr, k] : keys)
-    {
-        float v = *ptr;
-        if (k.empty())
-            return;
-        if (k.size() == 1 && m_sceneTime >= k[0].t)
-            v = k[0].v;
-        if (m_sceneTime < k.front().t)
-            v = k.front().v;
-        if (m_sceneTime >= k.back().t)
-            v = k.back().v;
-        for (int i = 1; i < k.size(); ++i)
-        {
-            if (k[i].t >= m_sceneTime)
-            {
-                float mu = (m_sceneTime - k[i - 1].t) / (k[i].t - k[i - 1].t);
-                if (k[i].smoothing)
-                {
-                    mu = -glm::cos(mu * glm::pi<float>()) * 0.5f + 0.5f;
-                }
-                v = (1 - mu) * k[i - 1].v + mu * k[i].v;
-                break;
-            }
+    for (const auto& [target, keyframes] : keys) {
+        if (target == nullptr) {
+            continue;
         }
-        *ptr = v;
+
+        if (keyframes.empty()) {
+            continue;
+        }
+
+        if (keyframes.size() == 1) {
+            if (m_sceneTime >= keyframes.front().t)
+                *target = keyframes.front().v;
+
+            continue;
+        }
+
+        // Avant la première keyframe.
+        if (m_sceneTime < keyframes.front().t) {
+            *target = keyframes.front().v;
+            continue;
+        }
+
+        // Après la dernière keyframe.
+        if (m_sceneTime >= keyframes.back().t) {
+            *target = keyframes.back().v;
+            continue;
+        }
+
+        auto nextKeyframe = std::upper_bound(keyframes.begin(), keyframes.end(), m_sceneTime, [](float currentTime, const Key& keyframe)
+            {
+                return currentTime < keyframe.t;
+            }
+        );
+
+        if (nextKeyframe == keyframes.begin() || nextKeyframe == keyframes.end()) {
+            continue;
+        }
+
+        const Key& keyframeB = *nextKeyframe;
+        const Key& keyframeA = *(nextKeyframe - 1);
+
+        const float duration = keyframeB.t - keyframeA.t;
+
+        if (duration <= 0.0f) {
+            *target = keyframeB.v;
+            continue;
+        }
+
+        float interpolation = (m_sceneTime - keyframeA.t) / duration;
+
+        if (keyframeB.smoothing) {
+            interpolation =
+                -std::cos(interpolation * glm::pi<float>()) * 0.5f + 0.5f;
+        }
+
+        *target = (1.0f - interpolation) * keyframeA.v + interpolation * keyframeB.v;
     }
 }
+
+
+void Scene::OnExit()
+{}
 
 Camera& Scene::GetCamera()
 {
     return m_sceneCamera;
 }
 
-void Scene::GenerateTerrain(int size, float cellSize) {
+
+void Scene::GenerateTerrain(int size, float cellSize)
+{
     m_terrainVertices.clear();
 
+    if (size <= 0 || !std::isfinite(cellSize) || cellSize <= 0.0f) {
+        std::cerr << "[Erreur] Parametres invalides pour GenerateTerrain."
+            << std::endl;
 
-    // On génère size * size cases (soit size * size * 2 triangles)
+        return;
+    }
+
+    const size_t gridSize = static_cast<size_t>(size);
+
+    if (gridSize > std::numeric_limits<size_t>::max() / gridSize) {
+        return;
+    }
+
+    const size_t cellCount = gridSize * gridSize;
+
+    if (cellCount > m_terrainVertices.max_size() / 6) {
+        return;
+    }
+
+    m_terrainVertices.reserve(cellCount * 6);
+
+    m_gridSize = size;
+    m_cellSize = cellSize;
+
+    const float terrainOffset = (size * cellSize) / 2.0f;
+
+    constexpr float red = 0.1f;
+    constexpr float green = 0.4f;
+    constexpr float blue = 0.8f;
+
     for (int z = 0; z < size; ++z) {
         for (int x = 0; x < size; ++x) {
+            const float x0 = x * cellSize - terrainOffset;
+            const float z0 = z * cellSize - terrainOffset;
 
-            // Calcul des positions en X et Z
-            float x0 = x * cellSize - (size * cellSize) / 2.0f;
-            float z0 = z * cellSize - (size * cellSize) / 2.0f;
-            float x1 = (x + 1) * cellSize - (size * cellSize) / 2.0f;
-            float z1 = (z + 1) * cellSize - (size * cellSize) / 2.0f;
+            const float x1 = (x + 1) * cellSize - terrainOffset;
+            const float z1 = (z + 1) * cellSize - terrainOffset;
 
-            // UV mapping pour répéter une texture d'herbe ou de terre
-            float u0 = (float)x / size, v0 = (float)z / size;
-            float u1 = (float)(x + 1) / size, v1 = (float)(z + 1) / size;
+            // Coordonnées UV.
+            const float u0 = static_cast<float>(x) / size;
+            const float v0 = static_cast<float>(z) / size;
 
-            //// Les 4 coins de la case (Y = 0 par défaut, normales pointant vers le haut)
-            //Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), 1,1,1, {u0, v0}, {0, 1, 0} }; // Top-Left
-            //Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), 1,1,1, {u1, v0}, {0, 1, 0} }; // Top-Right
-            //Vertex vBL = { glm::vec4(x0, 0.0f, z1, 1.0f), 1,1,1, {u0, v1}, {0, 1, 0} }; // Bottom-Left
-            //Vertex vBR = { glm::vec4(x1, 0.0f, z1, 1.0f), 1,1,1, {u1, v1}, {0, 1, 0} }; // Bottom-Right
+            const float u1 = static_cast<float>(x + 1) / size;
+            const float v1 = static_cast<float>(z + 1) / size;
 
-            float r = 0.1f, g = 0.4f, b = 0.8f; // Bleu eau
+            // Sommets de la case.
+            const Vertex vertexTopLeft =
+            {
+                glm::vec4(x0, 0.0f, z0, 1.0f),
+                red, green, blue,
+                { u0, v0 },
+                { 0.0f, 1.0f, 0.0f }
+            };
 
-            Vertex vTL = { glm::vec4(x0, 0.0f, z0, 1.0f), r, g, b, {u0, v0}, {0, 1, 0} };
-            Vertex vTR = { glm::vec4(x1, 0.0f, z0, 1.0f), r, g, b, {u1, v0}, {0, 1, 0} };
-            Vertex vBL = { glm::vec4(x0, 0.0f, z1, 1.0f), r, g, b, {u0, v1}, {0, 1, 0} };
-            Vertex vBR = { glm::vec4(x1, 0.0f, z1, 1.0f), r, g, b, {u1, v1}, {0, 1, 0} };
+            const Vertex vertexTopRight =
+            {
+                glm::vec4(x1, 0.0f, z0, 1.0f),
+                red, green, blue,
+                { u1, v0 },
+                { 0.0f, 1.0f, 0.0f }
+            };
 
-            // Triangle 1
-            m_terrainVertices.push_back(vTL);
-            m_terrainVertices.push_back(vBL);
-            m_terrainVertices.push_back(vTR);
+            const Vertex vertexBottomLeft =
+            {
+                glm::vec4(x0, 0.0f, z1, 1.0f),
+                red, green, blue,
+                { u0, v1 },
+                { 0.0f, 1.0f, 0.0f }
+            };
 
-            // Triangle 2
-            m_terrainVertices.push_back(vTR);
-            m_terrainVertices.push_back(vBL);
-            m_terrainVertices.push_back(vBR);
+            const Vertex vertexBottomRight =
+            {
+                glm::vec4(x1, 0.0f, z1, 1.0f),
+                red, green, blue,
+                { u1, v1 },
+                { 0.0f, 1.0f, 0.0f }
+            };
+
+            // Premier triangle.
+            m_terrainVertices.push_back(vertexTopLeft);
+            m_terrainVertices.push_back(vertexBottomLeft);
+            m_terrainVertices.push_back(vertexTopRight);
+
+            // Deuxième triangle.
+            m_terrainVertices.push_back(vertexTopRight);
+            m_terrainVertices.push_back(vertexBottomLeft);
+            m_terrainVertices.push_back(vertexBottomRight);
         }
     }
 }
 
-bool Scene::LoadGameObject(GameObject& go, const char* objPath, const char* texturePath, const char* mtlDir)
-{
-    Get_TOBJ(objPath, go.objModel, mtlDir);
-    go.loaded = !go.objModel.GetVertices().empty();
 
-    if (!go.loaded) {
-        std::cerr << "[Erreur] Impossible de charger le modele OBJ : " << objPath << std::endl;
+bool Scene::LoadGameObject(GameObject& gameObject, const char* objPath, const char* texturePath, const char* mtlDir)
+{
+    if (objPath == nullptr){
+        std::cerr << "[Erreur] Chemin OBJ invalide." << std::endl;
         return false;
     }
 
-    std::cout << "[Info] OBJ Charge : " << objPath << " (" << go.objModel.GetVertices().size() << " sommets)" << std::endl;
+    Get_TOBJ(objPath, gameObject.objModel, mtlDir);
 
-    if (texturePath && !go.objModel.GetMaterial().hasTexture) {
-        if (go.objModel.GetMaterial().texture.LoadFromFile(texturePath)) {
-            go.objModel.GetMaterial().hasTexture = true;
-            std::cout << "[Info] Texture chargee : " << texturePath << std::endl;
+    gameObject.loaded = !gameObject.objModel.GetVertices().empty();
+
+    if (!gameObject.loaded){
+        std::cerr << "[Erreur] Impossible de charger le modele OBJ : "
+            << objPath << std::endl;
+
+        return false;
+    }
+
+    if (texturePath != nullptr && !gameObject.objModel.GetMaterial().hasTexture) {
+        if (gameObject.objModel.GetMaterial().texture.LoadFromFile(texturePath)) {
+            gameObject.objModel.GetMaterial().hasTexture = true;
+
+            std::cout << "[Info] Texture chargee : "
+                << texturePath
+                << std::endl;
         }
         else {
-            std::cerr << "[Erreur] Echec chargement texture : " << texturePath << std::endl;
+            std::cerr << "[Erreur] Echec chargement texture : "
+                << texturePath
+                << std::endl;
         }
     }
 
-    go.objModel.GetMaterial().diffuse = glm::vec3(1.0f);
+    gameObject.objModel.GetMaterial().diffuse = glm::vec3(1.0f);
 
-    go.gpuVertices.clear();
-    go.gpuVertices.reserve(go.objModel.GetVertices().size());
-    for (const auto& src : go.objModel.GetVertices()) {
-        go.gpuVertices.push_back({
-            src.position, src.r, src.g, src.b,
-            {src.tx, src.ty}, {src.nx, src.ny, src.nz}
-            });
+    gameObject.gpuVertices.clear();
+
+    gameObject.gpuVertices.reserve(
+        gameObject.objModel.GetVertices().size()
+    );
+
+    for (const auto& sourceVertex : gameObject.objModel.GetVertices()) {
+        gameObject.gpuVertices.push_back(
+            {
+                sourceVertex.position,
+                sourceVertex.r,
+                sourceVertex.g,
+                sourceVertex.b,
+                { sourceVertex.tx, sourceVertex.ty },
+                { sourceVertex.nx, sourceVertex.ny, sourceVertex.nz }
+            }
+        );
     }
+    gameObject.UpdateTransform();
 
-    go.UpdateTransform();
     return true;
+}
+
+
+void Scene::SetParticlesFrozen(bool frozen)
+{
+    m_particlesFrozen = frozen;
+}
+
+
+void Scene::SetEditMode(bool editMode)
+{
+    m_isEditMode = editMode;
+
+    SetParticlesFrozen(editMode);
 }

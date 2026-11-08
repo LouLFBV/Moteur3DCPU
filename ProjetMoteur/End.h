@@ -21,17 +21,9 @@ public:
     ) override;
     void OnExit() override;
 
-    void SetParticlesFrozen(bool frozen);
-    void SetEditMode(bool editMode);
-
-    bool m_isEditMode = false;
 
 private:
-    float m_time = 0.0f;
     float m_hudAnimationTime = 0.0f;
     float m_waterTimer = 0.0f;
-    bool m_particlesFrozen = false;
-
-    // Émetteur de particules pour l'explosion Burst Ring
     ParticleEmitter m_magicEmitter;
 };
